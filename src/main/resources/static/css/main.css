@@ -1,0 +1,46 @@
+.container {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.title {
+    font-family: 'Roboto', serif;
+    font-size: 36px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.body {
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.labelText {
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    text-align: center;
+}
+
+
+.button {
+    border-radius: 5px;
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    color: #ffffff;
+    background: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}

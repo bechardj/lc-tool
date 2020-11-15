@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lyrasis Document Capture</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Roboto">
+</head>
+<body>
+<div class="container">
+    <h1 class="title">Lyrasis Document Capture</h1>
+    <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> Press a keyboard key after drawing the bounding box to label the box. <br> After labeling all letters on the page, use the save button to save. <a href="/help">Help Section</a></p>
+</div>
+
+<div class="container" align="center">
+    <div style="display: inline-block"> <button class = "button" id = "close" type="button">Close</button> </div>
+</div>
+
+<div class="container" align="center">
+    <div style="display: inline-block"> <button class = "button" id = "undo" type="button">Undo</button> </div>
+    <div style="display: inline-block"> <button class = "button" id = "redo" type="button">Redo</button> </div>
+</div>
+
+<div class="container" align="center">
+    <div style="display: inline-block"> <button class = "button" id = "letterCap" type="button">Letter Capture Mode</button> </div>
+    <div style="display: inline-block"> <button class = "button" id = "wordCap" type="button">Word Capture Mode</button> </div>
+    <div style="display: inline-block"> <button class = "button" id = "lineCap" type="button">Line Capture Mode</button> </div>
+</div>
+<div class="container">
+    <p id="captureMode" class="body"> </p>
+</div>
+<span hidden id="imageId" th:text="${imageId}"></span>
+<canvas id="mainCanvas" class="container"></canvas>
+<div class="container" align="center">
+    <input type="checkbox" id="completed" name="completed" value="Completed">
+    <label for="completed">Mark As Completed</label><br>
+</div>
+<div class="container">
+    <p hidden id="saveText" class="body"> </p>
+</div>
+<button class = "button" id = "save" type="button">Save</button>
+<button class = "button" id = "download" type="button">Download Job Info</button>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="/js/canvas.js"></script>
+</body>
+</html>

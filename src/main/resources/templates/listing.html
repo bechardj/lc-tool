@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Lyrasis Capture File Listing</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1 class = "title">Lyrasis Capture File Listing</h1>
+    <p class = "body">Note that recently edited files will show at the bottom of the list with the thought they are already processed.</p>
+    <p class = "body">Pagination/Search is not yet supported, so you can carefully copy folders out of your output directory if you want to clean this listing up.</p>
+    <table class="table table-striped">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col">Image Name</th>
+            <th scope="col">File Last Modified</th>
+            <th scope="col">Status</th>
+            <th scope="col">URL</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="listing : ${imageJobListings}">
+            <td th:text="${listing.fileName}">file name</td>
+            <td th:text="${listing.dateAdded}"></td>
+            <td th:text="${listing.status}"></td>
+            <td> <a th:href="${listing.url}">Open</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
