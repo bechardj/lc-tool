@@ -8,7 +8,7 @@ This application requires Java 8 or newer to run. You can get an installer for t
 Functionality is primarily tested under Google Chrome and Safari. You should make sure you are on a recent web browser for best results.
 
 ### Setting up
-Download the latest lyrasis-x.y.z.zip release from GitHub. Extract it somewhere convenient.
+Download the latest lyrasis-x.y.z.zip release from GitHub. This should be visible in the "Release" section on the right of this page. Extract it somewhere convenient.
 
 Included in the zip file are 4 files:
 
@@ -17,7 +17,7 @@ Included in the zip file are 4 files:
 * An `ingest` directory
 * An `output` directory
 
-First, put the program `.jar` file in a convenient location, along with the `application.properties` file. Likewise, move the ingest and output directories somewhere that makes sense. Their purpose will be explained later, but it might make sense to store them separate from the `.jar` file depending on how your file organization preferences.
+First, put the program `.jar` file in a convenient location, along with the `application.properties` file. Likewise, move the ingest and output directories somewhere that makes sense. Their purpose will be explained later, but it might make sense to store them separate from the `.jar` file depending on your file organization preferences.
 
 Open `application.properties` file in a text editor. Here you will configure the parameters for the application. The `image.ingest.path` is the full absolute path the `ingest` directory from earlier. On UNIX-like systems, this might look like:
 
@@ -59,7 +59,7 @@ If you see any errors, double check your paths in the `application.properties` f
 
 ### Adding Images To 'Capture'
 
-All you need to do is add image files with the desired naming convention to the ingest directory. Image files should have the extension "jpeg", "jpg", or "png". If you have a pdf, you should export it to separate images (use a tool like `pdfimages`), When you load `http://localhost:8091` in your browser, all image files in this folder will be copied over to a directory with the same file name in the output folder. An `imageJob.json` file will also be generated. This contains the raw data from the capture. JSON is easily interchanged between Java, JavaScript, Python, etc.- so it makes sense as a means to store it.  When you open an image in the web app, image data will be loaded from this `imageJob.json` file.
+All you need to do is add image files with the desired naming convention to the ingest directory. Image files should have the extension "jpeg", "jpg", or "png". If you have a pdf, you should export it to separate images (use a tool like `pdfimages`), When you load `http://localhost:8091` in your browser, all image files in this folder will be copied over to a directory with the same file name in the output folder. An `imageJob.json` file will also be generated. This contains the raw data from the capture. JSON is easily interchanged between Java, JavaScript, Python, etc.- so it makes sense as a means to store it in this format.  When you open an image in the web app, image data will be loaded from this `imageJob.json` file.
 
 An `archive` directory is also created. Every time you save the capture data in the web app, a backup of the previous `imageJob.json` is stored here. Think of it as an insurance policy in case something goes wrong. 
 
