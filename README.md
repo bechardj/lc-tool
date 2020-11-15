@@ -39,11 +39,11 @@ You can change this as needed, but the default is probably fine.
 ### Running the application
 Open up your terminal and navigate to the directory where the `.jar` file is installed.
 
-To run the application, you will need to execute a command similar to the following on UNIX:
+To run the application, you will need to execute a command similar to the following on UNIX (all one line):
 
 `java -jar lyrasis-0.0.1.jar --spring.config.location=/Users/joey/src/lyrasis/application.properties`
 
-On Windows
+On Windows (all one line):
 
 `java -jar lyrasis-0.0.1.jar --spring.config.location=C:\Users\Joey\Documents\application.properties`
 
