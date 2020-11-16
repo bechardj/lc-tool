@@ -1,4 +1,6 @@
 # Lyrasis Document Capture
+Video Setup:
+https://youtu.be/E372bsYnbxc
 ## Installation
 ### Prerequisites
 #### Java
