@@ -135,7 +135,7 @@ public class PrimaryImageIO {
 
     /**
      * Read image job files from the output directory
-     * @return List of image job files from the ouput directory
+     * @return List of image job files from the output directory
      */
     public List<ImageJobFile> getImageJobFiles(){
         List<ImageJobFile> imageJobFiles = new ArrayList<>();

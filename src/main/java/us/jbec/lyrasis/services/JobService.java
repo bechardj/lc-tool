@@ -87,7 +87,7 @@ public class JobService {
                 return imageJobFile.getImageJob();
             }
         }
-        LOG.error("Image job with id: {} not found in oytput directory", id);
+        LOG.error("Image job with id: {} not found in output directory", id);
         return null;
     }
 

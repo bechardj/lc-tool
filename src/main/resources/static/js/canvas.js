@@ -1,3 +1,13 @@
+/**
+ * Do I think it was a good idea to put everything in a monolithic JS file? No.
+ * For the sake of readability, there's a lot of project restructuring & organization
+ * that could be done to enhance this code. There is also bad-practice here as well.
+ *
+ * The intent was to develop a prototype ASAP. Feel free to contribute, just make sure you
+ * don't break existing behavior/functionality.
+ *
+ */
+
 console.log("Hello!");
 
 const canvas = document.getElementById("mainCanvas");
@@ -106,7 +116,7 @@ function dragHandler(event) {
             const slope = function (x1, y1, x2, y2) {
                 return (y2 - y1) / ((x2 - x1) !== 0 ? (x2 - x1) : 0.000001);
             };
-            // TODO: cleanup duplicated code here
+            // TODO: cleanup duplicated code here, also this approach does not work well for vertical lines
             for (let j = 0; j < wordLines.length; j++) {
                 let w = wordLines[j];
                 let eps = 0.5;
@@ -140,24 +150,30 @@ function dragHandler(event) {
     }
 }
 
+/**
+ * Work could be done here to improve efficiency for large canvas size
+ */
 // Draw Functions
-
 function draw(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(background, 0,0);
     for (let i = 0; i < characterRectangles.length; i++) {
-        r = characterRectangles[i];
-        label = characterLabels[i];
-        ctx.strokeStyle = "#FF0000";
-        ctx.lineWidth = 1;
+        let r = characterRectangles[i];
+        let label = characterLabels[i];
+        ctx.strokeStyle = "#d9345a";
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.rect(r[0], r[1], r[2], r[3]);
         ctx.stroke();
         if (label !== undefined) {
-            ctx.font = "30px Comic Sans MS";
-            ctx.fillStyle = "red";
+            let textSize = 40
+            ctx.font = "bold " + textSize + "px Comic Sans MS";
+            ctx.fillStyle = "#d9345a";
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 1;
             ctx.textAlign = "center";
-            ctx.fillText(label, r[0] + r[2]/2, r[1] + r[3]/2);
+            ctx.fillText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+textSize/4);
+            ctx.strokeText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+textSize/4);
         }
     }
     for (let j = 0; j < wordLines.length; j++) {
@@ -181,6 +197,9 @@ function draw(){
 }
 
 function clean() {
+    /**
+     * There is not efficient, but functional
+     */
     for (let i = 0; i < characterRectangles.length; i++) {
         let r = characterRectangles[i];
         if (Math.abs(r[2]) < 10 || Math.abs(r[3]) < 10) {
@@ -189,6 +208,11 @@ function clean() {
             characterLabels.splice(i, 1);
             continue;
         }
+
+        /**
+         * The backend also handles flipping, but later on it was needed here for the
+         * current approach to erasing
+         */
 
         if (r[2] < 0) {
             r[0] = r[0] + r[2];
@@ -262,7 +286,7 @@ function redo() {
     }
 }
 
-let keyHandler = function(e) {
+function keyHandler(e) {
     e.preventDefault();
     let modifier = e.metaKey || e.ctrlKey;
     let code = e.code;
@@ -270,7 +294,7 @@ let keyHandler = function(e) {
     let shift  = e.shiftKey;
     console.log(e);
     if (!drawing) {
-        if((modifier && code === "KeyZ" && !shift) || code === "BracketLeft") {
+        if((modifier && code === "KeyZ" && !shift) || code === "BracketLeft" || code === "Backspace") {
             undo();
         } else if ((modifier && shift && code === "KeyZ") || code === "BracketRight") {
             redo();
@@ -352,12 +376,12 @@ function saveJsonLocally() {
 
 function save() {
     const saveText = $('#saveText');
-    const saveErrorMessage = function(message) {
+    function saveErrorMessage(message) {
         saveText[0].innerText = message;
         saveText.css('color', 'red');
         saveText.show();
     }
-    const saveSuccessMessage = function(message) {
+    function saveSuccessMessage(message) {
         saveText[0].innerText = message;
         saveText.css('color', 'green');
         saveText.show(0).delay(3000).hide(0);
@@ -403,6 +427,7 @@ function init() {
             console.log(JSON.stringify(jobInfo));
             let request = $.get( "/getImage", { id: jobId})
             request.done(function(data) {
+                // there is likely a better way to do this, this was just the quickest
                 background.src = 'data:image/png;base64,' + data;
                 console.log("success");
             });
@@ -415,6 +440,13 @@ function init() {
     // Add event listeners
     initEventHandlersAndListeners();
 
+
+    /**
+     * Ideally, we might want to do some kind of scaling here to fit the browser window.
+     * However, most images we are currently using are small enough that this isn't worth
+     * the risk of doing some bad math and causing misalignment between the captured data
+     * and what actually gets cropped on the backend
+     */
     // Wait for image to load
     background.onload = function() {
         canvas.width = background.width;
