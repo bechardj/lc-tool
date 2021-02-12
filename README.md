@@ -1,13 +1,14 @@
 # Lyrasis Document Capture
 Video Setup:
 https://youtu.be/E372bsYnbxc
+
 ## Installation
 ### Prerequisites
 #### Java
 This application requires Java 8 or newer to run. You can get an installer for the OpenJDK from [here](https://adoptopenjdk.net). 
 
 #### Web Browser
-Functionality is primarily tested under Google Chrome and Safari. You should make sure you are on a recent web browser for best results.
+Functionality is primarily tested under Google Chrome and Safari on macOS. You should make sure you are on a recent web browser for best results. The behavior of some key-bindings are not extensively tested on Windows.
 
 ### Setting up
 Download the latest lyrasis-x.y.z.zip release from GitHub. This should be visible in the "Release" section on the right of this page. Extract it somewhere convenient.
@@ -43,13 +44,15 @@ Open up your terminal and navigate to the directory where the `.jar` file is ins
 
 To run the application, you will need to execute a command similar to the following on UNIX (all one line):
 
+**Note: if you keep the properties file in the same directory as the jar, you don't need to specify the spring.config.location path. This is recommended**
+
 `java -jar lyrasis-0.0.1.jar --spring.config.location=/Users/joey/src/lyrasis/application.properties`
 
 On Windows (all one line):
 
 `java -jar lyrasis-0.0.1.jar --spring.config.location=C:\Users\Joey\Documents\application.properties`
 
-Note that the argument `--spring.config.location` is set to the absolute path of the `application.properties` file. This lets you change the parameters without recompiling or providing a bunch of arguments every execution.
+Note that the argument `--spring.config.location` is set to the absolute path of the `application.properties` file.
 
 After executing this, you should now have the application running! If all went well, you should see a line similar to the following:
 
@@ -78,6 +81,16 @@ Please verify the application is working as expected, especially when you are fi
 Zooming into the web page is **not** known to cause issues at the moment, but if you do this please check the image crops to double check nothing funny has happened with the combination of your machine + web browser.
 
 Currently, only the Letter Capture process involves any processing on the backend. The other 2 modes are there for future potential functionality. Also note the ImageJob file contains a map called fields. This should let us add info to the JSON without breaking parsing in the future.
+
+## Future Development
+These are things I'd like to eventually add, in no particular order.
+* Resizable/Responsive canvas- currently, the canvas takes up the size of the image. For simplicity sake, this is the easiest approach with the smallest risk of causing bugs with the capture process
+* Per-Word and Per-Line capture
+* Pagination/Document Management
+* User preferences
+* Render images from URL instead of API call
+* JS optimization (currently mostly vanilla JS and jQuery, with room for improvement)
+* Multiple users off of single instance of app
 
 ## Building From Source
 This project needs to be built with `maven`. Best to get Maven from your package manager.
