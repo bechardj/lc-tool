@@ -31,6 +31,7 @@ let jobId;
 let jobInfo;
 
 let captureMode;
+let fontSize;
 
 const CaptureModes = {
     LETTER: 'Letter',
@@ -166,14 +167,13 @@ function draw(){
         ctx.rect(r[0], r[1], r[2], r[3]);
         ctx.stroke();
         if (label !== undefined) {
-            let textSize = 40
-            ctx.font = "bold " + textSize + "px Comic Sans MS";
+            ctx.font = "bold " + fontSize + "px Comic Sans MS";
             ctx.fillStyle = "#d9345a";
             ctx.strokeStyle = "white";
             ctx.lineWidth = 1;
             ctx.textAlign = "center";
-            ctx.fillText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+textSize/4);
-            ctx.strokeText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+textSize/4);
+            ctx.fillText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+fontSize/4);
+            ctx.strokeText(label, r[0] + r[2]/2, r[1] + (r[3]/2)+fontSize/4);
         }
     }
     for (let j = 0; j < wordLines.length; j++) {
@@ -349,6 +349,14 @@ function initEventHandlersAndListeners() {
     const eraseButton = $('#eraser')[0];
     eraseButton.addEventListener("click", function() {setCaptureMode(CaptureModes.ERASER)});
 
+    const fontSlider = $('#fontSlider')[0];
+    fontSlider.addEventListener("change", function()
+        {
+            fontSize = fontSlider.value;
+            draw();
+        }
+    );
+
 }
 
 function updateJobInfo() {
@@ -413,6 +421,7 @@ function init() {
     setCaptureMode(captureMode);
     background = new Image();
     jobId = $('#imageId')[0].textContent;
+    fontSize = $('#fontSlider')[0].value;
     $.getJSON("/getJob",
         {
             id: jobId

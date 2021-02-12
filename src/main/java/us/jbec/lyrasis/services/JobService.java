@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -91,10 +92,9 @@ public class JobService {
         return null;
     }
 
-    public List<ImageJobFile> getAllImageJobsSorted() {
+    public List<ImageJobFile> getAllImageJobsSortedFileName() {
         return primaryImageIO.getImageJobFiles().stream()
-                .sorted((file1, file2) -> (int) (file1.getImageFile().getParentFile().lastModified()
-                        - file2.getImageFile().getParentFile().lastModified()))
+                .sorted(Comparator.comparing(imageJobFile -> imageJobFile.getImageJob().getId()))
                 .collect(Collectors.toList());
     }
 }
