@@ -11,39 +11,39 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 </head>
 <body>
-<div class="container">
+<div class="nbs-container">
     <h1 class="title">Lyrasis Document Capture</h1>
     <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> Press a keyboard key after drawing the bounding box to label the box. <br> After labeling all letters on the page, use the save button to save. <a href="/help">Help Section</a></p>
 </div>
 
-<div class="container" align="center">
+<div class="nbs-container" align="center">
     <div style="display: inline-block"> <button class = "button" id = "close" type="button">Close</button> </div>
 </div>
 
-<div class="container" align="center">
+<div class="nbs-container" align="center">
     <div style="display: inline-block"> <button class = "button" id = "undo" type="button">Undo</button> </div>
     <div style="display: inline-block"> <button class = "button" id = "redo" type="button">Redo</button> </div>
 </div>
 
-<div class="container" align="center">
+<div class="nbs-container" align="center">
     <div style="display: inline-block"> <button class = "button" id = "letterCap" type="button">Letter Capture Mode</button> </div>
     <div style="display: inline-block"> <button class = "button" id = "wordCap" type="button">Word Capture Mode</button> </div>
     <div style="display: inline-block"> <button class = "button" id = "lineCap" type="button">Line Capture Mode</button> </div>
     <div style="display: inline-block"> <button class = "button" id = "eraser" type="button">Eraser</button> </div>
 </div>
-<div class="container">
+<div class="nbs-container">
     <p id="captureMode" class="body"> </p>
 </div>
 <span hidden id="imageId" th:text="${imageId}"></span>
-<canvas id="mainCanvas" class="container"></canvas>
-<div class="container" align="center">
+<canvas id="mainCanvas" class="nbs-container"></canvas>
+<div class="nbs-container" align="center">
     <input type="checkbox" id="completed" name="completed" value="Completed">
     <label for="completed">Mark As Completed</label><br>
 </div>
-<div class="container">
+<div class="nbs-container">
     <p hidden id="saveText" class="body"> </p>
 </div>
-<div class="container" align="center">
+<div class="nbs-container" align="center">
     <label for="fontSlider">Font Size</label>
     <input type="range" min="12" max="68" value="40" class="slider" id="fontSlider">
 </div>

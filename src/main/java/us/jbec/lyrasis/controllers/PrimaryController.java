@@ -20,9 +20,9 @@ public class PrimaryController {
 
     Logger LOG = LoggerFactory.getLogger(PrimaryController.class);
 
-    private IngestService ingestService;
+    private final IngestService ingestService;
 
-    private JobService jobService;
+    private final JobService jobService;
 
     public PrimaryController(IngestService ingestService, JobService jobService) {
         this.ingestService = ingestService;
@@ -52,7 +52,7 @@ public class PrimaryController {
     }
 
     @GetMapping("/")
-    public String listing(Model model){
+    public String listing(Model model) {
         try {
             ingestService.ingest();
             List<ImageJobFile> imageJobFiles = jobService.getAllImageJobsSortedFileName();
@@ -72,5 +72,10 @@ public class PrimaryController {
             LOG.error("An error occurred generating listing!", e);
             throw e;
         }
+    }
+
+    @GetMapping("/statistics")
+    public String statistics(Model model) {
+        return "statistics";
     }
 }

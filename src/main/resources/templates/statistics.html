@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lyrasis Document Capture</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-collapse" id="mainNavbar">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="/">Listing</a>
+                </li>
+                <li class="active">
+                    <a href="#">Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <h1 class="title">Lyrasis Document Capture Statistics</h1>
+    <div>
+        <canvas id="characterChart"></canvas>
+    </div>
+    <div class="container" align="center">
+        <ul style="list-style-type:none;">
+            <li><b>Other Statistics</b></li>
+            <li id="totalLabels">Total Labels Collected: </li>
+            <li id="totalEdited">Total Pages Edited: </li>
+            <li id="totalCompleted">Total Pages Marked Completed:</li>
+            <li id="generatedTime">Report Generated: </li>
+        </ul>
+    </div>
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="/js/statistics.js"></script>
+</body>
+</html>
