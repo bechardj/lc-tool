@@ -2,6 +2,12 @@
 Video Setup:
 https://youtu.be/E372bsYnbxc
 
+## Updating Versions
+* Backup your output directory
+* Replace your existing jar file with the latest release
+* Start the jar as usual
+* Do a quick test to verify functionality (do images save and crop corectly? do existing files open save/crop?)
+
 ## Installation
 ### Prerequisites
 #### Java
