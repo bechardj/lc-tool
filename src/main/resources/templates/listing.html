@@ -33,14 +33,16 @@
             <th scope="col">Image Name</th>
             <th scope="col">File Last Modified</th>
             <th scope="col">Status</th>
+            <th scope="col">Notes</th>
             <th scope="col">URL</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="listing : ${imageJobListings}">
-            <td th:text="${listing.fileName}">file name</td>
+            <td th:text="${listing.fileName}"></td>
             <td th:text="${listing.dateAdded}"></td>
             <td th:text="${listing.status}"></td>
+            <td th:text="${listing.notes}"></td>
             <td> <a th:href="${listing.url}">Open</a></td>
         </tr>
         </tbody>

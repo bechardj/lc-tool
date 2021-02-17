@@ -13,7 +13,7 @@ console.log("Hello!");
 const canvas = document.getElementById("mainCanvas");
 const ctx = canvas.getContext("2d");
 
-let drawing = false;
+let drawing;
 let background;
 
 let characterRectangles = [];
@@ -32,6 +32,8 @@ let jobInfo;
 
 let captureMode;
 let fontSize;
+let transparency;
+let textFieldEdit;
 
 const CaptureModes = {
     LETTER: 'Letter',
@@ -162,10 +164,18 @@ function draw(){
         let r = characterRectangles[i];
         let label = characterLabels[i];
         ctx.strokeStyle = "#d9345a";
+        ctx.fillStyle= '#ffffff';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.rect(r[0], r[1], r[2], r[3]);
         ctx.stroke();
+        ctx.beginPath();
+        if (transparency) {
+            ctx.globalAlpha = 0.4;
+            ctx.fillRect(r[0], r[1], r[2], r[3]);
+            ctx.globalAlpha = 1.0
+            ctx.stroke();
+        }
         if (label !== undefined) {
             ctx.font = "bold " + fontSize + "px Comic Sans MS";
             ctx.fillStyle = "#d9345a";
@@ -287,29 +297,34 @@ function redo() {
 }
 
 function keyHandler(e) {
-    e.preventDefault();
-    let modifier = e.metaKey || e.ctrlKey;
-    let code = e.code;
-    let key = e.key;
-    let shift  = e.shiftKey;
-    console.log(e);
-    if (!drawing) {
-        if((modifier && code === "KeyZ" && !shift) || code === "BracketLeft" || code === "Backspace") {
-            undo();
-        } else if ((modifier && shift && code === "KeyZ") || code === "BracketRight") {
-            redo();
-        } else if (modifier && code === "KeyS") {
-            save();
-        } else {
-            clean();
-            if(captureMode === CaptureModes.LETTER && characterLabels.length > 0 && !drawing)
-            {
-                // correct the most recent label
-                characterLabels.pop();
-                characterLabels.push(key);
+    if (!textFieldEdit) {
+        e.preventDefault();
+        let modifier = e.metaKey || e.ctrlKey;
+        let code = e.code;
+        let key = e.key;
+        let shift = e.shiftKey;
+        console.log(e);
+        if (!drawing) {
+            if ((modifier && code === "KeyZ" && !shift) || code === "BracketLeft" || code === "Backspace") {
+                undo();
+            } else if ((modifier && shift && code === "KeyZ") || code === "BracketRight") {
+                redo();
+            } else if (modifier && code === "KeyS") {
+                save();
+            } else if (modifier && code === "KeyE") {
+                setCaptureMode(CaptureModes.ERASER);
+            } else if (modifier && code === "KeyL") {
+                setCaptureMode(CaptureModes.LETTER);
+            } else {
+                clean();
+                if (captureMode === CaptureModes.LETTER && characterLabels.length > 0 && !drawing) {
+                    // correct the most recent label
+                    characterLabels.pop();
+                    characterLabels.push(key);
+                }
             }
+            draw();
         }
-        draw();
     }
 }
 
@@ -357,6 +372,21 @@ function initEventHandlersAndListeners() {
         }
     );
 
+    const textFieldSelector = $('.text-entry');
+
+    textFieldSelector.focusin(() => textFieldEdit = true);
+    textFieldSelector.focusout(() => textFieldEdit = false);
+
+    const enableTransparency = $('#enableTransparency')[0];
+    enableTransparency.checked = transparency;
+    enableTransparency.addEventListener("change", function()
+        {
+            transparency = enableTransparency.checked;
+            draw();
+        }
+    );
+
+
 }
 
 function updateJobInfo() {
@@ -366,6 +396,7 @@ function updateJobInfo() {
     jobInfo.lineLines = lineLines;
     jobInfo.completed = $('#completed')[0].checked;
     jobInfo.edited = true;
+    jobInfo.fields.NOTES = $('#notes')[0].value;
     if (jobInfo.completed) {
         jobInfo.status = "Completed";
     } else {
@@ -418,10 +449,13 @@ function save() {
 
 function init() {
     captureMode = CaptureModes.LETTER;
+    drawing = false;
     setCaptureMode(captureMode);
     background = new Image();
     jobId = $('#imageId')[0].textContent;
     fontSize = $('#fontSlider')[0].value;
+    transparency = true;
+    textFieldEdit = false;
     $.getJSON("/getJob",
         {
             id: jobId
@@ -433,6 +467,7 @@ function init() {
             if (jobInfo.wordLines !== null) wordLines = jobInfo.wordLines;
             if (jobInfo.lineLines !== null) lineLines = jobInfo.lineLines;
             if (jobInfo.completed !== null) $('#completed')[0].checked = jobInfo.completed;
+            if (jobInfo.fields.NOTES !== null) $('#notes')[0].value = jobInfo.fields.NOTES;
             console.log(JSON.stringify(jobInfo));
             let request = $.get( "/getImage", { id: jobId})
             request.done(function(data) {

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import us.jbec.lyrasis.models.ImageJob;
 import us.jbec.lyrasis.models.ImageJobFile;
+import us.jbec.lyrasis.transformers.ImageJobFieldTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -154,6 +155,7 @@ public class PrimaryImageIO {
                         LOG.error("Could not read json file in directory {}", outputFolder.getAbsolutePath());
                         continue;
                     }
+                    ImageJobFieldTransformer.transform(imageJob);
                     imageJobFiles.add(new ImageJobFile(imageFile, imageJob));
                 }
             }
