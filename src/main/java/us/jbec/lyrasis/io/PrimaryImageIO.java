@@ -120,7 +120,7 @@ public class PrimaryImageIO {
             Files.move(Paths.get(sourcePath), Paths.get(destinationFilePath));
             ImageJob imageJob = new ImageJob();
             imageJob.setId(FilenameUtils.getBaseName(sourcePath));
-            imageJob.setVersion("0.1");
+            imageJob.setVersion("0.2");
             imageJob.setCompleted(false);
             imageJob.setEdited(false);
             imageJob.setStatus("Ingested");
