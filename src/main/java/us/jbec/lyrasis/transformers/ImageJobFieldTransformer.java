@@ -27,9 +27,8 @@ public class ImageJobFieldTransformer {
             version = 0;
             LOG.error("Could not parse version, will run through all transformers");
         }
-        if (version < 0.2) {
-            transformZeroTwoZeroFields(imageJob);
-        }
+        // for now, we always need to run this.
+        transformZeroTwoZeroFields(imageJob);
     }
 
     /**
