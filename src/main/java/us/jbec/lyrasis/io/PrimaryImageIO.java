@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import us.jbec.lyrasis.models.ImageJob;
 import us.jbec.lyrasis.models.ImageJobFile;
+import us.jbec.lyrasis.transformers.ImageJobFieldTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -119,7 +120,7 @@ public class PrimaryImageIO {
             Files.move(Paths.get(sourcePath), Paths.get(destinationFilePath));
             ImageJob imageJob = new ImageJob();
             imageJob.setId(FilenameUtils.getBaseName(sourcePath));
-            imageJob.setVersion("0.1");
+            imageJob.setVersion("0.2");
             imageJob.setCompleted(false);
             imageJob.setEdited(false);
             imageJob.setStatus("Ingested");
@@ -135,7 +136,7 @@ public class PrimaryImageIO {
 
     /**
      * Read image job files from the output directory
-     * @return List of image job files from the ouput directory
+     * @return List of image job files from the output directory
      */
     public List<ImageJobFile> getImageJobFiles(){
         List<ImageJobFile> imageJobFiles = new ArrayList<>();
@@ -154,6 +155,7 @@ public class PrimaryImageIO {
                         LOG.error("Could not read json file in directory {}", outputFolder.getAbsolutePath());
                         continue;
                     }
+                    ImageJobFieldTransformer.transform(imageJob);
                     imageJobFiles.add(new ImageJobFile(imageFile, imageJob));
                 }
             }

@@ -1,6 +1,7 @@
 package us.jbec.lyrasis.models;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,9 +14,12 @@ import java.time.format.DateTimeFormatter;
 
 public class ImageJobListing {
 
+    private final int MAX_LEN = 50;
+
     private String fileName;
     private String dateAdded;
     private String status;
+    private String notes;
     private String url;
 
     public ImageJobListing(ImageJobFile imageJobFile) throws IOException {
@@ -24,6 +28,10 @@ public class ImageJobListing {
             this.dateAdded = "Never";
         } else {
             this.dateAdded = (String) imageJobFile.getImageJob().getFields().get("timestamp");
+        }
+        this.notes = (String) imageJobFile.getImageJob().getFields().get(ImageJobFields.NOTES.name());
+        if (StringUtils.length(this.notes) > MAX_LEN) {
+            this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }
         this.status = imageJobFile.getImageJob().getStatus();
         this.url = "/open/document?id=" + this.fileName;
@@ -59,5 +67,13 @@ public class ImageJobListing {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

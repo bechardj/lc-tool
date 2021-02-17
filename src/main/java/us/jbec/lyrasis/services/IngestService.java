@@ -30,7 +30,7 @@ public class IngestService {
             for(File imageFile : imageFiles) {
                 String path = outputDirectory.getAbsolutePath()
                         + File.separator
-                        + FilenameUtils.removeExtension(imageFile.getName().toLowerCase());
+                        + FilenameUtils.removeExtension(imageFile.getName());
                 boolean directoryCreated = primaryImageIO.createDirectory(path);
                 if (directoryCreated) {
                     primaryImageIO.initializeDirectory(imageFile, path);

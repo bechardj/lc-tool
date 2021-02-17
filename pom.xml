@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>us.jbec</groupId>
 	<artifactId>lyrasis</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 	<name>lyrasis</name>
 	<description>Lyrasis Image Capture Application</description>

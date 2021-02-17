@@ -30,6 +30,7 @@ public class LabeledImageCrop {
     }
 
     public String getLabel() {
+        // This is to avoid file system limitations.
         if(StringUtils.isAlpha(label) && StringUtils.isAllLowerCase(label)){
             return label + "_lower";
         } else if(StringUtils.isAlpha(label) && StringUtils.isAllUpperCase(label)){
@@ -70,6 +71,8 @@ public class LabeledImageCrop {
             return "forward_slash";
         } else if(label.equals(":")) {
             return "colon";
+        } else if(label.equals(";")) {
+            return "semi_colon";
         } else if(label.equals("?")) {
             return "question";
         }else if(label.equals("{")) {
