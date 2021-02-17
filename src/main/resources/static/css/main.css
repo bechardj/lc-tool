@@ -34,8 +34,7 @@
     text-align: center;
 }
 
-
-.button {
+.nbs-button {
     border-radius: 5px;
     font-family: 'Roboto', serif;
     font-size: 20px;
@@ -44,6 +43,18 @@
     padding: 10px 20px 10px 20px;
     text-decoration: none;
     margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+.padded-chart {
+    padding-top: 25px;
+    text-align: center;
+}
+
+.padded-body {
+    padding-top: 25px;
+    text-align: center;
     margin-left: auto;
     margin-right: auto;
     display: block;
