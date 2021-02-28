@@ -1,4 +1,4 @@
-# Lyrasis Document Capture
+# LC Document Tool
 Video Setup:
 https://youtu.be/E372bsYnbxc
 
@@ -17,7 +17,6 @@ This application requires Java 8 or newer to run. You can get an installer for t
 Functionality is primarily tested under Google Chrome and Safari on macOS. You should make sure you are on a recent web browser for best results. The behavior of some key-bindings are not extensively tested on Windows.
 
 ### Setting up
-Download the latest lyrasis-x.y.z.zip release from GitHub. This should be visible in the "Release" section on the right of this page. Extract it somewhere convenient.
 
 Included in the zip file are 4 files:
 
