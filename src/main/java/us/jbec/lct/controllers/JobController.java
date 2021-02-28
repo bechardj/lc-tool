@@ -2,6 +2,7 @@ package us.jbec.lct.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -28,11 +29,11 @@ public class JobController {
     Logger LOG = LoggerFactory.getLogger(JobController.class);
 
     private final JobService jobService;
-    private final RemoteSubmissionService remoteSubmissionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public JobController(JobService jobService, RemoteSubmissionService remoteSubmissionService) {
+    public JobController(JobService jobService, ApplicationEventPublisher applicationEventPublisher) {
         this.jobService = jobService;
-        this.remoteSubmissionService = remoteSubmissionService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @GetMapping(value = "/getJob")
@@ -51,15 +52,10 @@ public class JobController {
         LOG.info("Received request to save job.");
         try {
             jobService.processImageJobWithFile(imageJob, CropsDestination.PAGE);
+            applicationEventPublisher.publishEvent(imageJob);
         } catch (Exception e) {
             LOG.error("An error occurred while saving image job!", e);
             throw e;
-        }
-        try {
-            LOG.info("Submitting job id: {} to remote server!", imageJob.getId());
-            remoteSubmissionService.submitJobsToRemote(Collections.singletonList(imageJob));
-        } catch (Exception e) {
-            LOG.warn("An error occurred while submitting image job to central remote", e);
         }
     }
 

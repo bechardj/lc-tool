@@ -4,8 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -13,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,14 +40,18 @@ public class RemoteSubmissionService {
     }
 
     public void submitJobsToRemote(List<ImageJob> imageJob) {
-        LOG.info("Submitting to remote server: {}", REMOTE_BASE_URL);
-        WebClient.create()
-                .post()
-                .uri(REMOTE_BASE_URL + ENDPOINT + API_KEY)
-                .body(BodyInserters.fromValue(imageJob))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .exchange()
-                .block();
+        try {
+            LOG.info("Submitting to remote server: {}", REMOTE_BASE_URL);
+            WebClient.create()
+                    .post()
+                    .uri(REMOTE_BASE_URL + ENDPOINT + API_KEY)
+                    .body(BodyInserters.fromValue(imageJob))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .exchange()
+                    .block();
+        } catch (Exception e) {
+            LOG.error("Failed to sync job with remote: {}", e.getMessage());
+        }
     }
 
     @Scheduled(fixedDelayString = "${lct.api.sync.frequency}")
@@ -53,6 +60,12 @@ public class RemoteSubmissionService {
         submitJobsToRemote(jobService.getAllImageJobFilesSorted().stream()
                 .map(ImageJobFile::getImageJob)
                 .collect(Collectors.toList()));
+    }
+
+    @EventListener
+    @Async
+    public void imageJobEventListener(ImageJob imageJob) {
+        submitJobsToRemote(Collections.singletonList(imageJob));
     }
 
 

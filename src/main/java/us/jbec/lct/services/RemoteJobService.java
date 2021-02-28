@@ -71,6 +71,7 @@ public class RemoteJobService {
         remoteJobRepository.save(remotelySubmittedJob);
     }
 
+    // TODO: implement better handling of processing time records, currently error scan occur but the record is still created
     public List<ImageJob> retrieveCurrentRemoteJobs(boolean onlyNew) {
         List<RemotelySubmittedJob> remoteJobs =  remoteJobRepository.selectNewestJobsBySubmitTime();
         List<ImageJob> imageJobs = new ArrayList<>();

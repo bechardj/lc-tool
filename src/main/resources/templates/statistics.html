@@ -13,7 +13,7 @@
 
 </head>
 <body>
-<div th:if="${@environment.getActiveProfiles()[0] != 'remote'}">
+<div th:if="${@environment.getActiveProfiles().length > 0 and @environment.getActiveProfiles()[0] != 'remote'}">
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-collapse" id="mainNavbar">
