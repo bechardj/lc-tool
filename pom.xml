@@ -9,11 +9,11 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>us.jbec</groupId>
-	<artifactId>lyrasis</artifactId>
+	<artifactId>lc-tool</artifactId>
 	<version>0.3.0</version>
 	<packaging>jar</packaging>
-	<name>lyrasis</name>
-	<description>Lyrasis Image Capture Application</description>
+	<name>lc-tool</name>
+	<description>LC Capture Tool</description>
 
 	<properties>
 		<java.version>1.8</java.version>
