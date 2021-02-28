@@ -35,10 +35,4 @@ public class RemoteJobController {
             LOG.error("Invalid Api Key");
         }
     }
-
-    // TODO: remove
-    @GetMapping("/remoteJob")
-    public void remoteJobProcess() {
-        remoteJobService.exportCurrentRemoteJobs();
-    }
 }
