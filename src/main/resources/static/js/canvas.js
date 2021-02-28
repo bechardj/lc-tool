@@ -390,7 +390,7 @@ function captureCanvasInit () {
         return false;
     });
 
-    hotkeys('ctrl+shift+s, command+shift+s', function () {
+    hotkeys('ctrl+shift+., command+shift+.', function () {
         if (!drawing) {
             hideCapture = !hideCapture;
             if (hideCapture) {

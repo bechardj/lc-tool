@@ -50,7 +50,7 @@ public class JobController {
     public @ResponseBody void saveJob(@RequestBody ImageJob imageJob) throws IOException {
         LOG.info("Received request to save job.");
         try {
-            jobService.processImageJob(imageJob, CropsDestination.PAGE);
+            jobService.processImageJobWithFile(imageJob, CropsDestination.PAGE);
         } catch (Exception e) {
             LOG.error("An error occurred while saving image job!", e);
             throw e;

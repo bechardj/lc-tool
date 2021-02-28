@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import us.jbec.lyrasis.io.PrimaryImageIO;
 import us.jbec.lyrasis.models.CropsDestination;
 import us.jbec.lyrasis.models.ImageJob;
-import us.jbec.lyrasis.models.ImageJobFile;
 import us.jbec.lyrasis.models.ProcessingTimeRecord;
 import us.jbec.lyrasis.models.RemotelySubmittedJob;
 import us.jbec.lyrasis.repositories.ApiKeyRepository;
@@ -22,7 +21,6 @@ import us.jbec.lyrasis.repositories.RemoteJobRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -112,15 +110,7 @@ public class RemoteJobService {
         if (exportEnabled) {
             for (ImageJob imageJob : retrieveCurrentRemoteJobs(true)) {
                 try {
-                    Optional <ImageJobFile> optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
-                            .filter(imageJobFile -> imageJobFile.getImageJob().getId().equals(imageJob.getId()))
-                            .findFirst();
-                    if (optionalImageJobFile.isPresent()) {
-                        // We need to do this to mock the JSON because the one on disk is not representative
-                        // of the content in the database
-                        ImageJobFile imageJobFile = new ImageJobFile(optionalImageJobFile.get().getImageFile(), imageJob);
-                        jobService.processImageFile(imageJobFile, CropsDestination.BULK);
-                    }
+                    jobService.processImageJobWithFile(imageJob, CropsDestination.BULK);
                 } catch (Exception e) {
                     LOG.error("Could not process image job for job id {}", imageJob.getId());
                     if (imageJob.getId() != null) {

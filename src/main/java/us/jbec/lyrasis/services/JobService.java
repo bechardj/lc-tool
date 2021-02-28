@@ -45,29 +45,26 @@ public class JobService {
     }
 
 
-    public void processImageJob(ImageJob job, CropsDestination cropsDestination) throws IOException {
+    public void processImageJobWithFile(ImageJob job, CropsDestination cropsDestination) throws IOException {
         Optional <ImageJobFile> optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
                 .filter(imageJobFile -> imageJobFile.getImageJob().getId().equals(job.getId()))
                 .findFirst();
         if (optionalImageJobFile.isPresent()) {
-            processImageFile(optionalImageJobFile.get(), cropsDestination);
+            LOG.info("Found job: {}", job.getId());
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
+            job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
+            job.setVersion("0.3");
+            if (CropsDestination.PAGE.equals(cropsDestination)) {
+                LOG.info("Saving JSON...");
+                primaryImageIO.saveImageJobJson(job);
+            }
+            ImageJobFile jobFileToProcess = new ImageJobFile(optionalImageJobFile.get().getImageFile(),
+                    job);
+            writeCrops(jobFileToProcess, cropsDestination);
         } else {
             LOG.error("Image Job {} not found in output directory!", job.getId());
             throw new RuntimeException();
         }
-    }
-
-    public void processImageFile(ImageJobFile imageJobFile, CropsDestination cropsDestination) throws IOException {
-        ImageJob job = imageJobFile.getImageJob();
-        LOG.info("Found job: {}", job.getId());
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-        job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-        job.setVersion("0.3");
-        if (CropsDestination.PAGE.equals(cropsDestination)) {
-            LOG.info("Saving JSON...");
-            primaryImageIO.saveImageJobJson(job);
-        }
-        writeCrops(imageJobFile, cropsDestination);
     }
 
     private void writeCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
