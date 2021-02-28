@@ -1,5 +1,6 @@
 package us.jbec.lct.repositories;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import us.jbec.lct.models.RemotelySubmittedJob;
@@ -12,4 +13,34 @@ public interface RemoteJobRepository extends CrudRepository<RemotelySubmittedJob
             "WHERE A.submit_time = (SELECT MAX(B.submit_time) from remotely_submitted_job B where B.job_id = A.job_id);",
             nativeQuery = true)
     List<RemotelySubmittedJob> selectNewestJobsBySubmitTime();
+
+    @Modifying
+    @Query(value = "insert into remotely_submitted_job_archive " +
+            "(select * from remotely_submitted_job " +
+            "where id in (select b.id " +
+            "             from remotely_submitted_job b " +
+            "             where b.job_id = job_id " +
+            "               and b.api_key = api_key " +
+            "               and (select count(*) " +
+            "                    from remotely_submitted_job c " +
+            "                    where c.job_id = b.job_id " +
+            "                      and c.api_key = b.api_key " +
+            "                      and c.submit_time > b.submit_time) >= 1));",
+            nativeQuery = true)
+    void archive();
+
+    @Modifying
+    @Query(value = "delete " +
+            "    from remotely_submitted_job " +
+            "    where id in (select b.id " +
+            "            from remotely_submitted_job b " +
+            "            where b.job_id = job_id " +
+            "            and b.api_key = api_key " +
+            "            and (select count(*) " +
+            "    from remotely_submitted_job c " +
+            "    where c.job_id = b.job_id " +
+            "    and c.api_key = b.api_key " +
+            "    and c.submit_time > b.submit_time) >= 1);",
+            nativeQuery = true)
+    void deleteOldRecords();
 }

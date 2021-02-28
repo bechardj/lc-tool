@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.ImageJob;
@@ -122,6 +123,15 @@ public class RemoteJobService {
         } else {
             LOG.info("Skipping export because it is disabled.");
         }
+    }
+
+    @Scheduled(fixedDelayString = "${lct.remote.prune.frequency}")
+    @Transactional
+    public void archiveAndPrune() {
+        LOG.info("Archiving old records");
+        remoteJobRepository.archive();
+        LOG.info("Deleting old records");
+        remoteJobRepository.deleteOldRecords();
     }
 
     @Scheduled(fixedDelayString = "${lct.remote.ingest.frequency}")

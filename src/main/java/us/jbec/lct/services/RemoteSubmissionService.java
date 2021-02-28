@@ -1,5 +1,6 @@
 package us.jbec.lct.services;
 
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,9 +58,14 @@ public class RemoteSubmissionService {
     @Scheduled(fixedDelayString = "${lct.api.sync.frequency}")
     public void syncAllImageJobs() {
         LOG.info("Syncing with remote");
-        submitJobsToRemote(jobService.getAllImageJobFilesSorted().stream()
+        List<ImageJob> imageJobs = jobService.getAllImageJobFilesSorted().stream()
                 .map(ImageJobFile::getImageJob)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        // This is to alleviate large POST requests but provide better performance then one at a time
+        // TODO: maybe we just one to do this one by one since it's async anyways?
+        // TODO: also, maybe keep track of last successful submit time vs modified time
+        List<List<ImageJob>> sublists = ListUtils.partition(imageJobs, 5);
+        sublists.forEach(this::submitJobsToRemote);
     }
 
     @EventListener
