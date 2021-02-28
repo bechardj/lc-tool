@@ -123,6 +123,9 @@ public class RemoteJobService {
                     }
                 } catch (Exception e) {
                     LOG.error("Could not process image job for job id {}", imageJob.getId());
+                    if (imageJob.getId() != null) {
+                        processingTimeRepository.deleteById(imageJob.getId());
+                    }
                 }
             }
         } else {
