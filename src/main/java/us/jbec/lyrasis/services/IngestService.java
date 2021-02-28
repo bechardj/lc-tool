@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import us.jbec.lyrasis.io.PrimaryImageIO;
-import us.jbec.lyrasis.models.ImageJobFile;
 
 import java.io.File;
 import java.util.List;

@@ -8,34 +8,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lyrasis.models.CaptureDataStatistics;
 import us.jbec.lyrasis.models.ImageJob;
-import us.jbec.lyrasis.models.ImageJobFile;
 import us.jbec.lyrasis.services.CaptureDataStatisticsService;
-import us.jbec.lyrasis.services.JobService;
+import us.jbec.lyrasis.services.RemoteJobService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
-@Profile("!remote")
-public class StatisticsController {
+@Profile("remote")
+public class RemoteStatisticsController {
 
-    Logger LOG = LoggerFactory.getLogger(StatisticsController.class);
+    Logger LOG = LoggerFactory.getLogger(RemoteStatisticsController.class);
 
     private final CaptureDataStatisticsService captureDataStatisticsService;
 
-    private final JobService jobService;
+    private final RemoteJobService remoteJobService;
 
-    public StatisticsController(CaptureDataStatisticsService captureDataStatisticsService, JobService jobService) {
+    public RemoteStatisticsController(CaptureDataStatisticsService captureDataStatisticsService, RemoteJobService remoteJobService) {
         this.captureDataStatisticsService = captureDataStatisticsService;
-        this.jobService = jobService;
+        this.remoteJobService = remoteJobService;
     }
 
     @GetMapping("/calculateStatistics")
     public CaptureDataStatistics statistics(Model model) {
         try {
-            List<ImageJob> imageJobs = jobService.getAllImageJobFilesSorted().stream()
-                    .map(ImageJobFile::getImageJob)
-                    .collect(Collectors.toList());
+            List<ImageJob> imageJobs = remoteJobService.retrieveCurrentRemoteJobs(false);
             return captureDataStatisticsService.calculateStatistics(imageJobs);
         }
         catch (Exception e) {

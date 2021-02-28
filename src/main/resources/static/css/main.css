@@ -47,6 +47,20 @@
     margin-right: auto;
     display: block;
 }
+
+.nbs-button-sm {
+    border-radius: 5px;
+    font-family: 'Roboto', serif;
+    font-size: 14px;
+    color: #ffffff;
+    background: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
 .padded-chart {
     padding-top: 25px;
     text-align: center;

@@ -2,6 +2,8 @@ package us.jbec.lyrasis.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +18,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
+@Profile("!remote")
 public class PrimaryController {
 
     Logger LOG = LoggerFactory.getLogger(PrimaryController.class);
+
+    @Value("${image.bulk.output.path}")
+    private String bulkOutputPath;
 
     private final IngestService ingestService;
 
@@ -55,7 +61,7 @@ public class PrimaryController {
     public String listing(Model model) {
         try {
             ingestService.ingest();
-            List<ImageJobFile> imageJobFiles = jobService.getAllImageJobsSortedFileName();
+            List<ImageJobFile> imageJobFiles = jobService.getAllImageJobFilesSorted();
             List<ImageJobListing> imageJobListings = new ArrayList<>();
             for (ImageJobFile imageJobFile : imageJobFiles) {
                 try {
@@ -77,5 +83,11 @@ public class PrimaryController {
     @GetMapping("/statistics")
     public String statistics(Model model) {
         return "statistics";
+    }
+
+    @GetMapping("/export")
+    public String export(Model model) {
+        model.addAttribute("path", bulkOutputPath);
+        return "export";
     }
 }

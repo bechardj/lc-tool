@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import us.jbec.lyrasis.io.ImageCropsIO;
 import us.jbec.lyrasis.io.PrimaryImageIO;
+import us.jbec.lyrasis.models.CropsDestination;
 import us.jbec.lyrasis.models.ImageJob;
 import us.jbec.lyrasis.models.ImageJobFile;
 import us.jbec.lyrasis.models.LabeledImageCrop;
@@ -36,49 +37,72 @@ public class JobService {
         this.primaryImageIO = primaryImageIO;
     }
 
-    public void processImageJob(ImageJob job) throws IOException {
-        Optional <File> optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
+    public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
+        List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
+        for(ImageJobFile imageJobFile : imageJobFiles) {
+            writeCrops(imageJobFile, cropsDestination);
+        }
+    }
+
+
+    public void processImageJob(ImageJob job, CropsDestination cropsDestination) throws IOException {
+        Optional <ImageJobFile> optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
                 .filter(imageJobFile -> imageJobFile.getImageJob().getId().equals(job.getId()))
-                .map(ImageJobFile::getImageFile)
                 .findFirst();
         if (optionalImageJobFile.isPresent()) {
-            LOG.info("Found job: {}", job.getId());
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-            job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-            LOG.info("Saving JSON...");
-            primaryImageIO.saveImageJobJson(job);
-            BufferedImage originalImage = ImageIO.read(optionalImageJobFile.get());
-            List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
-            List<List<Double>> rectangles = job.getCharacterRectangles();
-            List<String> labels = job.getCharacterLabels();
-            for(int i = 0; i < job.getCharacterRectangles().size(); i++) {
-                int x = rectangles.get(i).get(0).intValue();
-                int y = rectangles.get(i).get(1).intValue();
-                int w = rectangles.get(i).get(2).intValue();
-                int h = rectangles.get(i).get(3).intValue();
-                if (w < 0) {
-                    x = x + w;
-                    w *= -1;
-                }
-                if (h < 0) {
-                    y = y + h;
-                    h *= -1;
-                }
-                try {
-                    BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
-                    LabeledImageCrop labeledImageCrop = new LabeledImageCrop(labels.get(i), optionalImageJobFile.get(), croppedImage);
-                    labeledImageCrops.add(labeledImageCrop);
-                } catch (Exception e) {
-                    LOG.error("Something went wrong when cropping the image.", e);
-                    LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
-                }
-            }
-            LOG.info("Writing all cropped and labeled images...");
-            imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops);
+            processImageFile(optionalImageJobFile.get(), cropsDestination);
         } else {
             LOG.error("Image Job {} not found in output directory!", job.getId());
             throw new RuntimeException();
         }
+    }
+
+    public void processImageFile(ImageJobFile imageJobFile, CropsDestination cropsDestination) throws IOException {
+        ImageJob job = imageJobFile.getImageJob();
+        LOG.info("Found job: {}", job.getId());
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
+        job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
+        job.setVersion("0.3");
+        if (CropsDestination.PAGE.equals(cropsDestination)) {
+            LOG.info("Saving JSON...");
+            primaryImageIO.saveImageJobJson(job);
+        }
+        writeCrops(imageJobFile, cropsDestination);
+    }
+
+    private void writeCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
+        ImageJob job = imageJobFile.getImageJob();
+        File imageFile = imageJobFile.getImageFile();
+
+        BufferedImage originalImage = ImageIO.read(imageFile);
+        List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
+        List<List<Double>> rectangles = job.getCharacterRectangles();
+        List<String> labels = job.getCharacterLabels();
+        int cropCount = job.getCharacterRectangles() == null ? 0 : job.getCharacterRectangles().size();
+        for(int i = 0; i < cropCount; i++) {
+            int x = rectangles.get(i).get(0).intValue();
+            int y = rectangles.get(i).get(1).intValue();
+            int w = rectangles.get(i).get(2).intValue();
+            int h = rectangles.get(i).get(3).intValue();
+            if (w < 0) {
+                x = x + w;
+                w *= -1;
+            }
+            if (h < 0) {
+                y = y + h;
+                h *= -1;
+            }
+            try {
+                BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
+                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(labels.get(i), imageFile, croppedImage);
+                labeledImageCrops.add(labeledImageCrop);
+            } catch (Exception e) {
+                LOG.error("Something went wrong when cropping the image.", e);
+                LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
+            }
+        }
+        LOG.info("Writing all cropped and labeled images...");
+        imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination);
     }
 
     public ImageJob getImageJob(String id){
@@ -92,7 +116,7 @@ public class JobService {
         return null;
     }
 
-    public List<ImageJobFile> getAllImageJobsSortedFileName() {
+    public List<ImageJobFile> getAllImageJobFilesSorted() {
         return primaryImageIO.getImageJobFiles().stream()
                 .sorted(Comparator.comparing(imageJobFile -> imageJobFile.getImageJob().getId()))
                 .collect(Collectors.toList());

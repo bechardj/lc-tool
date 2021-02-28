@@ -2,26 +2,37 @@ package us.jbec.lyrasis.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import us.jbec.lyrasis.models.CropsDestination;
 import us.jbec.lyrasis.models.ImageJob;
-import us.jbec.lyrasis.services.ImageService;
 import us.jbec.lyrasis.services.JobService;
+import us.jbec.lyrasis.services.RemoteSubmissionService;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @RestController
+@Profile("!remote")
 public class JobController {
 
     Logger LOG = LoggerFactory.getLogger(JobController.class);
 
-    @Autowired
     private final JobService jobService;
+    private final RemoteSubmissionService remoteSubmissionService;
 
-    public JobController(JobService jobService) {
+    public JobController(JobService jobService, RemoteSubmissionService remoteSubmissionService) {
         this.jobService = jobService;
+        this.remoteSubmissionService = remoteSubmissionService;
     }
 
     @GetMapping(value = "/getJob")
@@ -39,11 +50,22 @@ public class JobController {
     public @ResponseBody void saveJob(@RequestBody ImageJob imageJob) throws IOException {
         LOG.info("Received request to save job.");
         try {
-        jobService.processImageJob(imageJob);
+            jobService.processImageJob(imageJob, CropsDestination.PAGE);
         } catch (Exception e) {
             LOG.error("An error occurred while saving image job!", e);
             throw e;
         }
+        try {
+            LOG.info("Submitting job id: {} to remote server!", imageJob.getId());
+            remoteSubmissionService.submitJobsToRemote(Collections.singletonList(imageJob));
+        } catch (Exception e) {
+            LOG.warn("An error occurred while submitting image job to central remote", e);
+        }
+    }
+
+    @GetMapping("/exportAll")
+    public void exportAll() throws IOException {
+        jobService.processAllImageJobCrops(CropsDestination.BULK);
     }
 
     @ExceptionHandler
