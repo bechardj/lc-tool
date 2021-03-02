@@ -27,11 +27,11 @@ public class RemoteJobController {
 
     @PostMapping("/remoteJob")
     public void remoteJob(@RequestParam String apiKey, @RequestBody List<ImageJob> imageJobs) throws JsonProcessingException {
-        LOG.info("Remote Job Received");
+        LOG.info("Remote Job Received - API KEY [{}]", apiKey);
         if (remoteJobService.validApiKey(apiKey)) {
             remoteJobService.saveRemoteJobs(imageJobs, apiKey);
         } else {
-            LOG.error("Invalid Api Key");
+            LOG.error("Invalid Api Key: {}", apiKey);
         }
     }
 }

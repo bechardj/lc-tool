@@ -3,6 +3,7 @@ package us.jbec.lct.repositories;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import us.jbec.lct.models.RemotelySubmittedJob;
 
 import java.util.List;
@@ -13,6 +14,10 @@ public interface RemoteJobRepository extends CrudRepository<RemotelySubmittedJob
             "WHERE A.submit_time = (SELECT MAX(B.submit_time) from remotely_submitted_job B where B.job_id = A.job_id);",
             nativeQuery = true)
     List<RemotelySubmittedJob> selectNewestJobsBySubmitTime();
+
+    @Query(value = "select * from remotely_submitted_job A where A.api_key = :key and A.job_id = :job ",
+            nativeQuery = true)
+    List<RemotelySubmittedJob> selectJobByKeyAndId(@Param("key") String key, @Param("job") String jobId);
 
     @Modifying
     @Query(value = "insert into remotely_submitted_job_archive " +

@@ -58,6 +58,7 @@ public class RemoteJobService {
         return apiKeyRepository.findById(key).isPresent();
     }
 
+    @Transactional
     public void saveRemoteJobs(List<ImageJob> imageJobs, String apiKey) throws JsonProcessingException {
         for (ImageJob imageJob : imageJobs) {
             saveRemoteJob(imageJob, apiKey);
@@ -69,6 +70,8 @@ public class RemoteJobService {
         remotelySubmittedJob.setJobId(imageJob.getId());
         remotelySubmittedJob.setApiKey(apiKey);
         remotelySubmittedJob.setJson(objectMapper.writeValueAsString(imageJob));
+        List<RemotelySubmittedJob> existingRemoteJobs = remoteJobRepository.selectJobByKeyAndId(apiKey, imageJob.getId());
+        existingRemoteJobs.forEach(remoteJobRepository::delete);
         remoteJobRepository.save(remotelySubmittedJob);
     }
 
@@ -128,10 +131,10 @@ public class RemoteJobService {
     @Scheduled(fixedDelayString = "${lct.remote.prune.frequency}")
     @Transactional
     public void archiveAndPrune() {
-        LOG.info("Archiving old records");
-        remoteJobRepository.archive();
-        LOG.info("Deleting old records");
-        remoteJobRepository.deleteOldRecords();
+//        LOG.info("Archiving old records");
+//        remoteJobRepository.archive();
+//        LOG.info("Deleting old records");
+//        remoteJobRepository.deleteOldRecords();
     }
 
     @Scheduled(fixedDelayString = "${lct.remote.ingest.frequency}")
