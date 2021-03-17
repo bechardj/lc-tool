@@ -2,6 +2,7 @@ package us.jbec.lct.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,9 @@ public class RemoteStatisticsController {
         this.remoteJobService = remoteJobService;
     }
 
+    @Cacheable("remoteStatistics")
     @GetMapping("/calculateStatistics")
-    public CaptureDataStatistics statistics(Model model) {
+    public CaptureDataStatistics statistics() {
         try {
             List<ImageJob> imageJobs = remoteJobService.retrieveCurrentRemoteJobs(false);
             return captureDataStatisticsService.calculateStatistics(imageJobs);

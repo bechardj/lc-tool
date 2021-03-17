@@ -7,10 +7,15 @@
  * don't break existing behavior/functionality.
  *
  */
-function captureCanvasInit () {
+
+function captureCanvasInit (trained_model) {
 
     const canvas = document.getElementById("mainCanvas");
+    const cropCanvas = document.getElementById("cropCanvas");
     const ctx = canvas.getContext("2d");
+    const cropCtx = cropCanvas.getContext("2d");
+
+    const model = trained_model;
 
     let drawing;
     let background;
@@ -86,6 +91,12 @@ function captureCanvasInit () {
         drawing = false;
         clean();
         draw();
+
+        generateCropAndPredict();
+
+
+        // predict(generateImage()).then(res => console.log(res));
+        // console.log(result);
     }
 
     function dragHandler(event) {
@@ -409,9 +420,9 @@ function captureCanvasInit () {
         canvas.addEventListener("mouseup", function (e) {
             clickUp(e)
         });
-        canvas.addEventListener("mouseout", function (e) {
-            clickUp(e)
-        });
+        // canvas.addEventListener("mouseout", function (e) {
+        //     clickUp(e)
+        // });
         canvas.addEventListener("mousemove", function (e) {
             dragHandler(e)
         });
@@ -597,13 +608,57 @@ function captureCanvasInit () {
             draw();
         }
     }
-    $(window).on('load', function() { init(); console.log("Initialized Capture Tool Canvas");})
+
+    function generateCropAndPredict() {
+        $('.alert-prediction').show();
+        $('#prediction').text("Predicting...");
+        let r  = characterRectangles[characterRectangles.length-1];
+        cropCanvas.width = 64;
+        cropCanvas.height = 64;
+        cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+        cropCtx.drawImage(background, r[0], r[1], r[2], r[3], 0, 0, 64, 64);
+        let imgSelector = $('#renderedCrop');
+        let img = imgSelector[0];
+        img.width = 64;
+        img.height = 64;
+        img.src = cropCanvas.toDataURL("image/png");
+        imgSelector.on('load', (ev => tensorFlowPrediction(img)));
+    }
+
+    async function tensorFlowPrediction(img) {
+        let input = await tf.browser.fromPixels(img).mean(2)
+            .toFloat()
+            .expandDims(0)
+            .expandDims(-1)
+            .mul(0.003921569);
+        let prediction = trained_model.predict(input);
+        prediction.data().then(data => {
+            let index = data.indexOf(Math.max(...data));
+            let label = String.fromCharCode(97 + index);
+            $('#prediction').text("Prediction: " + label);
+        });
+    }
+
+    init();
     $(window).bind('beforeunload', function () {
         return 'Before closing, make sure you saved your changes.';
     });
 }
 
-captureCanvasInit();
+$(window).on('load', function() {
+    tf.loadLayersModel('/localModels/model.json')
+        .then(model => {
+            captureCanvasInit(model);
+            console.log("Loaded local model.");
+        })
+        .catch(err => {
+            console.log("Falling back to included model...");
+            tf.loadLayersModel('/ml/model.json')
+                .then(model => captureCanvasInit(model));
+        });
+})
+
+// captureCanvasInit(model);
 
 
 

@@ -73,3 +73,19 @@
     margin-right: auto;
     display: block;
 }
+
+
+.prediction-container {
+    width: 15%;
+    min-width: 90px;
+    padding: 10px 15px;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+}
+
+.alert-prediction {
+    min-width: 120px;
+}
+
+
