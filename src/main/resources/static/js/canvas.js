@@ -8,14 +8,14 @@
  *
  */
 
-function captureCanvasInit (trained_model) {
+function captureCanvasInit (trained_model, trained_model_labels) {
 
     const canvas = document.getElementById("mainCanvas");
+    const drawingCanvas = document.getElementById("drawingCanvas");
     const cropCanvas = document.getElementById("cropCanvas");
+
     const ctx = canvas.getContext("2d");
     const cropCtx = cropCanvas.getContext("2d");
-
-    const model = trained_model;
 
     let drawing;
     let background;
@@ -45,6 +45,8 @@ function captureCanvasInit (trained_model) {
     let textFieldEdit;
 
     let hideCapture;
+
+    let predictionAutofill;
 
     const CaptureModes = {
         LETTER: 'Letter',
@@ -88,15 +90,14 @@ function captureCanvasInit (trained_model) {
     }
 
     function clickUp(event) {
+        let index = characterRectangles.length-1
+        let rectangle = characterRectangles[index];
         drawing = false;
-        clean();
+        let removedBadRectangle = clean();
         draw();
-
-        generateCropAndPredict();
-
-
-        // predict(generateImage()).then(res => console.log(res));
-        // console.log(result);
+        if (!removedBadRectangle && event.type !== 'mouseout') {
+            generateCropAndPredict(index, rectangle);
+        }
     }
 
     function dragHandler(event) {
@@ -234,12 +235,14 @@ function captureCanvasInit (trained_model) {
         /**
          * There is not efficient, but functional
          */
+        let removedBadRectangle = false;
         for (let i = 0; i < characterRectangles.length; i++) {
             let r = characterRectangles[i];
             if (Math.abs(r[2]) < 10 || Math.abs(r[3]) < 10) {
                 console.log("Removing bad rectangle");
                 characterRectangles.splice(i, 1);
                 characterLabels.splice(i, 1);
+                removedBadRectangle = true;
                 continue;
             }
 
@@ -277,6 +280,7 @@ function captureCanvasInit (trained_model) {
                 lineLines.splice(j, 1);
             }
         }
+        return removedBadRectangle;
     }
 
     function clearEraserQueues() {
@@ -420,9 +424,9 @@ function captureCanvasInit (trained_model) {
         canvas.addEventListener("mouseup", function (e) {
             clickUp(e)
         });
-        // canvas.addEventListener("mouseout", function (e) {
-        //     clickUp(e)
-        // });
+        canvas.addEventListener("mouseout", function (e) {
+            clickUp(e)
+        });
         canvas.addEventListener("mousemove", function (e) {
             dragHandler(e)
         });
@@ -431,6 +435,7 @@ function captureCanvasInit (trained_model) {
         });
         canvas.addEventListener("touchend", function (e) {
             clickUp(e)
+            generateCropAndPredict();
         });
         canvas.addEventListener("touchmove", function (e) {
             dragHandler(e)
@@ -492,6 +497,13 @@ function captureCanvasInit (trained_model) {
         enableTransparency.addEventListener("change", function () {
                 transparency = enableTransparency.checked;
                 draw();
+            }
+        );
+
+        const enablePredictions = $('#enablePredictions')[0];
+        enablePredictions.checked = predictionAutofill;
+        enablePredictions.addEventListener("change", function () {
+            predictionAutofill = enablePredictions.checked;
             }
         );
     }
@@ -565,6 +577,7 @@ function captureCanvasInit (trained_model) {
         jobId = $('#imageId')[0].textContent;
         fontSize = $('#fontSlider')[0].value;
         transparency = true;
+        predictionAutofill = true;
         textFieldEdit = false;
         $.getJSON("/getJob",
             {
@@ -604,15 +617,18 @@ function captureCanvasInit (trained_model) {
         background.onload = function () {
             canvas.width = background.width;
             canvas.height = background.height;
+            drawingCanvas.width = background.width;
+            drawingCanvas.height = background.height;
             ctx.drawImage(background, 0, 0);
             draw();
         }
     }
 
-    function generateCropAndPredict() {
+    function generateCropAndPredict(index, rectangle) {
         $('.alert-prediction').show();
         $('#prediction').text("Predicting...");
-        let r  = characterRectangles[characterRectangles.length-1];
+        // let index =
+        let r  = rectangle;
         cropCanvas.width = 64;
         cropCanvas.height = 64;
         cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
@@ -622,20 +638,37 @@ function captureCanvasInit (trained_model) {
         img.width = 64;
         img.height = 64;
         img.src = cropCanvas.toDataURL("image/png");
-        imgSelector.on('load', (ev => tensorFlowPrediction(img)));
+        imgSelector.on('load', (ev => tensorFlowPrediction(img, index, rectangle)));
     }
 
-    async function tensorFlowPrediction(img) {
+    // used for testing concurrency issues
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function tensorFlowPrediction(img, index, rectangle) {
         let input = await tf.browser.fromPixels(img).mean(2)
             .toFloat()
             .expandDims(0)
             .expandDims(-1)
             .mul(0.003921569);
         let prediction = trained_model.predict(input);
+        // await sleep(10000);
         prediction.data().then(data => {
-            let index = data.indexOf(Math.max(...data));
-            let label = String.fromCharCode(97 + index);
-            $('#prediction').text("Prediction: " + label);
+            let index_label = data.indexOf(Math.max(...data));
+            let char_label = trained_model_labels[index_label];
+
+            $('#prediction').text("Prediction: " + trained_model_labels[index_label]);
+            if (predictionAutofill && !drawing && char_label !== undefined
+                && characterRectangles.length - 1 === index
+                && characterRectangles[index] === rectangle
+                && !lastIsLabeled()) {
+                drawing = true;
+                characterLabels[index] = trained_model_labels[index_label];
+                draw();
+                drawing = false;
+            }
         });
     }
 
@@ -645,16 +678,60 @@ function captureCanvasInit (trained_model) {
     });
 }
 
+
+
 $(window).on('load', function() {
+
+    function validateLabels(labels) {
+        for (let i = 0; i < labels.length; i++) {
+            if(labels[i].length !== 1) {
+                console.error("Encountered label longer than length 1 at index ", i);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function retrieveIncludedLabels(model) {
+            $.getJSON("/ml/labels.json",
+                function (response) {
+                    captureCanvasInit(model, response.predictionLabels);
+                },)
+                .done()
+                .fail(function( jqxhr, textStatus, error ) {
+                    let err = textStatus + ", " + error;
+                    console.log( "Request Failed: " + err );
+                });
+    }
+
+    function retrieveLocalLabels(model) {
+        $.getJSON("/localModels/labels.json",
+            function (response) {
+                if (validateLabels(response.predictionLabels)) {
+                    captureCanvasInit(model, response.predictionLabels);
+                } else {
+                    console.log("Falling back to included labels (prediction result max index corresponds to 26 lower characters a-z)")
+                    retrieveIncludedLabels(model);
+                }
+            })
+            .fail(function( jqxhr, textStatus, error ) {
+                let err = textStatus + ", " + error;
+                console.warn("WARNING: You are using a local model without providing a labels.json file \n"
+                    + "To see an example, look at http://" + window.location.host + "/ml/labels.json");
+                console.log("Falling back to included labels (prediction result max index corresponds to 26 lower characters a-z)")
+                retrieveIncludedLabels(model);
+            });
+    }
+
     tf.loadLayersModel('/localModels/model.json')
         .then(model => {
-            captureCanvasInit(model);
             console.log("Loaded local model.");
+            retrieveLocalLabels(model);
         })
         .catch(err => {
             console.log("Falling back to included model...");
             tf.loadLayersModel('/ml/model.json')
-                .then(model => captureCanvasInit(model));
+                .then(model => retrieveIncludedLabels(model));
         });
 })
 

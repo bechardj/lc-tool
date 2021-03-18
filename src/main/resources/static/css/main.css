@@ -88,4 +88,8 @@
     min-width: 120px;
 }
 
+#drawingCanvas {
+    z-index: 2;
+}
+
 

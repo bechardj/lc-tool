@@ -1,5 +1,6 @@
 package us.jbec.lct.config;
 
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +31,8 @@ public class TFModelResourceConfig implements WebMvcConfigurer {
             }
             LOG.info("TensorflowJS model directory {} provided. Binding resource handler to /localModels/", path);
             registry.addResourceHandler("/localModels/**")
-                    .addResourceLocations("file:/" + path);
+                    .setCachePeriod(0)
+                    .addResourceLocations(SystemUtils.IS_OS_WINDOWS ? "file:/" + path : "file://" + path);
         } else {
             LOG.info("No TensorflowJS model directory provided. Will fallback to built in model.");
         }

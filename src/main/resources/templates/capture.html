@@ -38,6 +38,7 @@
 </div>
 <span hidden id="imageId" th:text="${imageId}"></span>
 <canvas id="mainCanvas" class="nbs-container"></canvas>
+<!--<canvas id="drawingCanvas" class="nbs-container"></canvas>-->
 <img id="renderedCrop" src="" hidden/>
 <div class="prediction-container">
     <div class="alert alert-danger alert-prediction labelText" hidden>
@@ -52,6 +53,10 @@
 <div class="nbs-container" align="center">
     <input type="checkbox" id="enableTransparency" name="enableTransparency">
     <label for="enableTransparency">Enable Rectangle Translucency</label><br>
+</div>
+<div class="nbs-container" align="center">
+    <input type="checkbox" id="enablePredictions" name="enablePredictions">
+    <label for="enablePredictions">Enable Prediction Autofill</label><br>
 </div>
 <div class="container w-25" align="center">
     <label for="fontSlider">Font Size</label>
