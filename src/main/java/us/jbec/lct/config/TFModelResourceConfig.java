@@ -32,7 +32,7 @@ public class TFModelResourceConfig implements WebMvcConfigurer {
             LOG.info("TensorflowJS model directory {} provided. Binding resource handler to /localModels/", path);
             registry.addResourceHandler("/localModels/**")
                     .setCachePeriod(0)
-                    .addResourceLocations(SystemUtils.IS_OS_WINDOWS ? "file:/" + path : "file://" + path);
+                    .addResourceLocations("file://" + path);
         } else {
             LOG.info("No TensorflowJS model directory provided. Will fallback to built in model.");
         }

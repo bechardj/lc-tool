@@ -37,8 +37,12 @@
     <p id="captureMode" class="body"> </p>
 </div>
 <span hidden id="imageId" th:text="${imageId}"></span>
-<canvas id="mainCanvas" class="nbs-container"></canvas>
-<!--<canvas id="drawingCanvas" class="nbs-container"></canvas>-->
+<div class="nbs-container">
+<div class = "nbs-container stacked-parent">
+    <canvas id="mainCanvas" class="stacked-child"></canvas>
+    <canvas id="drawingCanvas" class="stacked-child"></canvas>
+</div>
+</div>
 <img id="renderedCrop" src="" hidden/>
 <div class="prediction-container">
     <div class="alert alert-danger alert-prediction labelText" hidden>

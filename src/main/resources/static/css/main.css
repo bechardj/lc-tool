@@ -82,14 +82,27 @@
     position: fixed;
     top: 0px;
     right: 0px;
+    z-index: 3;
 }
 
 .alert-prediction {
     min-width: 120px;
 }
+#mainCanvas {
+    z-index: 1;
+}
 
 #drawingCanvas {
     z-index: 2;
+}
+.stacked-parent {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+}
+.stacked-child {
+    grid-column: 1;
+    grid-row: 1;
 }
 
 

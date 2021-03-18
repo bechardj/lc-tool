@@ -15,6 +15,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     const cropCanvas = document.getElementById("cropCanvas");
 
     const ctx = canvas.getContext("2d");
+    const drawingCtx = drawingCanvas.getContext("2d");
     const cropCtx = cropCanvas.getContext("2d");
 
     let drawing;
@@ -95,7 +96,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         drawing = false;
         let removedBadRectangle = clean();
         draw();
-        if (!removedBadRectangle && event.type !== 'mouseout') {
+        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1) {
             generateCropAndPredict(index, rectangle);
         }
     }
@@ -174,7 +175,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         }
     }
 
-    function clearCanvas() {
+    function clearMainCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(background, 0, 0);
     }
@@ -183,33 +184,49 @@ function captureCanvasInit (trained_model, trained_model_labels) {
      * Work could be done here to improve efficiency for large canvas size
      */
     // Draw Functions
+
+    function drawRectangle(index, canvas, currentContext) {
+        let r = characterRectangles[index];
+        let label = characterLabels[index];
+        currentContext.strokeStyle = "#d9345a";
+        currentContext.fillStyle = '#ffffff';
+        currentContext.lineWidth = 2;
+        currentContext.beginPath();
+        currentContext.rect(r[0], r[1], r[2], r[3]);
+        currentContext.stroke();
+        currentContext.beginPath();
+        if (transparency) {
+            currentContext.globalAlpha = 0.4;
+            currentContext.fillRect(r[0], r[1], r[2], r[3]);
+            currentContext.globalAlpha = 1.0
+            currentContext.stroke();
+        }
+        if (label !== undefined) {
+            currentContext.font = "bold " + fontSize + "px Comic Sans MS";
+            currentContext.fillStyle = "#d9345a";
+            currentContext.strokeStyle = "white";
+            currentContext.lineWidth = 1;
+            currentContext.textAlign = "center";
+            currentContext.fillText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
+            currentContext.strokeText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
+        }
+    }
+
     function draw() {
-        clearCanvas();
+        if (drawing && CaptureModes.LETTER === captureMode) {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            drawRectangle(characterRectangles.length-1, drawingCanvas, drawingCtx);
+            drawingCtx.stroke();
+        } else {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            drawComplete();
+        }
+    }
+
+    function drawComplete() {
+        clearMainCanvas();
         for (let i = 0; i < characterRectangles.length; i++) {
-            let r = characterRectangles[i];
-            let label = characterLabels[i];
-            ctx.strokeStyle = "#d9345a";
-            ctx.fillStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.rect(r[0], r[1], r[2], r[3]);
-            ctx.stroke();
-            ctx.beginPath();
-            if (transparency) {
-                ctx.globalAlpha = 0.4;
-                ctx.fillRect(r[0], r[1], r[2], r[3]);
-                ctx.globalAlpha = 1.0
-                ctx.stroke();
-            }
-            if (label !== undefined) {
-                ctx.font = "bold " + fontSize + "px Comic Sans MS";
-                ctx.fillStyle = "#d9345a";
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 1;
-                ctx.textAlign = "center";
-                ctx.fillText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
-                ctx.strokeText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
-            }
+            drawRectangle(i, canvas, ctx);
         }
         for (let j = 0; j < wordLines.length; j++) {
             let w = wordLines[j];
@@ -409,7 +426,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         if (!drawing) {
             hideCapture = !hideCapture;
             if (hideCapture) {
-                clearCanvas();
+                clearMainCanvas();
             } else {
                 draw();
             }
@@ -418,26 +435,25 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     });
 
     function initEventHandlersAndListeners() {
-        canvas.addEventListener("mousedown", function (e) {
+        drawingCanvas.addEventListener("mousedown", function (e) {
             clickDown(e)
         });
-        canvas.addEventListener("mouseup", function (e) {
+        drawingCanvas.addEventListener("mouseup", function (e) {
             clickUp(e)
         });
-        canvas.addEventListener("mouseout", function (e) {
+        drawingCanvas.addEventListener("mouseout", function (e) {
             clickUp(e)
         });
-        canvas.addEventListener("mousemove", function (e) {
+        drawingCanvas.addEventListener("mousemove", function (e) {
             dragHandler(e)
         });
-        canvas.addEventListener("touchstart", function (e) {
+        drawingCanvas.addEventListener("touchstart", function (e) {
             clickDown(e)
         });
-        canvas.addEventListener("touchend", function (e) {
+        drawingCanvas.addEventListener("touchend", function (e) {
             clickUp(e)
-            generateCropAndPredict();
         });
-        canvas.addEventListener("touchmove", function (e) {
+        drawingCanvas.addEventListener("touchmove", function (e) {
             dragHandler(e)
         });
 
@@ -664,10 +680,8 @@ function captureCanvasInit (trained_model, trained_model_labels) {
                 && characterRectangles.length - 1 === index
                 && characterRectangles[index] === rectangle
                 && !lastIsLabeled()) {
-                drawing = true;
                 characterLabels[index] = trained_model_labels[index_label];
                 draw();
-                drawing = false;
             }
         });
     }
