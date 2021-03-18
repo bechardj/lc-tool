@@ -1,12 +1,13 @@
 package us.jbec.lct.config;
 
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.io.File;
 
 @Configuration
 public class TFModelResourceConfig implements WebMvcConfigurer {
@@ -19,11 +20,19 @@ public class TFModelResourceConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         if (localModelPath !=  null) {
-            String path = FilenameUtils.normalizeNoEndSeparator(localModelPath);
-            path = FilenameUtils.separatorsToSystem(path);
-            LOG.info("Registering {} to /localModels/", path);
+            File file = new File(localModelPath);
+            String path = file.getAbsolutePath() + File.separator;
+            if (!file.exists()) {
+                LOG.error("File {} either does not exist or is not resolvable", path);
+            }
+            if (!file.isDirectory()) {
+                LOG.error("File {} is a not recognized as a valid directory", path);
+            }
+            LOG.info("TensorflowJS model directory {} provided. Binding resource handler to /localModels/", path);
             registry.addResourceHandler("/localModels/**")
-                    .addResourceLocations("file://" + path + "/");
+                    .addResourceLocations("file:/" + path);
+        } else {
+            LOG.info("No TensorflowJS model directory provided. Will fallback to built in model.");
         }
     }
 }
