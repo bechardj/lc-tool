@@ -664,6 +664,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     }
 
     async function tensorFlowPrediction(img, index, rectangle) {
+        tf.engine().startScope();
         let input = await tf.browser.fromPixels(img).mean(2)
             .toFloat()
             .expandDims(0)
@@ -673,6 +674,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         // await sleep(10000);
         prediction.data().then(data => {
             let index_label = data.indexOf(Math.max(...data));
+            tf.engine().endScope();
             let char_label = trained_model_labels[index_label];
 
             $('#prediction').text("Prediction: " + trained_model_labels[index_label]);
@@ -707,15 +709,15 @@ $(window).on('load', function() {
     }
 
     function retrieveIncludedLabels(model) {
-            $.getJSON("/ml/labels.json",
-                function (response) {
-                    captureCanvasInit(model, response.predictionLabels);
-                },)
-                .done()
-                .fail(function( jqxhr, textStatus, error ) {
-                    let err = textStatus + ", " + error;
-                    console.log( "Request Failed: " + err );
-                });
+        $.getJSON("/ml/labels.json",
+            function (response) {
+                captureCanvasInit(model, response.predictionLabels);
+            },)
+            .done()
+            .fail(function( jqxhr, textStatus, error ) {
+                let err = textStatus + ", " + error;
+                console.log( "Request Failed: " + err );
+            });
     }
 
     function retrieveLocalLabels(model) {
@@ -737,18 +739,26 @@ $(window).on('load', function() {
             });
     }
 
-    tf.loadLayersModel('/localModels/model.json')
-        .then(model => {
-            console.log("Loaded local model.");
-            retrieveLocalLabels(model);
-        })
-        .catch(err => {
-            console.log("Falling back to included model...");
-            tf.loadLayersModel('/ml/model.json')
-                .then(model => retrieveIncludedLabels(model));
-        });
+    setupTfBackend().then( () => {
+            tf.loadLayersModel('/localModels/model.json')
+                .then(model => {
+                    console.log("Loaded local model.");
+                    retrieveLocalLabels(model);
+                })
+                .catch(err => {
+                    console.log("Falling back to included model...");
+                    tf.loadLayersModel('/ml/model.json')
+                        .then(model => retrieveIncludedLabels(model));
+                });
+        }
+    )
 })
 
+async function setupTfBackend() {
+    await tf.ready();
+    // await tf.setBackend('wasm');
+    // await tf.ready();
+}
 // captureCanvasInit(model);
 
 
