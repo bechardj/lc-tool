@@ -202,7 +202,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
             currentContext.stroke();
         }
         if (label !== undefined) {
-            currentContext.font = "bold " + fontSize + "px Comic Sans MS";
+            currentContext.font = "bold " + fontSize + "px Exo";
             currentContext.fillStyle = "#d9345a";
             currentContext.strokeStyle = "white";
             currentContext.lineWidth = 1;
@@ -595,6 +595,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         transparency = true;
         predictionAutofill = true;
         textFieldEdit = false;
+        document.fonts.load(fontSize+  "px Exo");
         $.getJSON("/getJob",
             {
                 id: jobId
@@ -636,7 +637,11 @@ function captureCanvasInit (trained_model, trained_model_labels) {
             drawingCanvas.width = background.width;
             drawingCanvas.height = background.height;
             ctx.drawImage(background, 0, 0);
-            draw();
+            document.fonts.load(fontSize+  "px Exo").then(() => {
+                draw();
+            })
+            $('#full-screen-load').delay(500).fadeOut();
+            $('#main-content-container').delay(750).fadeIn();
         }
     }
 
@@ -654,7 +659,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         img.width = 64;
         img.height = 64;
         img.src = cropCanvas.toDataURL("image/png");
-        imgSelector.on('load', (ev => tensorFlowPrediction(img, index, rectangle)));
+        imgSelector.on('load', (ev => tf.tidy( () => {tensorFlowPrediction(img, index, rectangle)})));
     }
 
     // used for testing concurrency issues
@@ -663,9 +668,8 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function tensorFlowPrediction(img, index, rectangle) {
-        tf.engine().startScope();
-        let input = await tf.browser.fromPixels(img).mean(2)
+    function tensorFlowPrediction(img, index, rectangle) {
+        let input = tf.browser.fromPixels(img).mean(2)
             .toFloat()
             .expandDims(0)
             .expandDims(-1)
@@ -674,7 +678,6 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         // await sleep(10000);
         prediction.data().then(data => {
             let index_label = data.indexOf(Math.max(...data));
-            tf.engine().endScope();
             let char_label = trained_model_labels[index_label];
 
             $('#prediction').text("Prediction: " + trained_model_labels[index_label]);
@@ -756,11 +759,7 @@ $(window).on('load', function() {
 
 async function setupTfBackend() {
     await tf.ready();
-    // await tf.setBackend('wasm');
-    // await tf.ready();
 }
-// captureCanvasInit(model);
-
 
 
 

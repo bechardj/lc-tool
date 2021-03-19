@@ -10,9 +10,23 @@
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo:wght@500;700&display=swap" >
 
 </head>
 <body>
+<div class="full-page-parent" id="full-screen-load">
+<div class="semipolar-spinner" :style="spinnerStyle">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+</div>
+</div>
+<div class="pixel-spinner">
+    <div class="pixel-spinner-inner"></div>
+</div>
+<div id="main-content-container" hidden>
 <div class="nbs-container">
     <h1 class="title">LC Document Tool</h1>
     <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> Press a keyboard key after drawing the bounding box to label the box. <br> After labeling all letters on the page, use the save button to save. <a href="/help">Help Section</a></p>
@@ -79,5 +93,6 @@
 <script src = "https://cdn.jsdelivr.net/npm/hotkeys-js@3.7.3/dist/hotkeys.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
 <script src="/js/canvas.js"></script>
+</div>
 </body>
 </html>
