@@ -96,7 +96,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         drawing = false;
         let removedBadRectangle = clean();
         draw();
-        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1) {
+        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill) {
             generateCropAndPredict(index, rectangle);
         }
     }
@@ -368,7 +368,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
             let key = e.key;
             if (!drawing) {
                 // TODO: these bracket shortcuts should be deprecated
-                if (code === "BracketLeft" || code === "Backspace") {
+                if (code === "BracketLeft" || code === "Backspace" || code === "Enter") {
                     undo();
                 } else if (code === "BracketRight") {
                     redo();
@@ -436,25 +436,35 @@ function captureCanvasInit (trained_model, trained_model_labels) {
 
     function initEventHandlersAndListeners() {
         drawingCanvas.addEventListener("mousedown", function (e) {
-            clickDown(e)
+            clickDown(e);
         });
         drawingCanvas.addEventListener("mouseup", function (e) {
             clickUp(e)
         });
         drawingCanvas.addEventListener("mouseout", function (e) {
-            clickUp(e)
+            clickUp(e);
         });
         drawingCanvas.addEventListener("mousemove", function (e) {
-            dragHandler(e)
+            dragHandler(e);
         });
         drawingCanvas.addEventListener("touchstart", function (e) {
-            clickDown(e)
+            if (e.touches.length === 1) {
+                document.documentElement.style.overflow = 'hidden';
+                clickDown(e);
+            }
         });
         drawingCanvas.addEventListener("touchend", function (e) {
-            clickUp(e)
+            document.documentElement.style.overflow = 'auto';
+            clickUp(e);
+            $('.hidden-mobile-input').blur().focus();
         });
         drawingCanvas.addEventListener("touchmove", function (e) {
-            dragHandler(e)
+            if (e.touches.length === 1) {
+                dragHandler(e);
+                e.preventDefault();
+                return false;
+            }
+
         });
 
         document.addEventListener('keypress', keyHandler);
@@ -520,6 +530,9 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         enablePredictions.checked = predictionAutofill;
         enablePredictions.addEventListener("change", function () {
             predictionAutofill = enablePredictions.checked;
+            if (!predictionAutofill) {
+                $('.alert-prediction').hide();
+            }
             }
         );
     }

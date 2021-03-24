@@ -220,6 +220,17 @@
 
 .exo-font {
     font-family: 'Exo', serif;
-    opacity: 10;
 }
 
+.hidden-mobile-input {
+    height: 2px;
+    width: 2px;
+    position: relative;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -1px;
+    margin-left: -1px;
+    opacity: 0;
+    z-index: -1;
+}
