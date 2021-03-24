@@ -672,7 +672,8 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         img.width = 64;
         img.height = 64;
         img.src = cropCanvas.toDataURL("image/png");
-        imgSelector.on('load', (ev => tf.tidy( () => {tensorFlowPrediction(img, index, rectangle)})));
+        imgSelector.off().on('load', (ev => tf.tidy( () => {tensorFlowPrediction(img, index, rectangle)})));
+
     }
 
     // used for testing concurrency issues
