@@ -17,7 +17,7 @@ $('#exportBtn').click(function() {
         $('#exportBtn').prop("disabled",false);
     });
     request.fail(function (XMLHttpRequest, textStatus, errorThrown) {
-        setAlertStatus('alert-error', 'Export failed! Check console logs...');
+        setAlertStatus('alert-danger', 'Export failed! Check console logs...');
         $('#exportBtn').prop("disabled",false);
     });
 })

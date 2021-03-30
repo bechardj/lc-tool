@@ -7,10 +7,16 @@
  * don't break existing behavior/functionality.
  *
  */
-function captureCanvasInit () {
+
+function captureCanvasInit (trained_model, trained_model_labels) {
 
     const canvas = document.getElementById("mainCanvas");
+    const drawingCanvas = document.getElementById("drawingCanvas");
+    const cropCanvas = document.getElementById("cropCanvas");
+
     const ctx = canvas.getContext("2d");
+    const drawingCtx = drawingCanvas.getContext("2d");
+    const cropCtx = cropCanvas.getContext("2d");
 
     let drawing;
     let background;
@@ -40,6 +46,8 @@ function captureCanvasInit () {
     let textFieldEdit;
 
     let hideCapture;
+
+    let predictionAutofill;
 
     const CaptureModes = {
         LETTER: 'Letter',
@@ -83,9 +91,14 @@ function captureCanvasInit () {
     }
 
     function clickUp(event) {
+        let index = characterRectangles.length-1
+        let rectangle = characterRectangles[index];
         drawing = false;
-        clean();
+        let removedBadRectangle = clean();
         draw();
+        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill) {
+            generateCropAndPredict(index, rectangle);
+        }
     }
 
     function dragHandler(event) {
@@ -162,7 +175,7 @@ function captureCanvasInit () {
         }
     }
 
-    function clearCanvas() {
+    function clearMainCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(background, 0, 0);
     }
@@ -171,33 +184,49 @@ function captureCanvasInit () {
      * Work could be done here to improve efficiency for large canvas size
      */
     // Draw Functions
+
+    function drawRectangle(index, canvas, currentContext) {
+        let r = characterRectangles[index];
+        let label = characterLabels[index];
+        currentContext.strokeStyle = "#d9345a";
+        currentContext.fillStyle = '#ffffff';
+        currentContext.lineWidth = 2;
+        currentContext.beginPath();
+        currentContext.rect(r[0], r[1], r[2], r[3]);
+        currentContext.stroke();
+        currentContext.beginPath();
+        if (transparency) {
+            currentContext.globalAlpha = 0.4;
+            currentContext.fillRect(r[0], r[1], r[2], r[3]);
+            currentContext.globalAlpha = 1.0
+            currentContext.stroke();
+        }
+        if (label !== undefined) {
+            currentContext.font = "bold " + fontSize + "px Exo";
+            currentContext.fillStyle = "#d9345a";
+            currentContext.strokeStyle = "white";
+            currentContext.lineWidth = 1;
+            currentContext.textAlign = "center";
+            currentContext.fillText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
+            currentContext.strokeText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
+        }
+    }
+
     function draw() {
-        clearCanvas();
+        if (drawing && CaptureModes.LETTER === captureMode) {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            drawRectangle(characterRectangles.length-1, drawingCanvas, drawingCtx);
+            drawingCtx.stroke();
+        } else {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            drawComplete();
+        }
+    }
+
+    function drawComplete() {
+        clearMainCanvas();
         for (let i = 0; i < characterRectangles.length; i++) {
-            let r = characterRectangles[i];
-            let label = characterLabels[i];
-            ctx.strokeStyle = "#d9345a";
-            ctx.fillStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.rect(r[0], r[1], r[2], r[3]);
-            ctx.stroke();
-            ctx.beginPath();
-            if (transparency) {
-                ctx.globalAlpha = 0.4;
-                ctx.fillRect(r[0], r[1], r[2], r[3]);
-                ctx.globalAlpha = 1.0
-                ctx.stroke();
-            }
-            if (label !== undefined) {
-                ctx.font = "bold " + fontSize + "px Comic Sans MS";
-                ctx.fillStyle = "#d9345a";
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 1;
-                ctx.textAlign = "center";
-                ctx.fillText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
-                ctx.strokeText(label, r[0] + r[2] / 2, r[1] + (r[3] / 2) + fontSize / 4);
-            }
+            drawRectangle(i, canvas, ctx);
         }
         for (let j = 0; j < wordLines.length; j++) {
             let w = wordLines[j];
@@ -223,12 +252,14 @@ function captureCanvasInit () {
         /**
          * There is not efficient, but functional
          */
+        let removedBadRectangle = false;
         for (let i = 0; i < characterRectangles.length; i++) {
             let r = characterRectangles[i];
             if (Math.abs(r[2]) < 10 || Math.abs(r[3]) < 10) {
                 console.log("Removing bad rectangle");
                 characterRectangles.splice(i, 1);
                 characterLabels.splice(i, 1);
+                removedBadRectangle = true;
                 continue;
             }
 
@@ -266,6 +297,7 @@ function captureCanvasInit () {
                 lineLines.splice(j, 1);
             }
         }
+        return removedBadRectangle;
     }
 
     function clearEraserQueues() {
@@ -336,7 +368,7 @@ function captureCanvasInit () {
             let key = e.key;
             if (!drawing) {
                 // TODO: these bracket shortcuts should be deprecated
-                if (code === "BracketLeft" || code === "Backspace") {
+                if (code === "BracketLeft" || code === "Backspace" || code === "Enter") {
                     undo();
                 } else if (code === "BracketRight") {
                     redo();
@@ -394,7 +426,7 @@ function captureCanvasInit () {
         if (!drawing) {
             hideCapture = !hideCapture;
             if (hideCapture) {
-                clearCanvas();
+                clearMainCanvas();
             } else {
                 draw();
             }
@@ -403,26 +435,36 @@ function captureCanvasInit () {
     });
 
     function initEventHandlersAndListeners() {
-        canvas.addEventListener("mousedown", function (e) {
-            clickDown(e)
+        drawingCanvas.addEventListener("mousedown", function (e) {
+            clickDown(e);
         });
-        canvas.addEventListener("mouseup", function (e) {
+        drawingCanvas.addEventListener("mouseup", function (e) {
             clickUp(e)
         });
-        canvas.addEventListener("mouseout", function (e) {
-            clickUp(e)
+        drawingCanvas.addEventListener("mouseout", function (e) {
+            clickUp(e);
         });
-        canvas.addEventListener("mousemove", function (e) {
-            dragHandler(e)
+        drawingCanvas.addEventListener("mousemove", function (e) {
+            dragHandler(e);
         });
-        canvas.addEventListener("touchstart", function (e) {
-            clickDown(e)
+        drawingCanvas.addEventListener("touchstart", function (e) {
+            if (e.touches.length === 1) {
+                document.documentElement.style.overflow = 'hidden';
+                clickDown(e);
+            }
         });
-        canvas.addEventListener("touchend", function (e) {
-            clickUp(e)
+        drawingCanvas.addEventListener("touchend", function (e) {
+            document.documentElement.style.overflow = 'auto';
+            clickUp(e);
+            $('.hidden-mobile-input').blur().focus();
         });
-        canvas.addEventListener("touchmove", function (e) {
-            dragHandler(e)
+        drawingCanvas.addEventListener("touchmove", function (e) {
+            if (e.touches.length === 1) {
+                dragHandler(e);
+                e.preventDefault();
+                return false;
+            }
+
         });
 
         document.addEventListener('keypress', keyHandler);
@@ -481,6 +523,16 @@ function captureCanvasInit () {
         enableTransparency.addEventListener("change", function () {
                 transparency = enableTransparency.checked;
                 draw();
+            }
+        );
+
+        const enablePredictions = $('#enablePredictions')[0];
+        enablePredictions.checked = predictionAutofill;
+        enablePredictions.addEventListener("change", function () {
+            predictionAutofill = enablePredictions.checked;
+            if (!predictionAutofill) {
+                $('.alert-prediction').hide();
+            }
             }
         );
     }
@@ -554,7 +606,9 @@ function captureCanvasInit () {
         jobId = $('#imageId')[0].textContent;
         fontSize = $('#fontSlider')[0].value;
         transparency = true;
+        predictionAutofill = true;
         textFieldEdit = false;
+        document.fonts.load(fontSize+  "px Exo");
         $.getJSON("/getJob",
             {
                 id: jobId
@@ -593,18 +647,133 @@ function captureCanvasInit () {
         background.onload = function () {
             canvas.width = background.width;
             canvas.height = background.height;
+            drawingCanvas.width = background.width;
+            drawingCanvas.height = background.height;
             ctx.drawImage(background, 0, 0);
-            draw();
+            document.fonts.load(fontSize+  "px Exo").then(() => {
+                draw();
+            })
+            $('#full-screen-load').delay(500).fadeOut();
+            $('#main-content-container').delay(750).fadeIn();
         }
     }
-    $(window).on('load', function() { init(); console.log("Initialized Capture Tool Canvas");})
+
+    function generateCropAndPredict(index, rectangle) {
+        $('.alert-prediction').show();
+        $('#prediction').text("Predicting...");
+        // let index =
+        let r  = rectangle;
+        cropCanvas.width = 64;
+        cropCanvas.height = 64;
+        cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+        cropCtx.drawImage(background, r[0], r[1], r[2], r[3], 0, 0, 64, 64);
+        let imgSelector = $('#renderedCrop');
+        let img = imgSelector[0];
+        img.width = 64;
+        img.height = 64;
+        img.src = cropCanvas.toDataURL("image/png");
+        imgSelector.off().on('load', (ev => tf.tidy( () => {tensorFlowPrediction(img, index, rectangle)})));
+
+    }
+
+    // used for testing concurrency issues
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function tensorFlowPrediction(img, index, rectangle) {
+        let input = tf.browser.fromPixels(img).mean(2)
+            .toFloat()
+            .expandDims(0)
+            .expandDims(-1)
+            .mul(0.003921569);
+        let prediction = trained_model.predict(input);
+        // await sleep(10000);
+        prediction.data().then(data => {
+            let index_label = data.indexOf(Math.max(...data));
+            let char_label = trained_model_labels[index_label];
+
+            $('#prediction').text("Prediction: " + trained_model_labels[index_label]);
+            if (predictionAutofill && !drawing && char_label !== undefined
+                && characterRectangles.length - 1 === index
+                && characterRectangles[index] === rectangle
+                && !lastIsLabeled()) {
+                characterLabels[index] = trained_model_labels[index_label];
+                draw();
+            }
+        });
+    }
+
+    init();
     $(window).bind('beforeunload', function () {
         return 'Before closing, make sure you saved your changes.';
     });
 }
 
-captureCanvasInit();
 
+
+$(window).on('load', function() {
+
+    function validateLabels(labels) {
+        for (let i = 0; i < labels.length; i++) {
+            if(labels[i].length !== 1) {
+                console.error("Encountered label longer than length 1 at index ", i);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function retrieveIncludedLabels(model) {
+        $.getJSON("/ml/labels.json",
+            function (response) {
+                captureCanvasInit(model, response.predictionLabels);
+            },)
+            .done()
+            .fail(function( jqxhr, textStatus, error ) {
+                let err = textStatus + ", " + error;
+                console.log( "Request Failed: " + err );
+            });
+    }
+
+    function retrieveLocalLabels(model) {
+        $.getJSON("/localModels/labels.json",
+            function (response) {
+                if (validateLabels(response.predictionLabels)) {
+                    captureCanvasInit(model, response.predictionLabels);
+                } else {
+                    console.log("Falling back to included labels (prediction result max index corresponds to 26 lower characters a-z)")
+                    retrieveIncludedLabels(model);
+                }
+            })
+            .fail(function( jqxhr, textStatus, error ) {
+                let err = textStatus + ", " + error;
+                console.warn("WARNING: You are using a local model without providing a labels.json file \n"
+                    + "To see an example, look at http://" + window.location.host + "/ml/labels.json");
+                console.log("Falling back to included labels (prediction result max index corresponds to 26 lower characters a-z)")
+                retrieveIncludedLabels(model);
+            });
+    }
+
+    setupTfBackend().then( () => {
+            tf.loadLayersModel('/localModels/model.json')
+                .then(model => {
+                    console.log("Loaded local model.");
+                    retrieveLocalLabels(model);
+                })
+                .catch(err => {
+                    console.log("Falling back to included model...");
+                    tf.loadLayersModel('/ml/model.json')
+                        .then(model => retrieveIncludedLabels(model));
+                });
+        }
+    )
+})
+
+async function setupTfBackend() {
+    await tf.ready();
+}
 
 
 

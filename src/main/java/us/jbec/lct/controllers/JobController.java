@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.services.ExclusiveActionService;
 import us.jbec.lct.services.JobService;
 import us.jbec.lct.services.RemoteSubmissionService;
 
@@ -30,10 +31,12 @@ public class JobController {
 
     private final JobService jobService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ExclusiveActionService exclusiveActionService;
 
-    public JobController(JobService jobService, ApplicationEventPublisher applicationEventPublisher) {
+    public JobController(JobService jobService, ApplicationEventPublisher applicationEventPublisher, ExclusiveActionService exclusiveActionService) {
         this.jobService = jobService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.exclusiveActionService = exclusiveActionService;
     }
 
     @GetMapping(value = "/getJob")
@@ -51,11 +54,14 @@ public class JobController {
     public @ResponseBody void saveJob(@RequestBody ImageJob imageJob) throws IOException {
         LOG.info("Received request to save job.");
         try {
+            exclusiveActionService.acquireExclusiveActionLock(JobController.class,  imageJob.getId());
             jobService.processImageJobWithFile(imageJob, CropsDestination.PAGE);
             applicationEventPublisher.publishEvent(imageJob);
         } catch (Exception e) {
             LOG.error("An error occurred while saving image job!", e);
             throw e;
+        } finally {
+            exclusiveActionService.releaseExclusiveActionLock(JobController.class, imageJob.getId());
         }
     }
 
