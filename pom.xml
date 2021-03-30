@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>us.jbec</groupId>
 	<artifactId>lc-tool</artifactId>
-	<version>0.4.0</version>
+	<version>0.5.0</version>
 	<packaging>jar</packaging>
 	<name>lc-tool</name>
 	<description>LC Capture Tool</description>

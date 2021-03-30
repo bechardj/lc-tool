@@ -1,6 +1,5 @@
 package us.jbec.lct.services;
 
-import org.locationtech.jts.geom.LineSegment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,9 +10,12 @@ import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.LabeledImageCrop;
+import us.jbec.lct.models.geometry.LineSegment;
+import us.jbec.lct.models.geometry.OffsetRectangle;
 import us.jbec.lct.models.geometry.Point;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +23,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -44,6 +48,7 @@ public class JobService {
         List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
         for(ImageJobFile imageJobFile : imageJobFiles) {
             writeCharacterCrops(imageJobFile, cropsDestination);
+            writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
         }
     }
 
@@ -112,75 +117,87 @@ public class JobService {
 
         BufferedImage originalImage = ImageIO.read(imageFile);
         List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
-        List<List<Double>> rectangles = job.getCharacterRectangles();
+        List<OffsetRectangle> rectangles = job.getCharacterRectangles() == null ? new ArrayList<>() :
+                job.getCharacterRectangles().stream().map(OffsetRectangle::new).collect(Collectors.toList());
         List<List<Double>> lines = cropsType.equals(CropsType.LINES) ? job.getLineLines() : job.getWordLines();
+        List<LineSegment> lineSegments = lines == null ? new ArrayList<>() :
+                lines.stream().map(LineSegment::new).collect(Collectors.toList());
+        List<Set<OffsetRectangle>> unGroupedRectangles = new ArrayList<>();
+        for (LineSegment lineSegment : lineSegments) {
+            Set<OffsetRectangle> thisGroupsRectangles = rectangles.stream()
+                    .filter(lineSegment::interceptsRectangle)
+                    .collect(Collectors.toSet());
+            unGroupedRectangles.add(thisGroupsRectangles);
+        }
+        List<Set<OffsetRectangle>> groupedRectangles = new ArrayList<>();
 
-        if (lines != null && rectangles != null) {
-            for (List<Double> line : lines) {
-                List<List<Double>> containedRectangles = rectangles.stream()
-                        .filter(rectangle -> lineInterceptsRectangle(line, rectangle))
-                        .collect(Collectors.toList());
-                Point upperLeft = upperLeftPoint(containedRectangles);
-                Point lowerRight = lowerRightPoint(containedRectangles);
-                int x = (int) upperLeft.getX();
-                int y = (int) upperLeft.getY();
-                int w = (int) (lowerRight.getX() - upperLeft.getX());
-                int h = (int) (lowerRight.getY() - upperLeft.getY());
-                try {
-                    BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
-                    LabeledImageCrop labeledImageCrop = new LabeledImageCrop(job.getId(), imageFile, croppedImage);
-                    labeledImageCrops.add(labeledImageCrop);
-                } catch (Exception e) {
-                    LOG.error("Something went wrong when cropping the image.", e);
-//                    LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
+        for (Set<OffsetRectangle> offsetRectangleSet : unGroupedRectangles) {
+            boolean grouped = false;
+            for (OffsetRectangle offsetRectangle : offsetRectangleSet) {
+                Optional<Set<OffsetRectangle>> matchingSet = groupedRectangles.stream().filter(set -> set.contains(offsetRectangle)).findFirst();
+                if (matchingSet.isPresent()) {
+                    grouped = true;
+                    matchingSet.get().addAll(offsetRectangleSet);
+                    break;
                 }
+            }
+            if (!grouped) {
+                groupedRectangles.add(offsetRectangleSet);
+            }
+        }
+
+        for (Set<OffsetRectangle> rectangleGroup : groupedRectangles.stream().filter(set -> set.size() != 0).collect(Collectors.toList())) {
+            Point upperLeft = upperLeftPoint(rectangleGroup);
+            Point lowerRight = lowerRightPoint(rectangleGroup);
+            int x = (int) upperLeft.getX();
+            int y = (int) upperLeft.getY();
+            int w = (int) (lowerRight.getX() - upperLeft.getX());
+            int h = (int) (lowerRight.getY() - upperLeft.getY());
+            try {
+                BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
+                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(job.getId(), imageFile, croppedImage);
+                labeledImageCrops.add(labeledImageCrop);
+            } catch (Exception e) {
+                LOG.error("Something went wrong when cropping the image.", e);
+//                    LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
             }
         }
         LOG.info("Writing all cropped and labeled images...");
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
     }
 
-    public boolean lineInterceptsRectangle(List<Double> linePoints, List<Double> rectangle) {
-        LineSegment line = new LineSegment(linePoints.get(0), linePoints.get(1), linePoints.get(2), linePoints.get(3));
+    public boolean lineInterceptsRectangle(LineSegment lineSegment, OffsetRectangle rectangle) {
 
-
-        double leftX = rectangle.get(0);
-        double rightX = rectangle.get(0) + rectangle.get(2);
-        double upperY = rectangle.get(1);
-        double lowerY = rectangle.get(1) + rectangle.get(3);
-
-        LineSegment leftRectEdge = new LineSegment(leftX, upperY, leftX, lowerY);
-        LineSegment rightRectEdge = new LineSegment(rightX, upperY, rightX, lowerY);
-
-        return leftRectEdge.intersection(line) != null || rightRectEdge.intersection(line) != null;
+        return lineSegment.intersection(rectangle.getLeftEdge()) != null
+                || lineSegment.intersection(rectangle.getRightEdge()) != null;
 
     }
 
-    public Point upperLeftPoint(List<List<Double>> rectangles) {
+    public Point upperLeftPoint(Set<OffsetRectangle> rectangles) {
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
 
-        for (List<Double> rectangle : rectangles) {
-            if (rectangle.get(0) < minX) {
-                minX = rectangle.get(0);
+        for (OffsetRectangle rectangle : rectangles) {
+            if (rectangle.getX1() < minX) {
+                minX = rectangle.getX1();
             }
-            if (rectangle.get(1) < minY) {
-                minY = rectangle.get(1);
+            if (rectangle.getY1() < minY) {
+                minY = rectangle.getY1();
             }
         }
         return new Point(minX, minY);
     }
 
-    public Point lowerRightPoint(List<List<Double>> rectangles) {
+    public Point lowerRightPoint(Set<OffsetRectangle> rectangles) {
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
 
-        for (List<Double> rectangle : rectangles) {
-            if (rectangle.get(0) + rectangle.get(2) > maxX) {
-                maxX = rectangle.get(0) + rectangle.get(2);
+        for (OffsetRectangle rectangle : rectangles) {
+            if (rectangle.getX2() > maxX) {
+                maxX = rectangle.getX2();
             }
-            if (rectangle.get(1) + rectangle.get(3) > maxY) {
-                maxY = rectangle.get(1) + rectangle.get(3);
+            if (rectangle.getY2() > maxY) {
+                maxY = rectangle.getY2();
             }
         }
         return new Point(maxX, maxY);
