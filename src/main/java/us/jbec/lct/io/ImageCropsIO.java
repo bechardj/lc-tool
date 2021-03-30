@@ -7,13 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import us.jbec.lct.models.CropsDestination;
+import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LabeledImageCrop;
 
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ImageCropsIO {
@@ -24,20 +28,19 @@ public class ImageCropsIO {
     private String bulkOutputPath;
 
     public void writeLabeledImageCrops(ImageJob job, List<LabeledImageCrop> labeledImageCrops,
-                                       CropsDestination destination) throws IOException {
+                                       CropsDestination destination, CropsType cropsType) throws IOException {
         int nameCounter = 0;
         if (labeledImageCrops != null && labeledImageCrops.size() > 0) {
             if (CropsDestination.BULK.equals(destination)){
-                deleteBulkCropsByImageJob(job);
+                deleteBulkCropsByImageJob(job, cropsType);
             } else {
-                deleteCropsDirectoryBySourceFile(labeledImageCrops.get(0).getSource());
+                deleteCropsDirectoryBySourceFile(labeledImageCrops.get(0).getSource(), cropsType);
             }
             for (LabeledImageCrop labeledImageCrop : labeledImageCrops) {
                 nameCounter++;
                 String name = job.getId() + "_" + nameCounter + ".png";
-                String label = labeledImageCrop.getLabel();
 
-                File directory = buildOutputDirectory(labeledImageCrop, destination);
+                File directory = buildOutputDirectory(labeledImageCrop, destination, cropsType);
                 if (directory == null) {
                     throw new RuntimeException("Unable to open output directory");
                 }
@@ -52,7 +55,7 @@ public class ImageCropsIO {
         }
     }
 
-    private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsDestination destination) {
+    private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsDestination destination, CropsType cropsType) {
         String label = labeledImageCrop.getLabel();
         if (CropsDestination.PAGE.equals(destination)) {
             File imageDirectory = labeledImageCrop.getSource().getParentFile();
@@ -60,22 +63,30 @@ public class ImageCropsIO {
                     + File.separator
                     + "crops"
                     + File.separator
+                    + cropsType.getDirectoryName()
+                    + File.separator
                     + label
                     + File.separator);
         } else if (CropsDestination.BULK.equals(destination)) {
             return new File(bulkOutputPath
                     + File.separator
+                    + cropsType.getDirectoryName()
+                    +File.separator
                     + label
                     + File.separator);
         }
         return null;
     }
 
-    private void deleteCropsDirectoryBySourceFile(File source) throws IOException {
+    private void deleteCropsDirectoryBySourceFile(File source, CropsType cropsType) throws IOException {
         LOG.info("Clearing existing crops directory....");
         File cropsDirectory = new File(source.getParentFile().getAbsolutePath()
                 + File.separator +
-                "crops");
+                "crops" +
+                File.separator +
+                cropsType.getDirectoryName() +
+                File.separator);
+        performCropsDirectoryUpgrade(cropsDirectory);
         FileUtils.deleteDirectory(cropsDirectory);
         LOG.info("Cleared!");
         if (!cropsDirectory.exists()) {
@@ -84,9 +95,27 @@ public class ImageCropsIO {
         }
     }
 
-    private void deleteBulkCropsByImageJob(ImageJob imageJob) {
+    private void performCropsDirectoryUpgrade(File subDirectory) throws IOException {
+        File parentDirectory = subDirectory.getParentFile();
+        if (parentDirectory.exists()) {
+            List<String> dirNames = Arrays.stream(CropsType.values())
+                    .map(CropsType::getDirectoryName)
+                    .collect(Collectors.toList());
+            for(File file : parentDirectory.listFiles()) {
+                if (file.isDirectory() && dirNames.contains(file.getName())) {
+                    return;
+                }
+            }
+            FileUtils.deleteDirectory(parentDirectory);
+        }
+        parentDirectory.mkdirs();
+    }
+
+    private void deleteBulkCropsByImageJob(ImageJob imageJob, CropsType cropsType) throws IOException {
         LOG.info("Clearing bulk image crops for job id {}....", imageJob.getId());
-        File bulkDirectory = new File(bulkOutputPath);
+        File bulkDirectory = new File(bulkOutputPath + File.separator
+                + cropsType.getDirectoryName() + File.separator);
+        performCropsDirectoryUpgrade(bulkDirectory);
         File[] labeledDirectories = bulkDirectory.listFiles();
         if (labeledDirectories != null) {
             for (File labeledDirectory : labeledDirectories) {
