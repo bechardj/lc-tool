@@ -41,6 +41,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     let jobInfo;
 
     let captureMode;
+    let previousCaptureMode;
     let fontSize;
     let transparency;
     let textFieldEdit;
@@ -96,81 +97,82 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         drawing = false;
         let removedBadRectangle = clean();
         draw();
-        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill) {
+        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill && captureMode === CaptureModes.LETTER) {
             generateCropAndPredict(index, rectangle);
         }
     }
 
     function dragHandler(event) {
         if (drawing) {
+            let mouseX = event.pageX - canvas.offsetLeft
+            let mouseY = event.pageY - canvas.offsetTop
             if (captureMode === CaptureModes.LETTER && characterRectangles.length > 0 && drawing) {
                 const lastDrawn = characterRectangles.pop();
                 const lastLabel = characterLabels.pop();
-                lastDrawn[2] = event.pageX - canvas.offsetLeft - lastDrawn[0];
-                lastDrawn[3] = event.pageY - canvas.offsetTop - lastDrawn[1];
+                lastDrawn[2] = mouseX - lastDrawn[0];
+                lastDrawn[3] = mouseY - lastDrawn[1];
                 characterRectangles.push(lastDrawn);
                 characterLabels.push(lastLabel);
-                draw();
             } else if (captureMode === CaptureModes.WORD && wordLines.length > 0) {
                 const lastDrawn = wordLines.pop();
-                lastDrawn[2] = event.pageX - canvas.offsetLeft;
-                lastDrawn[3] = event.pageY - canvas.offsetTop;
+                lastDrawn[2] = mouseX;
+                lastDrawn[3] = mouseY;
                 wordLines.push(lastDrawn);
-                draw();
             } else if (captureMode === CaptureModes.LINE && lineLines.length > 0) {
                 const lastDrawn = lineLines.pop();
-                lastDrawn[2] = event.pageX - canvas.offsetLeft;
-                lastDrawn[3] = event.pageY - canvas.offsetTop;
+                lastDrawn[2] = mouseX;
+                lastDrawn[3] = mouseY;
                 lineLines.push(lastDrawn);
-                draw();
             } else if (captureMode === CaptureModes.ERASER) {
-                let mouseX = event.pageX - canvas.offsetLeft
-                let mouseY = event.pageY - canvas.offsetTop
-                for (let i = 0; i < characterRectangles.length; i++) {
-                    let r = characterRectangles[i];
-                    if ((r[0] < mouseX && mouseX < r[0] + r[2])
-                        && (r[1] < mouseY && mouseY < r[1] + r[3])) {
-                        erasedCharacterRectangles.push(r);
-                        erasedCharacterLabels.push(characterLabels[i]);
-                        // console.log(r, event.pageX - canvas.offsetLeft, event.pageY - canvas.offsetTop);
-                        characterRectangles.splice(i, 1);
-                        characterLabels.splice(i, 1);
-                        draw();
-                    }
-                }
-                const slope = function (x1, y1, x2, y2) {
-                    return (y2 - y1) / ((x2 - x1) !== 0 ? (x2 - x1) : 0.000001);
-                };
-                // TODO: cleanup duplicated code here, also this approach does not work well for vertical lines
-                for (let j = 0; j < wordLines.length; j++) {
-                    let w = wordLines[j];
-                    let eps = 0.5;
-                    let line_slope = Math.abs(slope(w[0], w[1], w[2], w[3]));
-                    let slope_start = Math.abs(slope(w[0], w[1], mouseX, mouseY));
-                    let slope_end = Math.abs(slope(w[2], w[3], mouseX, mouseY));
-                    if ((Math.abs(line_slope - slope_start) < eps) &&
-                        (Math.abs(line_slope - slope_end) < eps) &&
-                        (Math.min(w[0], w[2]) <= mouseX && mouseX <= Math.max(w[0], w[2])) &&
-                        (Math.min(w[1], w[3]) <= mouseY && mouseY <= Math.max(w[1], w[3]))) {
-                        erasedWordLines.push(w);
-                        wordLines.splice(j, 1);
-                    }
-                }
-                for (let l = 0; l < lineLines.length; l++) {
-                    let k = lineLines[l];
-                    let eps = 0.5;
-                    let line_slope = Math.abs(slope(k[0], k[1], k[2], k[3]));
-                    let slope_start = Math.abs(slope(k[0], k[1], mouseX, mouseY));
-                    let slope_end = Math.abs(slope(k[2], k[3], mouseX, mouseY));
-                    if ((Math.abs(line_slope - slope_start) < eps) &&
-                        (Math.abs(line_slope - slope_end) < eps) &&
-                        (Math.min(k[0], k[2]) <= mouseX && mouseX <= Math.max(k[0], k[2])) &&
-                        (Math.min(k[1], k[3]) <= mouseY && mouseY <= Math.max(k[1], k[3]))) {
-                        erasedLineLines.push(k)
-                        lineLines.splice(k, 1);
-                    }
-                }
+                eraser(mouseX, mouseY);
+            }
+            draw();
+        }
+    }
 
+    function eraser(x0, y0) {
+        if (previousCaptureMode === CaptureModes.LETTER) {
+            for (let i = 0; i < characterRectangles.length; i++) {
+                let r = characterRectangles[i];
+                if ((r[0] < x0 && x0 < r[0] + r[2])
+                    && (r[1] < y0 && y0 < r[1] + r[3])) {
+                    erasedCharacterRectangles.push(r);
+                    erasedCharacterLabels.push(characterLabels[i]);
+                    // console.log(r, event.pageX - canvas.offsetLeft, event.pageY - canvas.offsetTop);
+                    characterRectangles.splice(i, 1);
+                    characterLabels.splice(i, 1);
+                    draw();
+                }
+            }
+        }
+        if (previousCaptureMode === CaptureModes.WORD || previousCaptureMode === CaptureModes.LINE) {
+
+            let lines;
+            let erasedLines;
+
+            if (CaptureModes.WORD === previousCaptureMode) {
+                lines = wordLines;
+                erasedLines = erasedWordLines;
+            } else {
+                lines = lineLines;
+                erasedLines = erasedLineLines;
+            }
+            for (let j = 0; j < lines.length; j++) {
+                let l = lines[j];
+                let x1 = l[0];
+                let x2 = l[2];
+                let y1 = l[1];
+                let y2 = l[3];
+
+                let numerator = Math.abs(((x2-x1) * (y1-y0)) - ((x1-x0)*(y2-y1)));
+                let denominator = Math.sqrt(Math.pow((x2-x1),2) + Math.pow((y2-y1), 2));
+
+                if (numerator/denominator < 0.5 &&
+                    (Math.min(x1, x2) <= x0 && x0 <= Math.max(x1, x2)) &&
+                    (Math.min(y1, y2) <= y0 && y0 <= Math.max(y1, y2))) {
+                    erasedLines.push(l);
+                    lines.splice(j, 1);
+                }
             }
         }
     }
@@ -212,10 +214,27 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         }
     }
 
+    function drawLine(line, currentContext, stroke) {
+        currentContext.beginPath();
+        currentContext.moveTo(line[0], line[1]);
+        currentContext.lineTo(line[2], line[3]);
+        currentContext.strokeStyle = stroke;
+        currentContext.lineWidth = 3;
+        currentContext.stroke();
+    }
+
     function draw() {
-        if (drawing && CaptureModes.LETTER === captureMode) {
+        if (drawing && captureMode !== CaptureModes.ERASER) {
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            drawRectangle(characterRectangles.length-1, drawingCanvas, drawingCtx);
+            if (captureMode === CaptureModes.LETTER) {
+                drawRectangle(characterRectangles.length-1, drawingCanvas, drawingCtx);
+            }
+            if (captureMode === CaptureModes.WORD) {
+                drawLine(wordLines[wordLines.length-1], drawingCtx, "#00FF00");
+            }
+            if (captureMode === CaptureModes.LINE) {
+                drawLine(lineLines[lineLines.length-1], drawingCtx, "#0000FF");
+            }
             drawingCtx.stroke();
         } else {
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
@@ -228,23 +247,17 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         for (let i = 0; i < characterRectangles.length; i++) {
             drawRectangle(i, canvas, ctx);
         }
-        for (let j = 0; j < wordLines.length; j++) {
-            let w = wordLines[j];
-            ctx.beginPath();
-            ctx.moveTo(w[0], w[1]);
-            ctx.lineTo(w[2], w[3]);
-            ctx.strokeStyle = "#00FF00";
-            ctx.lineWidth = 3;
-            ctx.stroke();
+        if (captureMode === CaptureModes.WORD
+            || captureMode === CaptureModes.ERASER && previousCaptureMode === CaptureModes.WORD) {
+            for (let j = 0; j < wordLines.length; j++) {
+                drawLine(wordLines[j], ctx, "#00FF00");
+            }
         }
-        for (let k = 0; k < lineLines.length; k++) {
-            let l = lineLines[k];
-            ctx.beginPath();
-            ctx.moveTo(l[0], l[1]);
-            ctx.lineTo(l[2], l[3]);
-            ctx.strokeStyle = "#0000FF";
-            ctx.lineWidth = 5;
-            ctx.stroke();
+        if (captureMode === CaptureModes.LINE
+            || captureMode === CaptureModes.ERASER && previousCaptureMode === CaptureModes.LINE) {
+            for (let k = 0; k < lineLines.length; k++) {
+                drawLine(lineLines[k], ctx, "#0000FF");
+            }
         }
     }
 
@@ -279,22 +292,16 @@ function captureCanvasInit (trained_model, trained_model_labels) {
                 console.log("flipping");
             }
         }
-        // TODO: cleanup repeated code here
         // consider lines less than 10 px as erroneous
-        for (let j = 0; j < wordLines.length; j++) {
-            let w = wordLines[j];
-            let word_distance = Math.sqrt(Math.pow(w[0] - w[2], 2) + Math.pow(w[1] - w[3], 2));
-            if (word_distance < 10) {
-                console.log("Removing bad word lines");
-                wordLines.splice(j, 1);
-            }
-        }
-        for (let k = 0; k < lineLines.length; k++) {
-            let l = lineLines[k];
-            let line_distance = Math.sqrt(Math.pow(l[0] - l[2], 2) + Math.pow(l[1] - l[3], 2));
-            if (line_distance < 10) {
-                console.log("Removing bad line lines");
-                lineLines.splice(j, 1);
+        let line;
+        for(line of Array.of(wordLines, lineLines)) {
+            for (let j = 0; j < line.length; j++) {
+                let w = line[j];
+                let word_distance = Math.sqrt(Math.pow(w[0] - w[2], 2) + Math.pow(w[1] - w[3], 2));
+                if (word_distance < 10) {
+                    console.log("Removing bad line");
+                    line.splice(j, 1);
+                }
             }
         }
         return removedBadRectangle;
@@ -310,14 +317,24 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     // Button Functions
 
     function setCaptureMode(mode) {
+        if (mode === captureMode) {
+            return;
+        }
+        previousCaptureMode = captureMode;
         const captureModeIndicator = $('#captureMode')[0];
         if (!drawing && (captureMode !== CaptureModes.LETTER || lastIsLabeled())) {
-            captureModeIndicator.innerText = 'Current Mode: ' + mode;
+            captureModeIndicator.innerText = 'Current Mode: '
+                + (mode === CaptureModes.ERASER ?  previousCaptureMode + " " : "")
+                + mode;
             captureMode = mode;
+            if (mode !== CaptureModes.LETTER) {
+                $('.alert-prediction').hide();
+            }
             clearEraserQueues();
         } else {
             alert("Can't change modes while drawing or while rectangle is unlabeled.");
         }
+        draw();
     }
 
     function undo() {
@@ -601,7 +618,6 @@ function captureCanvasInit (trained_model, trained_model_labels) {
     function init() {
         drawing = false;
         hideCapture = false;
-        setCaptureMode(CaptureModes.LETTER);
         background = new Image();
         jobId = $('#imageId')[0].textContent;
         fontSize = $('#fontSlider')[0].value;
@@ -653,6 +669,7 @@ function captureCanvasInit (trained_model, trained_model_labels) {
             document.fonts.load(fontSize+  "px Exo").then(() => {
                 draw();
             })
+            setCaptureMode(CaptureModes.LETTER);
             $('#full-screen-load').delay(500).fadeOut();
             $('#main-content-container').delay(750).fadeIn();
         }
