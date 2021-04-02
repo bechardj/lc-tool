@@ -2,6 +2,7 @@ package us.jbec.lct.models;
 
 public enum CropsType {
     LETTERS("letters"),
+    WORDS("words"),
     LINES("lines");
 
     private String directoryName;

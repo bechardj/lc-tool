@@ -31,60 +31,62 @@ public class LabeledImageCrop {
 
     public String getLabel() {
         // This is to avoid file system limitations.
-        if(StringUtils.isAlpha(label) && StringUtils.isAllLowerCase(label)){
-            return label + "_lower";
-        } else if(StringUtils.isAlpha(label) && StringUtils.isAllUpperCase(label)){
-            return label + "_upper";
-        } else if(label.equals(".")) {
-            return "period";
-        } else if(label.equals("!")) {
-            return "exclamation";
-        } else if(label.equals("~")) {
-            return "tilde";
-        } else if(label.equals("`")) {
-            return "backtick";
-        } else if(label.equals("@")) {
-            return "at";
-        } else if(label.equals("#")) {
-            return "pound";
-        } else if(label.equals("<")) {
-            return "left_angle_bracket";
-        } else if(label.equals(">")) {
-            return "right_angle_bracket";
-        } else if(label.equals("$")) {
-            return "dollar";
-        } else if(label.equals("%")) {
-            return "percent";
-        } else if(label.equals("&")) {
-            return "ampersand";
-        } else if(label.equals("*")) {
-            return "asterisk";
-        } else if(label.equals("'")) {
-            return "single_quote";
-        } else if(label.equals("\"")) {
-            return "double_quote";
-        } else if(label.equals(" ")) {
-            return "space";
-        } else if(label.equals("\\")) {
-            return "back_slash";
-        } else if(label.equals("/")) {
-            return "forward_slash";
-        } else if(label.equals(":")) {
-            return "colon";
-        } else if(label.equals(";")) {
-            return "semi_colon";
-        } else if(label.equals("?")) {
-            return "question";
-        }else if(label.equals("{")) {
-            return "curly_open";
-        } else if(label.equals("}")) {
-            return "curly_close";
-        } else if(label.equals("+")) {
-            return "plus";
-        } else if(label.equals("|")) {
-            return "pipe";
-        } else if(label.equals("=")) {
-            return "equals";
+        if (StringUtils.length(label) == 1) {
+            if (StringUtils.isAlpha(label) && StringUtils.isAllLowerCase(label)) {
+                return label + "_lower";
+            } else if (StringUtils.isAlpha(label) && StringUtils.isAllUpperCase(label)) {
+                return label + "_upper";
+            } else if (label.equals(".")) {
+                return "period";
+            } else if (label.equals("!")) {
+                return "exclamation";
+            } else if (label.equals("~")) {
+                return "tilde";
+            } else if (label.equals("`")) {
+                return "backtick";
+            } else if (label.equals("@")) {
+                return "at";
+            } else if (label.equals("#")) {
+                return "pound";
+            } else if (label.equals("<")) {
+                return "left_angle_bracket";
+            } else if (label.equals(">")) {
+                return "right_angle_bracket";
+            } else if (label.equals("$")) {
+                return "dollar";
+            } else if (label.equals("%")) {
+                return "percent";
+            } else if (label.equals("&")) {
+                return "ampersand";
+            } else if (label.equals("*")) {
+                return "asterisk";
+            } else if (label.equals("'")) {
+                return "single_quote";
+            } else if (label.equals("\"")) {
+                return "double_quote";
+            } else if (label.equals(" ")) {
+                return "space";
+            } else if (label.equals("\\")) {
+                return "back_slash";
+            } else if (label.equals("/")) {
+                return "forward_slash";
+            } else if (label.equals(":")) {
+                return "colon";
+            } else if (label.equals(";")) {
+                return "semi_colon";
+            } else if (label.equals("?")) {
+                return "question";
+            } else if (label.equals("{")) {
+                return "curly_open";
+            } else if (label.equals("}")) {
+                return "curly_close";
+            } else if (label.equals("+")) {
+                return "plus";
+            } else if (label.equals("|")) {
+                return "pipe";
+            } else if (label.equals("=")) {
+                return "equals";
+            }
         }
         return label;
     }

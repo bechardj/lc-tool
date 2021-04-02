@@ -1,5 +1,7 @@
 package us.jbec.lct.services;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -22,9 +24,12 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +43,8 @@ public class JobService {
 
     Logger LOG = LoggerFactory.getLogger(JobService.class);
 
+    private static final Set ILLEGAL_CHARACTERS = new HashSet<>(Arrays.asList("/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":"));
+
 
     public JobService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO) {
         this.imageCropsIO = imageCropsIO;
@@ -49,6 +56,7 @@ public class JobService {
         for(ImageJobFile imageJobFile : imageJobFiles) {
             writeCharacterCrops(imageJobFile, cropsDestination);
             writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
+            writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
         }
     }
 
@@ -70,6 +78,7 @@ public class JobService {
                     job);
             writeCharacterCrops(jobFileToProcess, cropsDestination);
             writeLineCrops(jobFileToProcess, cropsDestination, CropsType.LINES);
+            writeLineCrops(jobFileToProcess, cropsDestination, CropsType.WORDS);
         } else {
             LOG.error("Image Job {} not found in output directory!", job.getId());
             throw new RuntimeException();
@@ -117,11 +126,21 @@ public class JobService {
 
         BufferedImage originalImage = ImageIO.read(imageFile);
         List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
-        List<OffsetRectangle> rectangles = job.getCharacterRectangles() == null ? new ArrayList<>() :
-                job.getCharacterRectangles().stream().map(OffsetRectangle::new).collect(Collectors.toList());
+        List<OffsetRectangle> rectangles = new ArrayList<>();
+        Map<OffsetRectangle, String> mappedLabels = new HashMap<>();
+        if (job.getCharacterRectangles() != null){
+            for (int i = 0; i < job.getCharacterRectangles().size(); i++) {
+                OffsetRectangle offsetRectangle = new OffsetRectangle(job.getCharacterRectangles().get(i));
+                rectangles.add(offsetRectangle);
+                mappedLabels.put(offsetRectangle, job.getCharacterLabels().get(i));
+            }
+        }
+
         List<List<Double>> lines = cropsType.equals(CropsType.LINES) ? job.getLineLines() : job.getWordLines();
+
         List<LineSegment> lineSegments = lines == null ? new ArrayList<>() :
                 lines.stream().map(LineSegment::new).collect(Collectors.toList());
+
         List<Set<OffsetRectangle>> unGroupedRectangles = new ArrayList<>();
         for (LineSegment lineSegment : lineSegments) {
             Set<OffsetRectangle> thisGroupsRectangles = rectangles.stream()
@@ -154,8 +173,19 @@ public class JobService {
             int w = (int) (lowerRight.getX() - upperLeft.getX());
             int h = (int) (lowerRight.getY() - upperLeft.getY());
             try {
+                String label;
+                if (cropsType == CropsType.WORDS) {
+                    label = rectangleGroup.stream()
+                                .sorted(Comparator.comparing(OffsetRectangle::getX1))
+                                .map(mappedLabels::get)
+                                .filter(mappedLabel -> !ILLEGAL_CHARACTERS.contains(mappedLabel))
+                                .collect(Collectors.joining(""));
+                    label = StringUtils.isEmpty(label) ? job.getId() : label;
+                } else {
+                    label = job.getId();
+                }
                 BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
-                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(job.getId(), imageFile, croppedImage);
+                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(label, imageFile, croppedImage);
                 labeledImageCrops.add(labeledImageCrop);
             } catch (Exception e) {
                 LOG.error("Something went wrong when cropping the image.", e);
