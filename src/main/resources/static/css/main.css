@@ -235,3 +235,7 @@
     opacity: 0;
     z-index: -1;
 }
+
+.hidden{
+    display: none;
+}
