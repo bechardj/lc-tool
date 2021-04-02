@@ -91,7 +91,6 @@ function init() {
     $.getJSON("/calculateStatistics",
         function(response) {
             statistics = response;
-            console.log(JSON.stringify(statistics));
             graph();
             addLabels();
         });

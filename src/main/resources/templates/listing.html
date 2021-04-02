@@ -4,52 +4,42 @@
     <title>Lyrasis Capture File Listing</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 </head>
 <body>
-<nav class="navbar navbar-default">
-    <div class="container-fluid">
-        <div class="navbar-collapse" id="mainNavbar">
-            <ul class="nav navbar-nav">
-                <li class="active">
-                    <a href="#">Listing</a>
-                </li>
-                <li>
-                    <a href="/statistics">Statistics</a>
-                </li>
-                <li>
-                    <a href="/export">Export</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+
+<nav th:insert="fragments/navbar.html :: nav"></nav>
 <div class="container">
-    <h1 class = "title" align="center">LC Capture Tool</h1>
-    <p class = "body" align="center">Pagination/Search is not yet supported, so you can carefully copy folders out of your output directory if you want to clean this listing up.</p>
-    <table class="table table-striped">
-        <thead class="thead-light">
-        <tr>
-            <th scope="col">Image Name</th>
-            <th scope="col">File Last Modified</th>
-            <th scope="col">Status</th>
-            <th scope="col">Notes</th>
-            <th scope="col">URL</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="listing : ${imageJobListings}">
-            <td th:text="${listing.fileName}"></td>
-            <td th:text="${listing.dateAdded}"></td>
-            <td th:text="${listing.status}"></td>
-            <td th:text="${listing.notes}"></td>
-            <td> <a th:href="${listing.url}">Open</a></td>
-        </tr>
-        </tbody>
-    </table>
+    <h1 class = "nbs-title" align="center">LC Capture Tool</h1>
+    <p class = "body" align="center">Select the image you would like to capture data from, and click the URL to open.</p>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">Image Name</th>
+                <th scope="col">File Last Modified</th>
+                <th scope="col">Status</th>
+                <th scope="col">Notes</th>
+                <th scope="col">URL</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="listing : ${imageJobListings}">
+                <td th:text="${listing.fileName}"></td>
+                <td th:text="${listing.dateAdded}"></td>
+                <td th:text="${listing.status}"></td>
+                <td th:text="${listing.notes}"></td>
+                <td> <a th:href="${listing.url}">Open</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/common.js"></script>
 </body>
 </html>

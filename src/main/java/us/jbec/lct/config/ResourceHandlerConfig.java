@@ -11,9 +11,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.io.File;
 
 @Configuration
-public class TFModelResourceConfig implements WebMvcConfigurer {
+public class ResourceHandlerConfig implements WebMvcConfigurer {
 
-    Logger LOG = LoggerFactory.getLogger(TFModelResourceConfig.class);
+    Logger LOG = LoggerFactory.getLogger(ResourceHandlerConfig.class);
 
     @Value("${lct.tf.modelPath:#{null}}")
     public String localModelPath;

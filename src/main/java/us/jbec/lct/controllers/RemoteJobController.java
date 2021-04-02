@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.services.RemoteJobService;
 
+import java.net.http.HttpResponse;
 import java.util.List;
 
 @RestController

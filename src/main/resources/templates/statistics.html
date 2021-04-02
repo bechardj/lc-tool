@@ -7,33 +7,15 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 
 </head>
 <body>
-<div th:if="${@environment.getActiveProfiles().length == 0 or @environment.getActiveProfiles()[0] != 'remote'}">
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <div class="navbar-collapse" id="mainNavbar">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <a href="/">Listing</a>
-                    </li>
-                    <li class="active">
-                        <a href="#">Statistics</a>
-                    </li>
-                    <li>
-                        <a href="/export">Export</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-</div>
+<nav th:insert="fragments/navbar.html :: nav"></nav>
 <div class="container">
-    <h1 class="title">LC Document Tool Statistics</h1>
+    <h1 class="nbs-title">LC Document Tool Statistics</h1>
     <div class="padded-chart">
         <h2>All Characters</h2>
         <canvas id="allCharacterChart"></canvas>
@@ -63,8 +45,9 @@
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/common.js"></script>
+<script src="/webjars/chartjs/Chart.min.js"></script>
 <script src="/js/statistics.js"></script>
 </body>
 </html>
