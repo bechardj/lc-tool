@@ -16,7 +16,7 @@
 	<description>LC Capture Tool</description>
 
 	<properties>
-		<java.version>15</java.version>
+		<java.version>16</java.version>
 	</properties>
 
 	<dependencies>
@@ -38,9 +38,9 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.5</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -89,6 +89,11 @@
 			<groupId>org.webjars</groupId>
 			<artifactId>chartjs</artifactId>
 			<version>2.9.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>github-com-jaywcjlove-hotkeys</artifactId>
+			<version>3.8.3</version>
 		</dependency>
 
 		<dependency>
@@ -143,8 +148,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>15</source>
-					<target>15</target>
+					<source>16</source>
+					<target>16</target>
+<!--					<compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
 				</configuration>
 			</plugin>
 
