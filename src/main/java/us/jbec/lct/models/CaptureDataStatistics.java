@@ -1,6 +1,6 @@
 package us.jbec.lct.models;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

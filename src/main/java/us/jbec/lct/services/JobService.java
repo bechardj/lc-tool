@@ -1,7 +1,7 @@
 package us.jbec.lct.services;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -194,13 +194,6 @@ public class JobService {
         }
         LOG.info("Writing all cropped and labeled images...");
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
-    }
-
-    public boolean lineInterceptsRectangle(LineSegment lineSegment, OffsetRectangle rectangle) {
-
-        return lineSegment.intersection(rectangle.getLeftEdge()) != null
-                || lineSegment.intersection(rectangle.getRightEdge()) != null;
-
     }
 
     public Point upperLeftPoint(Set<OffsetRectangle> rectangles) {

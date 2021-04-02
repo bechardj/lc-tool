@@ -9,7 +9,7 @@ public class ObjectMapperConfig {
 
     @Bean
     public ObjectMapper getObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         return objectMapper;
     }

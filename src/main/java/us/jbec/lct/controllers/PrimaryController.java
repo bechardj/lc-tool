@@ -61,7 +61,7 @@ public class PrimaryController {
     public String listing(Model model) {
         try {
             ingestService.ingest();
-            List<ImageJobFile> imageJobFiles = jobService.getAllImageJobFilesSorted();
+            var imageJobFiles = jobService.getAllImageJobFilesSorted();
             List<ImageJobListing> imageJobListings = new ArrayList<>();
             for (ImageJobFile imageJobFile : imageJobFiles) {
                 try {

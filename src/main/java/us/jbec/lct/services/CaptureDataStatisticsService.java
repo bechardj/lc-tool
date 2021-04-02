@@ -12,7 +12,7 @@ import java.util.Objects;
 @Service
 public class CaptureDataStatisticsService {
     public CaptureDataStatistics calculateStatistics(List<ImageJob> imageJobList) {
-        CaptureDataStatistics statistics = new CaptureDataStatistics();
+        var statistics = new CaptureDataStatistics();
         imageJobList.stream()
                 .map(ImageJob::getCharacterLabels)
                 .filter(Objects::nonNull)

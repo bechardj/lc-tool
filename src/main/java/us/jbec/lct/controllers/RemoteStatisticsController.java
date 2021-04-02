@@ -33,7 +33,7 @@ public class RemoteStatisticsController {
     @GetMapping("/calculateStatistics")
     public CaptureDataStatistics statistics() {
         try {
-            List<ImageJob> imageJobs = remoteJobService.retrieveCurrentRemoteJobs(false);
+            var imageJobs = remoteJobService.retrieveCurrentRemoteJobs(false);
             return captureDataStatisticsService.calculateStatistics(imageJobs);
         }
         catch (Exception e) {

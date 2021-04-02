@@ -19,7 +19,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class PrimaryImageIO {
@@ -37,9 +39,7 @@ public class PrimaryImageIO {
 
     private final ObjectMapper objectMapper;
 
-    private final List<String> extensions = new ArrayList<>(
-            Arrays.asList("jpeg", "jpg", "png")
-    );
+    private final Set<String> extensions = Set.of("jpeg", "jpg", "png");
 
     /**
      * Data Access Object for images
@@ -60,12 +60,12 @@ public class PrimaryImageIO {
      * @return list of files ending in the specified extensions
      */
     public List<File> getFilesFromIngestDirectory() {
-        File directory = new File(ingestPath);
-        File[] files = directory.listFiles();
+        var directory = new File(ingestPath);
+        var files = directory.listFiles();
         List<File> imageFiles = new ArrayList<>();
         if (files != null) {
             for (File file : files) {
-                String extension = FilenameUtils.getExtension(file.getName()).toLowerCase();
+                var extension = FilenameUtils.getExtension(file.getName()).toLowerCase();
                 if (!file.isDirectory() && extensions.contains(extension)) {
                     imageFiles.add(file);
                 }

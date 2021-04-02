@@ -1,7 +1,7 @@
 package us.jbec.lct.io;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,17 +38,17 @@ public class ImageCropsIO {
             }
             for (LabeledImageCrop labeledImageCrop : labeledImageCrops) {
                 nameCounter++;
-                String name = job.getId() + "_" + nameCounter + ".png";
+                var name = job.getId() + "_" + nameCounter + ".png";
 
-                File directory = buildOutputDirectory(labeledImageCrop, destination, cropsType);
+                var directory = buildOutputDirectory(labeledImageCrop, destination, cropsType);
                 if (directory == null) {
                     throw new RuntimeException("Unable to open output directory");
                 }
                 if (!directory.exists()) {
                     directory.mkdirs();
                 }
-                String fullPath = directory.getAbsolutePath() + File.separator + name;
-                File outputFile = new File(fullPath);
+                var fullPath = directory.getAbsolutePath() + File.separator + name;
+                var outputFile = new File(fullPath);
                 ImageIO.write(labeledImageCrop.getImage(), "png", outputFile);
             }
             LOG.info("Wrote labeled image crops.");
@@ -56,9 +56,9 @@ public class ImageCropsIO {
     }
 
     private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsDestination destination, CropsType cropsType) {
-        String label = labeledImageCrop.getLabel();
+        var label = labeledImageCrop.getLabel();
         if (CropsDestination.PAGE.equals(destination)) {
-            File imageDirectory = labeledImageCrop.getSource().getParentFile();
+            var imageDirectory = labeledImageCrop.getSource().getParentFile();
             return new File(imageDirectory.getAbsolutePath()
                     + File.separator
                     + "crops"
@@ -80,7 +80,7 @@ public class ImageCropsIO {
 
     private void deleteCropsDirectoryBySourceFile(File source, CropsType cropsType) throws IOException {
         LOG.info("Clearing existing crops directory....");
-        File cropsDirectory = new File(source.getParentFile().getAbsolutePath()
+        var cropsDirectory = new File(source.getParentFile().getAbsolutePath()
                 + File.separator +
                 "crops" +
                 File.separator +
@@ -96,7 +96,7 @@ public class ImageCropsIO {
     }
 
     private void performCropsDirectoryUpgrade(File subDirectory) throws IOException {
-        File parentDirectory = subDirectory.getParentFile();
+        var parentDirectory = subDirectory.getParentFile();
         if (parentDirectory.exists()) {
             List<String> dirNames = Arrays.stream(CropsType.values())
                     .map(CropsType::getDirectoryName)
@@ -113,10 +113,10 @@ public class ImageCropsIO {
 
     private void deleteBulkCropsByImageJob(ImageJob imageJob, CropsType cropsType) throws IOException {
         LOG.info("Clearing bulk image crops for job id {}....", imageJob.getId());
-        File bulkDirectory = new File(bulkOutputPath + File.separator
+        var bulkDirectory = new File(bulkOutputPath + File.separator
                 + cropsType.getDirectoryName() + File.separator);
         performCropsDirectoryUpgrade(bulkDirectory);
-        File[] labeledDirectories = bulkDirectory.listFiles();
+        var labeledDirectories = bulkDirectory.listFiles();
         if (labeledDirectories != null) {
             for (File labeledDirectory : labeledDirectories) {
                 if (labeledDirectory.isDirectory()) {

@@ -1,6 +1,6 @@
 package us.jbec.lct.config;
 
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +21,8 @@ public class ResourceHandlerConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         if (localModelPath !=  null) {
-            File file = new File(localModelPath);
-            String path = file.getAbsolutePath() + File.separator;
+            var file = new File(localModelPath);
+            var path = file.getAbsolutePath() + File.separator;
             if (!file.exists()) {
                 LOG.error("File {} either does not exist or is not resolvable", path);
             }
