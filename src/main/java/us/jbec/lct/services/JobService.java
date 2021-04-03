@@ -1,6 +1,5 @@
 package us.jbec.lct.services;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +11,12 @@ import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.LabeledImageCrop;
-import us.jbec.lct.models.geometry.LineSegment;
+import us.jbec.lct.models.geometry.GeometricCollectionUtils;
+import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.OffsetRectangle;
 import us.jbec.lct.models.geometry.Point;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -26,11 +25,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,20 +36,22 @@ public class JobService {
 
     private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
+    private final GeometricCollectionUtils geometricCollectionUtils;
 
     Logger LOG = LoggerFactory.getLogger(JobService.class);
 
-    private static final Set ILLEGAL_CHARACTERS = new HashSet<>(Arrays.asList("/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":"));
+    private static final Set<String> ILLEGAL_CHARACTERS = new HashSet<>(Arrays.asList("/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":"));
 
 
-    public JobService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO) {
+    public JobService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO, GeometricCollectionUtils geometricCollectionUtils) {
         this.imageCropsIO = imageCropsIO;
         this.primaryImageIO = primaryImageIO;
+        this.geometricCollectionUtils = geometricCollectionUtils;
     }
 
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
-        List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
-        for(ImageJobFile imageJobFile : imageJobFiles) {
+        var imageJobFiles = primaryImageIO.getImageJobFiles();
+        for(var imageJobFile : imageJobFiles) {
             writeCharacterCrops(imageJobFile, cropsDestination);
             writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
             writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
@@ -62,19 +60,19 @@ public class JobService {
 
 
     public void processImageJobWithFile(ImageJob job, CropsDestination cropsDestination) throws IOException {
-        Optional <ImageJobFile> optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
+        var optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
                 .filter(imageJobFile -> imageJobFile.getImageJob().getId().equals(job.getId()))
                 .findFirst();
         if (optionalImageJobFile.isPresent()) {
             LOG.info("Found job: {}", job.getId());
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
+            var fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
             job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
             job.setVersion("0.3");
             if (CropsDestination.PAGE.equals(cropsDestination)) {
                 LOG.info("Saving JSON...");
                 primaryImageIO.saveImageJobJson(job);
             }
-            ImageJobFile jobFileToProcess = new ImageJobFile(optionalImageJobFile.get().getImageFile(),
+            var jobFileToProcess = new ImageJobFile(optionalImageJobFile.get().getImageFile(),
                     job);
             writeCharacterCrops(jobFileToProcess, cropsDestination);
             writeLineCrops(jobFileToProcess, cropsDestination, CropsType.LINES);
@@ -86,34 +84,24 @@ public class JobService {
     }
 
     private void writeCharacterCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
-        ImageJob job = imageJobFile.getImageJob();
-        File imageFile = imageJobFile.getImageFile();
+        var job = imageJobFile.getImageJob();
+        var imageFile = imageJobFile.getImageFile();
 
         BufferedImage originalImage = ImageIO.read(imageFile);
         List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
-        List<List<Double>> rectangles = job.getCharacterRectangles();
-        List<String> labels = job.getCharacterLabels();
-        int cropCount = job.getCharacterRectangles() == null ? 0 : job.getCharacterRectangles().size();
-        for(int i = 0; i < cropCount; i++) {
-            int x = rectangles.get(i).get(0).intValue();
-            int y = rectangles.get(i).get(1).intValue();
-            int w = rectangles.get(i).get(2).intValue();
-            int h = rectangles.get(i).get(3).intValue();
-            if (w < 0) {
-                x = x + w;
-                w *= -1;
-            }
-            if (h < 0) {
-                y = y + h;
-                h *= -1;
-            }
+        var rectangles = job.getLabeledRectangles();
+        for(var rectangle : rectangles) {
+            int x = (int) rectangle.getX1();
+            int y = (int) rectangle.getY1();
+            int w = (int) rectangle.getWidth();
+            int h = (int) rectangle.getHeight();
             try {
-                BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
-                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(labels.get(i), imageFile, croppedImage);
+                var croppedImage = originalImage.getSubimage(x, y, w, h);
+                var labeledImageCrop = new LabeledImageCrop(rectangle.getLabel(), imageFile, croppedImage);
                 labeledImageCrops.add(labeledImageCrop);
             } catch (Exception e) {
                 LOG.error("Something went wrong when cropping the image.", e);
-                LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
+                LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, rectangle.getLabel());
             }
         }
         LOG.info("Writing all cropped and labeled images...");
@@ -126,48 +114,19 @@ public class JobService {
 
         BufferedImage originalImage = ImageIO.read(imageFile);
         List<LabeledImageCrop> labeledImageCrops = new ArrayList<>();
-        List<OffsetRectangle> rectangles = new ArrayList<>();
-        Map<OffsetRectangle, String> mappedLabels = new HashMap<>();
-        if (job.getCharacterRectangles() != null){
-            for (int i = 0; i < job.getCharacterRectangles().size(); i++) {
-                OffsetRectangle offsetRectangle = new OffsetRectangle(job.getCharacterRectangles().get(i));
-                rectangles.add(offsetRectangle);
-                mappedLabels.put(offsetRectangle, job.getCharacterLabels().get(i));
-            }
-        }
+        var rectangles = job.getLabeledRectangles();
 
-        List<List<Double>> lines = cropsType.equals(CropsType.LINES) ? job.getLineLines() : job.getWordLines();
+        var lineSegments = cropsType.equals(CropsType.LINES) ? job.getLineLineSegments() : job.getWordLineSegments();
 
-        List<LineSegment> lineSegments = lines == null ? new ArrayList<>() :
-                lines.stream().map(LineSegment::new).collect(Collectors.toList());
+        var unGroupedRectangles = geometricCollectionUtils
+                .groupLabeledRectanglesByLineSegment(rectangles, lineSegments);
 
-        List<Set<OffsetRectangle>> unGroupedRectangles = new ArrayList<>();
-        for (LineSegment lineSegment : lineSegments) {
-            Set<OffsetRectangle> thisGroupsRectangles = rectangles.stream()
-                    .filter(lineSegment::interceptsRectangle)
-                    .collect(Collectors.toSet());
-            unGroupedRectangles.add(thisGroupsRectangles);
-        }
-        List<Set<OffsetRectangle>> groupedRectangles = new ArrayList<>();
+        List<Set<LabeledRectangle>> groupedRectangles = geometricCollectionUtils
+                .combineLabeledRectanglesByLineSegment(unGroupedRectangles);
 
-        for (Set<OffsetRectangle> offsetRectangleSet : unGroupedRectangles) {
-            boolean grouped = false;
-            for (OffsetRectangle offsetRectangle : offsetRectangleSet) {
-                Optional<Set<OffsetRectangle>> matchingSet = groupedRectangles.stream().filter(set -> set.contains(offsetRectangle)).findFirst();
-                if (matchingSet.isPresent()) {
-                    grouped = true;
-                    matchingSet.get().addAll(offsetRectangleSet);
-                    break;
-                }
-            }
-            if (!grouped) {
-                groupedRectangles.add(offsetRectangleSet);
-            }
-        }
-
-        for (Set<OffsetRectangle> rectangleGroup : groupedRectangles.stream().filter(set -> set.size() != 0).collect(Collectors.toList())) {
-            Point upperLeft = upperLeftPoint(rectangleGroup);
-            Point lowerRight = lowerRightPoint(rectangleGroup);
+        for (var rectangleGroup : groupedRectangles) {
+            var upperLeft = geometricCollectionUtils.uppermostLeftPoint(rectangleGroup);
+            var lowerRight = geometricCollectionUtils.lowermostRightPoint(rectangleGroup);
             int x = (int) upperLeft.getX();
             int y = (int) upperLeft.getY();
             int w = (int) (lowerRight.getX() - upperLeft.getX());
@@ -177,53 +136,22 @@ public class JobService {
                 if (cropsType == CropsType.WORDS) {
                     label = rectangleGroup.stream()
                                 .sorted(Comparator.comparing(OffsetRectangle::getX1))
-                                .map(mappedLabels::get)
+                                .map(LabeledRectangle::getLabel)
                                 .filter(mappedLabel -> !ILLEGAL_CHARACTERS.contains(mappedLabel))
                                 .collect(Collectors.joining(""));
                     label = StringUtils.isEmpty(label) ? job.getId() : label;
                 } else {
                     label = job.getId();
                 }
-                BufferedImage croppedImage = originalImage.getSubimage(x, y, w, h);
-                LabeledImageCrop labeledImageCrop = new LabeledImageCrop(label, imageFile, croppedImage);
+                var croppedImage = originalImage.getSubimage(x, y, w, h);
+                var labeledImageCrop = new LabeledImageCrop(label, imageFile, croppedImage);
                 labeledImageCrops.add(labeledImageCrop);
             } catch (Exception e) {
                 LOG.error("Something went wrong when cropping the image.", e);
-//                    LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, labels.get(i));
             }
         }
         LOG.info("Writing all cropped and labeled images...");
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
-    }
-
-    public Point upperLeftPoint(Set<OffsetRectangle> rectangles) {
-        double minX = Double.MAX_VALUE;
-        double minY = Double.MAX_VALUE;
-
-        for (OffsetRectangle rectangle : rectangles) {
-            if (rectangle.getX1() < minX) {
-                minX = rectangle.getX1();
-            }
-            if (rectangle.getY1() < minY) {
-                minY = rectangle.getY1();
-            }
-        }
-        return new Point(minX, minY);
-    }
-
-    public Point lowerRightPoint(Set<OffsetRectangle> rectangles) {
-        double maxX = Double.MIN_VALUE;
-        double maxY = Double.MIN_VALUE;
-
-        for (OffsetRectangle rectangle : rectangles) {
-            if (rectangle.getX2() > maxX) {
-                maxX = rectangle.getX2();
-            }
-            if (rectangle.getY2() > maxY) {
-                maxY = rectangle.getY2();
-            }
-        }
-        return new Point(maxX, maxY);
     }
 
     public ImageJob getImageJob(String id){
