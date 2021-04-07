@@ -191,6 +191,25 @@ function captureCanvasInit (trained_model, trained_model_labels) {
         let r = characterRectangles[index];
         let label = characterLabels[index];
         currentContext.strokeStyle = "#d9345a";
+
+        let lines;
+        for(lines of Array.of(wordLines, lineLines)) {
+            if (lines !== undefined && lines.length !== 0) {
+                if (captureMode === CaptureModes.LETTER) {
+                    break;
+                } else if (captureMode === CaptureModes.LINE && lines !== lineLines) {
+                    continue;
+                } else if (captureMode === CaptureModes.WORD && lines !== wordLines) {
+                    continue;
+                }
+                let line = lines[lines.length - 1];
+                let leftSegment = leftLineSegmentFromRectangle(r);
+                let rightSegment = rightLineSegmentFromRectangle(r);
+                if (lineSegmentsInterceptsVertical(line, leftSegment) || lineSegmentsInterceptsVertical(line, rightSegment)) {
+                    currentContext.strokeStyle = captureMode === CaptureModes.LINE ? "#0000FF" : "#00FF00";
+                }
+            }
+        }
         currentContext.fillStyle = '#ffffff';
         currentContext.lineWidth = 2;
         currentContext.beginPath();
@@ -230,10 +249,10 @@ function captureCanvasInit (trained_model, trained_model_labels) {
                 drawRectangle(characterRectangles.length-1, drawingCanvas, drawingCtx);
             }
             if (captureMode === CaptureModes.WORD) {
-                drawLine(wordLines[wordLines.length-1], drawingCtx, "#00FF00");
+                window.requestAnimationFrame(() => drawComplete());
             }
             if (captureMode === CaptureModes.LINE) {
-                drawLine(lineLines[lineLines.length-1], drawingCtx, "#0000FF");
+                window.requestAnimationFrame(() => drawComplete());
             }
             drawingCtx.stroke();
         } else {
