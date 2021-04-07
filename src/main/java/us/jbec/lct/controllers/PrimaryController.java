@@ -47,6 +47,12 @@ public class PrimaryController {
         return "help";
     }
 
+    @GetMapping("shortcuts")
+    public String shortcuts(){
+        return "shortcuts";
+    }
+
+
     @GetMapping("/ingest")
     public void ingest() {
         try {

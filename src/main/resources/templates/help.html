@@ -16,7 +16,6 @@
     <p>The Close Button will close the current document and return you to the main file listing. Please be aware that the application does not automatically save your session.</p>
     <h2>Undo/Redo</h2>
     <p>The Undo button will remove features in the order that they were added. The redo button will roll back undoes, but after you make a new change to the document, the redo history is cleared. Note that all 3 capture modes have separate undo/redo history.</p>
-    <p>Ctrl+Z/Ctrl+Shift+Z/Cmd+Z/Cmd+Shift+Z are still only experimentally supported. The square brackets and backspace will also work as undo/redo keys on most browsers. This means you cannot capture these characters.</p>
     <h2>Capture Modes</h2>
     <p>All of these modes will reject your capture if it looks erroneous (i.e., smaller than 10px)</p>
     <h3>Letter Capture Mode</h3>
@@ -32,7 +31,6 @@
     <p>This button sends your capture data to the backend, where it will be cropped and the capture data saved. You should make sure the crops look correctly at first, to make sure things are working as expected on your machine/browser combination. Check the logs for errors.</p>
     <p>You can't have unlabeled letters when saving. Additionally, your work is not saved automatically. If you leave the page without saving, you will lose your work.</p>
     <p>If you accidentally shutdown your backend, you can just reboot it and it should be able to process the capture data again. You can also use the Download Job Info button to manually save a backup copy of the JSON.</p>
-    <p>You can also save with Ctrl+S</p>
     <h2>Download Job Info</h2>
     <p>Use this to manually download the JSON capture data. If something is going wrong with the backend and you don't want to lose your work, save this as diagnostic information. Likely if you send me the JSON and image file (jjb@uconn.edu), I can figure out and fix what is causing the problem.</p>
 </div>

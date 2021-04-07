@@ -239,3 +239,9 @@
 .hidden{
     display: none;
 }
+
+.demo-warning {
+    text-align: center;
+    vertical-align: middle;
+}
+

@@ -19,7 +19,8 @@
     <div id="main-content-container" class="hidden">
     <div class="nbs-container">
         <h1 class="nbs-title">LC Document Tool</h1>
-        <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> Press a keyboard key after drawing the bounding box to label the box. <br> After labeling all letters on the page, use the save button to save. <a href="/help">Help Section</a></p>
+        <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> The tool will try to predict the correct label - correct it by pressing a key on the keyboard. <br> The tool will not automatically save, so be sure to save your work before leaving the page. <br> <a href="/shortcuts">Shortcuts</a> &nbsp &nbsp &nbsp<a href="/help">Help Section</a></p>
+        <div th:insert="fragments/demo-warning.html :: div"></div>
     </div>
 
     <div class="nbs-container" align="center">
@@ -87,6 +88,7 @@
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
     <script src="/js/common.js"></script>
+    <script src="/js/geometry.js"></script>
     <script src="/js/canvas.js"></script>
     </div>
 </body>
