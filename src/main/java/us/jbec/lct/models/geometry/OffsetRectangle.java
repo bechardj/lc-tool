@@ -3,6 +3,7 @@ package us.jbec.lct.models.geometry;
 import java.util.List;
 import java.util.Objects;
 
+
 public class OffsetRectangle {
 
     private double x1;
@@ -10,6 +11,12 @@ public class OffsetRectangle {
     private double width;
     private double height;
 
+    /**
+     * Model for mapping canvas rectangle coordinates (which store the start start point,
+     * the width, and the height), converting all the starting points to the top left,
+     * and providing other utility methods
+     * @param coordinates list containing starting x and y coordinates, width and height
+     */
     public OffsetRectangle(List<Double> coordinates) {
         x1 = coordinates.get(0);
         y1 = coordinates.get(1);
@@ -26,6 +33,10 @@ public class OffsetRectangle {
         }
     }
 
+    /**
+     * Upper-Left X coordinate
+     * @return upper-left X coordinate
+     */
     public double getX1() {
         return x1;
     }
@@ -34,6 +45,10 @@ public class OffsetRectangle {
         this.x1 = x1;
     }
 
+    /**
+     * Upper-Left Y coordinate
+     * @return upper-left Y coordinate
+     */
     public double getY1() {
         return y1;
     }
@@ -58,18 +73,34 @@ public class OffsetRectangle {
         this.height = height;
     }
 
+    /**
+     * Bottom-Right X coordinate
+     * @return bottom-right X coordinate
+     */
     public double getX2() {
         return x1 + width;
     }
 
+    /**
+     * Bottom-Right Y coordinate
+     * @return bottom-right Y coordinate
+     */
     public double getY2() {
         return y1 + height;
     }
 
+    /**
+     * Line segment of the left edge of this rectangle
+     * @return line segment corresponding to left rectangle edge
+     */
     public LineSegment getLeftEdge() {
         return new LineSegment(x1, y1, x1, getY2());
     }
 
+    /**
+     * Line segment of the right edge of this rectangle
+     * @return line segment corresponding to left rectangle edge
+     */
     public LineSegment getRightEdge() {
         return new LineSegment(getX2(), y1, getX2(), getY2());
     }

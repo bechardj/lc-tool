@@ -11,10 +11,9 @@ import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.LabeledImageCrop;
-import us.jbec.lct.models.geometry.GeometricCollectionUtils;
+import us.jbec.lct.util.geometry.GeometricCollectionUtils;
 import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.OffsetRectangle;
-import us.jbec.lct.models.geometry.Point;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

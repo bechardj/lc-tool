@@ -1,6 +1,10 @@
-package us.jbec.lct.models.geometry;
+package us.jbec.lct.util.geometry;
 
 import org.springframework.stereotype.Component;
+import us.jbec.lct.models.geometry.LabeledRectangle;
+import us.jbec.lct.models.geometry.LineSegment;
+import us.jbec.lct.models.geometry.OffsetRectangle;
+import us.jbec.lct.models.geometry.Point;
 
 import java.util.ArrayList;
 import java.util.Collection;
