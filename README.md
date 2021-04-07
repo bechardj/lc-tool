@@ -11,10 +11,13 @@ https://youtu.be/E372bsYnbxc
 ## Installation
 ### Prerequisites
 #### Java
-This application requires Java 8 or newer to run. You can get an installer for the OpenJDK from [here](https://adoptopenjdk.net). 
+Starting with release 0.5, This application requires Java 16 or newer to run. You can get an installer for the OpenJDK from [here](https://adoptopenjdk.net). 
+Older releases (<= 0.4) require Java 8 or newer.
 
 #### Web Browser
 Functionality is primarily tested under Google Chrome and Safari on macOS. You should make sure you are on a recent web browser for best results. The behavior of some key-bindings are not extensively tested on Windows.
+
+Temporarily, the tool requires an internet connection to run. A future release will allow limited functionality without an internet connection.
 
 ### Setting up
 
