@@ -2,7 +2,11 @@ package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +19,14 @@ import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ProcessingTimeRecord;
 import us.jbec.lct.models.RemotelySubmittedJob;
+import us.jbec.lct.models.ZipOutputRecord;
 import us.jbec.lct.repositories.ApiKeyRepository;
 import us.jbec.lct.repositories.ProcessingTimeRepository;
 import us.jbec.lct.repositories.RemoteJobRepository;
 
+import java.io.File;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,20 +42,20 @@ public class RemoteJobService {
 
     private final RemoteJobRepository remoteJobRepository;
     private final ProcessingTimeRepository processingTimeRepository;
+    private final ZipOutputService zipOutputService;
     private final ObjectMapper objectMapper;
     private final JobService jobService;
     private final ApiKeyRepository apiKeyRepository;
     private final IngestService ingestService;
-    private final PrimaryImageIO primaryImageIO;
 
-    public RemoteJobService(RemoteJobRepository remoteJobRepository, ProcessingTimeRepository processingTimeRepository, ObjectMapper objectMapper, JobService jobService, ApiKeyRepository apiKeyRepository, IngestService ingestService, PrimaryImageIO primaryImageIO) {
+    public RemoteJobService(RemoteJobRepository remoteJobRepository, ProcessingTimeRepository processingTimeRepository, ZipOutputService zipOutputService, ObjectMapper objectMapper, JobService jobService, ApiKeyRepository apiKeyRepository, IngestService ingestService) {
         this.remoteJobRepository = remoteJobRepository;
         this.processingTimeRepository = processingTimeRepository;
+        this.zipOutputService = zipOutputService;
         this.objectMapper = objectMapper;
         this.jobService = jobService;
         this.apiKeyRepository = apiKeyRepository;
         this.ingestService = ingestService;
-        this.primaryImageIO = primaryImageIO;
     }
 
     public boolean validApiKey(String key) {
@@ -111,18 +118,20 @@ public class RemoteJobService {
     }
 
     @Scheduled(fixedDelayString = "${lct.remote.export.frequency}")
-    public void exportCurrentRemoteJobs() {
+    public void exportCurrentRemoteJobs() throws ZipException {
         if (exportEnabled) {
-            for (ImageJob imageJob : retrieveCurrentRemoteJobs(true)) {
+            for (ImageJob imageJob : retrieveCurrentRemoteJobs(false)) {
                 try {
                     jobService.processImageJobWithFile(imageJob, CropsDestination.BULK);
                 } catch (Exception e) {
-                    LOG.error("Could not process image job for job id {}", imageJob.getId());
+                    LOG.error("Could not process image job for job id {}: {}", imageJob.getId(), e);
                     if (imageJob.getId() != null) {
-                        processingTimeRepository.deleteById(imageJob.getId());
+                        //processingTimeRepository.deleteById(imageJob.getId());
                     }
                 }
             }
+            zipOutputService.updateZipOutput();
+            zipOutputService.cleanupZipDirectory();
         } else {
             LOG.info("Skipping export because it is disabled.");
         }

@@ -15,7 +15,9 @@
 <body>
 <nav th:insert="fragments/navbar.html :: nav"></nav>
 <div th:insert="fragments/demo-warning.html :: div"></div>
-<div class="container">
+<div th:insert="fragments/full-screen-load.html :: div"></div>
+
+<div id="main-content-container" class="container hidden">
     <h1 class="nbs-title">LC Document Tool Statistics</h1>
     <div class="padded-chart">
         <h2>All Characters</h2>

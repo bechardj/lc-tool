@@ -68,6 +68,12 @@
 			<version>1.18.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+
 		<!--	Web Jars	-->
 		<dependency>
 			<groupId>org.webjars</groupId>

@@ -13,7 +13,6 @@ import us.jbec.lct.models.LabeledImageCrop;
 
 import javax.imageio.ImageIO;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +70,7 @@ public class ImageCropsIO {
             return new File(bulkOutputPath
                     + File.separator
                     + cropsType.getDirectoryName()
-                    +File.separator
+                    + File.separator
                     + label
                     + File.separator);
         }

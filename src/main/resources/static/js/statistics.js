@@ -93,6 +93,8 @@ function init() {
             statistics = response;
             graph();
             addLabels();
+            $('#full-screen-load').delay(500).fadeOut();
+            $('#main-content-container').delay(750).fadeIn();
         });
 }
 

@@ -7,3 +7,8 @@ if(window.location.href.includes("testenv") || window.location.href.includes("de
     $('.demo-warning')
         .show();
 }
+
+function notify(message, delay) {
+    $('.toast-body')[0].innerText = message;
+    $('.toast').data("delay", delay).toast('show');
+}
