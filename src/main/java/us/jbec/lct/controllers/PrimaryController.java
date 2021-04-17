@@ -1,5 +1,6 @@
 package us.jbec.lct.controllers;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,12 +8,16 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.ImageJobListing;
 import us.jbec.lct.services.IngestService;
 import us.jbec.lct.services.JobService;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +25,9 @@ import java.util.List;
 @Controller
 @Profile("!remote")
 public class PrimaryController {
+
+    @Value("${image.ingest.path}")
+    private String ingestPath;
 
     Logger LOG = LoggerFactory.getLogger(PrimaryController.class);
 
@@ -95,5 +103,16 @@ public class PrimaryController {
     public String export(Model model) {
         model.addAttribute("path", bulkOutputPath);
         return "export";
+    }
+
+    //TODO: refactor into service layer
+    @PostMapping("/image/upload")
+    public String imageUpload(@RequestParam("file") MultipartFile file) throws IOException {
+        if (!PrimaryImageIO.extensions.contains(FilenameUtils.getExtension(file.getOriginalFilename()))) {
+            throw new RuntimeException("Unsupported file type");
+        }
+        String path = new File(ingestPath).getAbsolutePath();
+        file.transferTo(new File(path + File.separator + file.getOriginalFilename()));
+        return "listing";
     }
 }

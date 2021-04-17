@@ -39,7 +39,7 @@ public class PrimaryImageIO {
 
     private final ObjectMapper objectMapper;
 
-    private final Set<String> extensions = Set.of("jpeg", "jpg", "png");
+    public static final Set<String> extensions = Set.of("jpeg", "jpg", "png");
 
     /**
      * Data Access Object for images
@@ -269,6 +269,10 @@ public class PrimaryImageIO {
             }
         }
         return null;
+    }
+
+    private void saveFileInOutputDirectory(File file) {
+
     }
 
 
