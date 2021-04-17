@@ -5,20 +5,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/datatables/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
 </head>
 <body>
 
 <nav th:insert="fragments/navbar.html :: nav"></nav>
+<div th:insert="fragments/full-screen-load.html :: div"></div>
 <div th:insert="fragments/demo-warning.html :: div"></div>
 <div th:insert="fragments/notifications.html :: div"></div>
 
-<div class="container">
+<div class="container hidden" id="main-content-container">
     <h1 class = "nbs-title" align="center">LC Capture Tool</h1>
     <p class = "body" align="center">Select the image you would like to capture data from, and click the URL to open.</p>
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped" id="jobListing">
             <thead class="thead-light">
             <tr>
                 <th scope="col">Image Name</th>
@@ -43,6 +45,8 @@
 
 <script src="/webjars/jquery/jquery.min.js"></script>
 <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/webjars/datatables/js/jquery.dataTables.min.js"></script>
+<script src="/js/listing/main.js"></script>
 <script src="/js/common.js"></script>
 </body>
 </html>
