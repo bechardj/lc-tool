@@ -16,7 +16,10 @@ class PredictionEngine{
                 .catch(err => {
                     console.log("Falling back to included model...");
                     tf.loadLayersModel('/ml/model.json')
-                        .then(model => this.retrieveIncludedLabels(model));
+                        .then(model => {
+                            this.model = model;
+                            this.retrieveIncludedLabels();
+                        });
                 });
         } catch (e) {
             console.error("Failed to initialize prediction engine!");

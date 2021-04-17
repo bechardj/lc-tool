@@ -19,6 +19,9 @@
 
 <div id="main-content-container" class="container hidden">
     <h1 class="nbs-title">LC Document Tool Statistics</h1>
+    <div th:if="${@environment.getActiveProfiles().length > 0 and @environment.getActiveProfiles()[0] == 'remote'}">
+        <p class = "body"><a href="https://lct.jbec.us/bulkOutput/latest">Download Complete Dataset</a></p>
+    </div>
     <div class="padded-chart">
         <h2>All Characters</h2>
         <canvas id="allCharacterChart"></canvas>

@@ -9,6 +9,8 @@ if(window.location.href.includes("testenv") || window.location.href.includes("de
 }
 
 function notify(message, delay) {
-    $('.toast-body')[0].innerText = message;
+    $('.notifications').show();
+    setTimeout(() => {$('.notifications').hide();}, delay);
+    $('.toast-body')[0].innerHTML = message;
     $('.toast').data("delay", delay).toast('show');
 }
