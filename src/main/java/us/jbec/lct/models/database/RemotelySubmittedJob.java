@@ -1,4 +1,4 @@
-package us.jbec.lct.models;
+package us.jbec.lct.models.database;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
