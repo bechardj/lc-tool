@@ -37,7 +37,7 @@ public class UserAuthenticationProvider extends AbstractUserDetailsAuthenticatio
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         String token = (String) authentication.getCredentials();
         try {
-            return userService.findByToken(token);
+            return userService.getAuthorizedUserByToken(token);
         } catch (RuntimeException | FirebaseAuthException e) {
             LOG.error("User authentication failed.");
             throw new UsernameNotFoundException("Invalid Username!");

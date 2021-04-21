@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import us.jbec.lct.io.ImageCropsIO;
 import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.ImageJobFile;
+import us.jbec.lct.models.LCToolException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,14 +29,15 @@ public class ImageService {
         this.primaryImageIO = primaryImageIO;
     }
 
-    public String getImageById(String id) throws IOException {
-        List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
-        for (ImageJobFile imageJobFile : imageJobFiles) {
-            if (id.equals(imageJobFile.getImageFileName())){
-                InputStream in = new FileInputStream(imageJobFile.getImageFile().getPath());
-                return Base64.getEncoder().encodeToString(IOUtils.toByteArray(in));
-            }
+    public String getBase64EncodedImageById(String uuid) throws IOException {
+        var optionalImage = primaryImageIO.getImageByUuid(uuid);
+        if (optionalImage.isPresent()) {
+            var image = optionalImage.get();
+            var in = new FileInputStream(image);
+            return Base64.getEncoder().encodeToString(IOUtils.toByteArray(in));
+        } else {
+            LOG.error("Image not found!");
+            throw new LCToolException("Image not found!");
         }
-        return null;
     }
 }

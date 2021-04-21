@@ -1,7 +1,7 @@
 import { Rectangle, Line } from './geometry.js';
 import {CaptureModes, CaptureState} from "./captureState.js";
 import {loadJob, loadImage} from "./jobLoader.js";
-import {PredictionEngine} from "./predictionEngine.js";
+import { PredictionEngine } from "./predictionEngine.js";
 
 function captureCanvasInit (predictionEngine) {
 
@@ -397,12 +397,16 @@ function captureCanvasInit (predictionEngine) {
         if (!state.lastIsLabeled()) {
             notify("You must label all letters before saving!", 3000);
         } else {
+            getBearerTokenWithPrompt().then(token => {
             $.ajax({
                 type: "POST",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                },
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                url: '/saveJob',
+                url: '/secure_api/saveJob',
                 data: state.generateJobInfoJson(),
                 success: function (data) {
                     console.log("submission success");
@@ -412,6 +416,7 @@ function captureCanvasInit (predictionEngine) {
                     notify("Save Failed! Make a copy of the JSON with the Download Button.", 3000);
                 }
             });
+        });
         }
     }
 

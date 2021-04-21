@@ -1,5 +1,6 @@
 package us.jbec.lct.services;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,18 @@ public class JobService {
         this.imageCropsIO = imageCropsIO;
         this.primaryImageIO = primaryImageIO;
         this.geometricCollectionUtils = geometricCollectionUtils;
+    }
+
+    public ImageJob initializeImageJob(String id) {
+        ImageJob imageJob = new ImageJob();
+        imageJob.setId(id);
+        imageJob.setVersion("0.5");
+        imageJob.setCompleted(false);
+        imageJob.setEdited(false);
+        imageJob.setStatus("Ingested");
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
+        imageJob.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
+        return imageJob;
     }
 
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
@@ -153,7 +166,7 @@ public class JobService {
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
     }
 
-    public ImageJob getImageJob(String id){
+    public ImageJob getImageJob(String id) {
         List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
         for (ImageJobFile imageJobFile : imageJobFiles) {
             if (id.equals(imageJobFile.getImageFileName())){

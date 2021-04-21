@@ -1,5 +1,7 @@
 package us.jbec.lct.security;
 
+
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -41,8 +43,8 @@ public class SecurityConfiguration {
         // The URLs to protect
         private RequestMatcher requestMatcher() {
             List<RequestMatcher> matchers = new ArrayList<>();
-            matchers.add(new AntPathRequestMatcher("/login**"));
-            matchers.add(new AntPathRequestMatcher("/api/**"));
+            matchers.add(new AntPathRequestMatcher("/sec/api**"));
+//            matchers.add(new AntPathRequestMatcher("/api/**"));
             return new OrRequestMatcher(matchers);
         }
 
@@ -75,8 +77,8 @@ public class SecurityConfiguration {
         }
 
         @Bean
-        us.jbec.lct.security.AuthenticationFilter authenticationFilter() throws Exception {
-            final var filter = new us.jbec.lct.security.AuthenticationFilter(requestMatcher());
+        AuthenticationFilter authenticationFilter() throws Exception {
+            final AuthenticationFilter filter = new AuthenticationFilter(requestMatcher());
             filter.setAuthenticationManager(authenticationManager());
             return filter;
         }
@@ -101,8 +103,8 @@ public class SecurityConfiguration {
         // The URLs to protect
         private RequestMatcher requestMatcher() {
             List<RequestMatcher> matchers = new ArrayList<>();
-            matchers.add(new AntPathRequestMatcher("/dev/**"));
-            matchers.add(new AntPathRequestMatcher("/dev**"));
+            matchers.add(new AntPathRequestMatcher("/secure/**"));
+            matchers.add(new AntPathRequestMatcher("/secure**"));
             return new OrRequestMatcher(matchers);
         }
 
@@ -119,18 +121,21 @@ public class SecurityConfiguration {
 
         @Override
         public void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/dev/**")
+            http.antMatcher("/secure/**")
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-//                    .and()
-//                    .authorizeRequests()
-//                    .anyRequest().hasRole("ADMIN")
+                    .and()
+                    .formLogin()
+                    .loginPage("/")
+                    .and()
+                    .authorizeRequests()
+                    .anyRequest().hasRole("USER")
                     .and()
                     .csrf().disable();
         }
 
-        us.jbec.lct.security.AuthenticationFilter authenticationFilter() throws Exception {
-            final var filter = new us.jbec.lct.security.AuthenticationFilter(requestMatcher());
+        AuthenticationFilter authenticationFilter() throws Exception {
+            final AuthenticationFilter filter = new AuthenticationFilter(requestMatcher());
             filter.setAuthenticationManager(authenticationManager());
             return filter;
         }
