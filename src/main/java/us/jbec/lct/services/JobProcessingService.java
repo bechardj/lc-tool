@@ -1,9 +1,12 @@
 package us.jbec.lct.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import us.jbec.lct.io.ImageCropsIO;
 import us.jbec.lct.io.PrimaryImageIO;
@@ -25,28 +28,36 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class JobService {
-
+public class JobProcessingService {
 
     private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
     private final GeometricCollectionUtils geometricCollectionUtils;
+    private final CloudCaptureDocumentService cloudCaptureDocumentService;
+    private final ZipOutputService zipOutputService;
 
-    Logger LOG = LoggerFactory.getLogger(JobService.class);
+    Logger LOG = LoggerFactory.getLogger(JobProcessingService.class);
+
+    @Value("${lct.remote.export.enabled}")
+    private boolean exportEnabled;
+
 
     private static final Set<String> ILLEGAL_CHARACTERS = new HashSet<>(Arrays.asList("/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":"));
 
 
-    public JobService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO, GeometricCollectionUtils geometricCollectionUtils) {
+    public JobProcessingService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO, GeometricCollectionUtils geometricCollectionUtils, CloudCaptureDocumentService cloudCaptureDocumentService, ZipOutputService zipOutputService) {
         this.imageCropsIO = imageCropsIO;
         this.primaryImageIO = primaryImageIO;
         this.geometricCollectionUtils = geometricCollectionUtils;
+        this.cloudCaptureDocumentService = cloudCaptureDocumentService;
+        this.zipOutputService = zipOutputService;
     }
 
     public ImageJob initializeImageJob(String id) {
@@ -62,7 +73,7 @@ public class JobService {
     }
 
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
-        var imageJobFiles = primaryImageIO.getImageJobFiles();
+        var imageJobFiles = buildImageJobFiles();
         for(var imageJobFile : imageJobFiles) {
             writeCharacterCrops(imageJobFile, cropsDestination);
             writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
@@ -181,5 +192,32 @@ public class JobService {
         return primaryImageIO.getImageJobFiles().stream()
                 .sorted(Comparator.comparing(imageJobFile -> imageJobFile.getImageJob().getId()))
                 .collect(Collectors.toList());
+    }
+
+    public List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
+        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocuments();
+        HashMap<String, File> images = new HashMap<>();
+        primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));
+        List<ImageJobFile> imageJobFiles = new ArrayList<>();
+        for(var entry : cloudDocs.entrySet()) {
+            var doc = entry.getKey();
+            var image = images.get(doc.getUuid());
+            if (image != null) {
+                var imageFile = new ImageJobFile(image, entry.getValue());
+                imageJobFiles.add(imageFile);
+            }
+        }
+        return imageJobFiles;
+    }
+
+    @Scheduled(fixedDelayString = "${lct.remote.export.frequency}")
+    public void exportCurrentRemoteJobs() throws IOException {
+        if (exportEnabled) {
+            processAllImageJobCrops(CropsDestination.BULK);
+            zipOutputService.updateZipOutput();
+            zipOutputService.cleanupZipDirectory();
+        } else {
+            LOG.info("Skipping export because it is disabled.");
+        }
     }
 }

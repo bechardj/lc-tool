@@ -28,9 +28,6 @@ import java.util.Set;
 @Component
 public class PrimaryImageIO {
 
-    @Value("${image.ingest.path}")
-    private String ingestPath;
-
     @Value("${image.persistence.path}")
     private String imagePersistencePath;
 

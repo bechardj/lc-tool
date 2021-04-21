@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.database.ArchivedJobData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
@@ -13,6 +16,7 @@ import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.ArchivedJobDataRepository;
 import us.jbec.lct.repositories.CloudCaptureDocumentRepository;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +49,13 @@ public class CloudCaptureDocumentService {
             }
         }
         throw new LCToolException("Could not generate ID!");
+    }
+
+    @Transactional
+    public void saveCloudCaptureDocument(String userToken, MultipartFile imageJobAsFile, String id) throws IOException {
+        ImageJob imageJob = objectMapper.readValue(imageJobAsFile.getBytes(), ImageJob.class);
+        imageJob.setId(id);
+        saveCloudCaptureDocument(userToken, imageJob);
     }
 
     @Transactional
@@ -112,10 +123,14 @@ public class CloudCaptureDocumentService {
     public ImageJob getImageJobByUuid(String uuid) throws JsonProcessingException {
         var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
         if (optionalDocument.isPresent()) {
-            return objectMapper.readValue(optionalDocument.get().getJobData(), ImageJob.class);
+            return getImageJobFromDocument(optionalDocument.get());
         } else {
             throw new LCToolException("Could not find image job");
         }
+    }
+
+    public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
+        return objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
     }
 
     public boolean markDocumentDeleted(String id) {
@@ -129,4 +144,9 @@ public class CloudCaptureDocumentService {
         return false;
     }
 
+    public List<CloudCaptureDocument> getAllCloudCaptureDocuments() {
+        List<CloudCaptureDocument> docs = new ArrayList<>();
+        cloudCaptureDocumentRepository.findAll().forEach(docs::add);
+        return docs;
+    }
 }

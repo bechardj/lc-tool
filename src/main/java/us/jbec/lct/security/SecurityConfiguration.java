@@ -43,8 +43,7 @@ public class SecurityConfiguration {
         // The URLs to protect
         private RequestMatcher requestMatcher() {
             List<RequestMatcher> matchers = new ArrayList<>();
-            matchers.add(new AntPathRequestMatcher("/sec/api**"));
-//            matchers.add(new AntPathRequestMatcher("/api/**"));
+            matchers.add(new AntPathRequestMatcher("/sec/api/**"));
             return new OrRequestMatcher(matchers);
         }
 
@@ -126,7 +125,7 @@ public class SecurityConfiguration {
                     .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                     .and()
                     .formLogin()
-                    .loginPage("/")
+                    .loginPage("/login")
                     .and()
                     .authorizeRequests()
                     .anyRequest().hasRole("USER")

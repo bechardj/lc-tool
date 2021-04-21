@@ -1,10 +1,8 @@
-package us.jbec.lct.controllers;
+package us.jbec.lct.controllers.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.Authentication;
@@ -16,16 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.services.CloudCaptureDocumentService;
-import us.jbec.lct.services.ExclusiveActionService;
-import us.jbec.lct.services.JobService;
-import us.jbec.lct.services.RemoteSubmissionService;
 import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @RestController
 public class JobController {

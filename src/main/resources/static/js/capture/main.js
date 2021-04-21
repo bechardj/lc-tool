@@ -312,35 +312,35 @@ function captureCanvasInit (predictionEngine) {
 
         document.addEventListener('keypress', keyHandler);
 
-        const saveButton = $('#save')[0];
-        saveButton.addEventListener("click", save);
+        $('#save').click(save);
 
-        const downloadButton = $('#download')[0];
-        downloadButton.addEventListener("click", saveJsonLocally);
+        $('#download').click(saveJsonLocally);
 
-        const closeButton = $('#close')[0];
-        closeButton.addEventListener("click", function () {
-            window.location.href = '/'
+        $('#jobUploadSubmit').click(function(e) {
+            e.preventDefault();
+            let agree = confirm("Doing this will replace existing the existing capture data with capture data from the file you uploaded. Consider making a backup copy using the Download Job Info button.")
+            if (agree) {
+                window.onbeforeunload = null;
+                $('#jobUpload').submit();
+            }
+        });
+
+        $('#close').click(function() {
+            window.location.href = '/secure/listing'
         })
 
-        const undoButton = $('#undo')[0];
-        undoButton.addEventListener("click", undo);
+        $('#undo').click(undo);
+        $('#redo').click(redo);
 
-        const redoButton = $('#redo')[0];
-        redoButton.addEventListener("click", redo);
-
-        const letterCapButton = $('#letterCap')[0];
-        letterCapButton.addEventListener("click", function () {
+        $('#letterCap').click(function() {
             setCaptureMode(CaptureModes.LETTER)
         });
 
-        const wordCapButton = $('#wordCap')[0];
-        wordCapButton.addEventListener("click", function () {
+        $('#wordCap').click( function() {
             setCaptureMode(CaptureModes.WORD)
         });
 
-        const lineCapButton = $('#lineCap')[0];
-        lineCapButton.addEventListener("click", function () {
+        $('#lineCap').click(function() {
             setCaptureMode(CaptureModes.LINE)
         });
 
@@ -406,7 +406,7 @@ function captureCanvasInit (predictionEngine) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                url: '/secure_api/saveJob',
+                url: '/sec/api/saveJob',
                 data: state.generateJobInfoJson(),
                 success: function (data) {
                     console.log("submission success");

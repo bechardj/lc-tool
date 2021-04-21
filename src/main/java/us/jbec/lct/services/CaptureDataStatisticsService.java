@@ -1,5 +1,6 @@
 package us.jbec.lct.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.CaptureDataStatistics;
 import us.jbec.lct.models.ImageJob;
@@ -11,6 +12,19 @@ import java.util.Objects;
 
 @Service
 public class CaptureDataStatisticsService {
+
+    private final CloudCaptureDocumentService cloudCaptureDocumentService;
+
+    public CaptureDataStatisticsService(CloudCaptureDocumentService cloudCaptureDocumentService) {
+        this.cloudCaptureDocumentService = cloudCaptureDocumentService;
+    }
+
+    public CaptureDataStatistics calculateAllStatistics() throws JsonProcessingException {
+        var imageJobs= cloudCaptureDocumentService.getActiveCloudCaptureDocuments()
+                .values().stream().toList();
+        return calculateStatistics(imageJobs);
+    }
+
     public CaptureDataStatistics calculateStatistics(List<ImageJob> imageJobList) {
         var statistics = new CaptureDataStatistics();
         imageJobList.stream()

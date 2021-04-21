@@ -4,7 +4,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.UserRoles;
 import us.jbec.lct.models.database.Role;
@@ -13,8 +12,7 @@ import us.jbec.lct.repositories.RoleRepository;
 import us.jbec.lct.repositories.UserRepository;
 import us.jbec.lct.security.AuthorizedUser;
 
-import java.util.Collection;
-import java.util.HashMap;
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +32,17 @@ public class UserService {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.firebaseAuth = firebaseAuth;
+    }
+
+    @PostConstruct
+    public void initializeRoles() {
+        for(var userRole : UserRoles.values()){
+            if(roleRepository.findById(userRole.getDescription()).isEmpty()) {
+                var role = new Role();
+                role.setRoleName(userRole.getDescription());
+                roleRepository.save(role);
+            }
+        }
     }
 
     public AuthorizedUser getAuthorizedUserByToken(String encodedToken) throws FirebaseAuthException {
@@ -65,16 +74,7 @@ public class UserService {
     private Set<Role> defaultRoles() {
         // TODO: better handle initial creation here for testing
         var roles = new HashSet<Role>();
-        Role userRole;
-        var optionalUserRole = roleRepository.findById(UserRoles.USER.getDescription());
-        if (optionalUserRole.isEmpty()) {
-            userRole = new Role();
-            userRole.setRoleName(UserRoles.USER.getDescription());
-            roleRepository.save(userRole);
-        } else {
-            userRole = optionalUserRole.get();
-        }
-        roles.add(userRole);
+        roles.add(roleRepository.findById(UserRoles.USER.getDescription()).get());
         return roles;
     }
 

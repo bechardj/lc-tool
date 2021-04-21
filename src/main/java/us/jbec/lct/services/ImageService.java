@@ -20,12 +20,9 @@ public class ImageService {
 
     Logger LOG = LoggerFactory.getLogger(ImageService.class);
 
-    private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
 
-
-    public ImageService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO) {
-        this.imageCropsIO = imageCropsIO;
+    public ImageService(PrimaryImageIO primaryImageIO) {
         this.primaryImageIO = primaryImageIO;
     }
 

@@ -1,1 +1,1 @@
-// $('#login').click(() => {popupLogin(() => {alert("success"); window.location.href = '/secure/listing';}, true)});
+popupLogin(() => {window.location.href = '/'}, true);

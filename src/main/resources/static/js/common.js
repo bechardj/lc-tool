@@ -131,9 +131,10 @@ function popupLogin(callback, backendAuth) {
 firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
         firebaseLoggedIn = true;
-        $('.req-auth').hide();
     } else {
+        //$('.req-auth').hide();
         firebaseLoggedIn = false;
     }
+    $('.wait-for-auth').removeClass('hidden-occupy');
 });
 

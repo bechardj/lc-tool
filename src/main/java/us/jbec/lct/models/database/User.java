@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseToken;
 import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
@@ -23,7 +24,7 @@ public class User {
     @JsonManagedReference
     private Set<Project> project;
 
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     @OneToMany

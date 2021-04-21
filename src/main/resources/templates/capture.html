@@ -84,6 +84,15 @@
             <button class = "nbs-button" id = "save" type="button">Save</button>
         </div>
     <button class = "nbs-button" id = "download" type="button">Download Job Info</button>
+    <div th:if="${editable}">
+        <div class="body top-pad-2">Upload and Replace Job Info</div>
+        <form id="jobUpload" class="file-form" method="POST" th:action="${'/secure/job/upload?id=' + imageId}" enctype="multipart/form-data">
+            <div class="nbs-container" align="center">
+                <input type="file" name="file" />
+                <input type="submit" id = "jobUploadSubmit" value="Submit" />
+            </div>
+        </form>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>

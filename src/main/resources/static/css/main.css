@@ -265,3 +265,16 @@
 .light-grey{
     background: #f3f3f3;
 }
+
+.file-form{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.top-pad-2 {
+    padding-top: 2%;
+}
+
+.hidden-occupy {
+    visibility: hidden
+}
