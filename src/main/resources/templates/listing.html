@@ -19,7 +19,7 @@
 <div class="container hidden" id="main-content-container">
     <h1 class = "nbs-title" align="center">LC Capture Tool</h1>
     <p class = "body" align="center">Select the image you would like to capture data from, and click the URL to open.</p>
-    <form id="imageUpload" method="POST" class="hidden" action="/image/upload" enctype="multipart/form-data">
+    <form id="imageUpload" method="POST" class="hidden" action="/secure/image/upload" enctype="multipart/form-data">
         <div class="nbs-container" align="center">
         <input type="file" name="file" />
         <input type="submit" value="Submit" />
@@ -31,19 +31,25 @@
             <thead class="thead-light">
             <tr>
                 <th scope="col">Image Name</th>
+                <th scope="col" th:if="${listingAll}">Owner</th>
                 <th scope="col">File Last Modified</th>
                 <th scope="col">Status</th>
                 <th scope="col">Notes</th>
-                <th scope="col">URL</th>
+                <th scope="col" th:if="${!listingAll}"></th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="listing : ${imageJobListings}">
-                <td th:text="${listing.fileName}"></td>
+                <td> <a th:href="${listing.openUrl}">
+                    <div th:text="${listing.fileName}"></div></a>
+                </td>
+                <td th:if="${listingAll}">
+                    <div th:text="${listing.owner}"></div>
+                </td>
                 <td th:text="${listing.dateAdded}"></td>
                 <td th:text="${listing.status}"></td>
                 <td th:text="${listing.notes}"></td>
-                <td> <a th:href="${listing.url}">Open</a></td>
+                <td th:if="${!listingAll}"><a class="confirm-delete" th:href="${listing.deleteUrl}">Delete</a></td>
             </tr>
             </tbody>
         </table>

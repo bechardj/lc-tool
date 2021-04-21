@@ -80,10 +80,14 @@
     <div class="nbs-container">
         <p id="saveText" class="body hidden"> </p>
     </div>
-    <button class = "nbs-button" id = "save" type="button">Save</button>
+        <div th:if="${editable}">
+            <button class = "nbs-button" id = "save" type="button">Save</button>
+        </div>
     <button class = "nbs-button" id = "download" type="button">Download Job Info</button>
 
-        
+    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
     <script src="/webjars/github-com-jaywcjlove-hotkeys/hotkeys.min.js"></script>
     <script src="/webjars/github-com-HarryStevens-geometric/geometric.js"></script>

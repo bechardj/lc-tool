@@ -139,9 +139,4 @@ public class RemoteJobService {
 //        remoteJobRepository.deleteOldRecords();
     }
 
-    @Scheduled(fixedDelayString = "${lct.remote.ingest.frequency}")
-    public void ingest() {
-        ingestService.ingest();
-    }
-
 }

@@ -1,7 +1,7 @@
 package us.jbec.lct.models;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import us.jbec.lct.models.database.CloudCaptureDocument;
 
 import java.io.IOException;
 
@@ -10,24 +10,24 @@ public class ImageJobListing {
     private final int MAX_LEN = 50;
 
     private String fileName;
+    private String owner;
     private String dateAdded;
     private String status;
     private String notes;
-    private String url;
+    private String openUrl;
+    private String deleteUrl;
 
-    public ImageJobListing(ImageJobFile imageJobFile) throws IOException {
-        this.fileName = FilenameUtils.removeExtension(imageJobFile.getImageFile().getName());
-        if (!imageJobFile.getImageJob().getFields().containsKey("timestamp")) {
-            this.dateAdded = "Never";
-        } else {
-            this.dateAdded = (String) imageJobFile.getImageJob().getFields().get("timestamp");
-        }
-        this.notes = (String) imageJobFile.getImageJob().getFields().get(ImageJobFields.NOTES.name());
+    public ImageJobListing(CloudCaptureDocument cloudCaptureDocument, ImageJob imageJob) throws IOException {
+        this.fileName = cloudCaptureDocument.getName();
+        this.owner = cloudCaptureDocument.getOwner().getFirebaseEmail();
+        this.dateAdded = cloudCaptureDocument.getCreateTime() != null ? cloudCaptureDocument.getCreateTime().toString() : "";
+        this.notes =  StringUtils.defaultString((String) imageJob.getFields().get(ImageJobFields.NOTES.name()));
         if (StringUtils.length(this.notes) > MAX_LEN) {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }
-        this.status = imageJobFile.getImageJob().getStatus();
-        this.url = "/open/document?id=" + this.fileName;
+        this.status = cloudCaptureDocument.getDocumentStatus().getDescription();
+        this.openUrl = "/secure/open/document?id=" + cloudCaptureDocument.getUuid();
+        this.deleteUrl = "/secure/delete/document?id=" + cloudCaptureDocument.getUuid();
     }
 
     public String getFileName() {
@@ -54,12 +54,12 @@ public class ImageJobListing {
         this.status = status;
     }
 
-    public String getUrl() {
-        return url;
+    public String getOpenUrl() {
+        return openUrl;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setOpenUrl(String openUrl) {
+        this.openUrl = openUrl;
     }
 
     public String getNotes() {
@@ -68,5 +68,21 @@ public class ImageJobListing {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getDeleteUrl() {
+        return deleteUrl;
+    }
+
+    public void setDeleteUrl(String deleteUrl) {
+        this.deleteUrl = deleteUrl;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }

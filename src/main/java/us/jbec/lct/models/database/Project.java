@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -14,6 +16,7 @@ public class Project {
     @Id
     @GeneratedValue
     private Long project;
+
     private String name;
 
     @ManyToMany
@@ -23,6 +26,9 @@ public class Project {
     @ManyToMany
     @JsonBackReference
     private Set<User> admins;
+
+    @OneToMany(mappedBy = "project")
+    private List<CloudCaptureDocument> cloudCaptureDocuments;
 
 
     public Long getProject() {
@@ -39,5 +45,29 @@ public class Project {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
+    public Set<User> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(Set<User> admins) {
+        this.admins = admins;
+    }
+
+    public List<CloudCaptureDocument> getCloudCaptureDocuments() {
+        return cloudCaptureDocuments;
+    }
+
+    public void setCloudCaptureDocuments(List<CloudCaptureDocument> cloudCaptureDocuments) {
+        this.cloudCaptureDocuments = cloudCaptureDocuments;
     }
 }

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.transformers.ImageJobFieldTransformer;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -28,6 +30,9 @@ public class PrimaryImageIO {
 
     @Value("${image.ingest.path}")
     private String ingestPath;
+
+    @Value("${image.persistence.path}")
+    private String imagePersistencePath;
 
     @Value("${image.output.path}")
     private String outputPath;
@@ -51,86 +56,54 @@ public class PrimaryImageIO {
         this.objectMapper = objectMapper;
     }
 
-    public File getOutputDirectory(){
-        return new File(outputPath);
+    /**
+     * Persist an uploaded file to the file system
+     * @param file file to persist
+     * @return String containing the absolute path to the file
+     * @throws IOException
+     */
+    public String persistImage(MultipartFile file, String uuid) throws IOException {
+        var extension = FilenameUtils.getExtension(file.getOriginalFilename());
+        if (!extensions.contains(extension)) {
+            throw new RuntimeException("Unsupported file type");
+        }
+        String path = new File(imagePersistencePath).getAbsolutePath();
+        File target = new File(path + File.separator + uuid + "." + extension);
+        file.transferTo(target);
+        return target.getAbsolutePath();
     }
 
+    public Optional<File> getImageByUuid(String uuid) {
+        var images = getPersistedImages();
+        for (var image : images) {
+            var name = FilenameUtils.getBaseName(image.getName());
+            if (name.equals(uuid)) {
+                return Optional.of(image);
+            }
+        }
+        return Optional.empty();
+    }
+
+
     /**
-     * Reads images from the ingest directory
-     * @return list of files ending in the specified extensions
+     * Read images from the persistence directory
+     * @return List of images from the persistence directory
      */
-    public List<File> getFilesFromIngestDirectory() {
-        var directory = new File(ingestPath);
-        var files = directory.listFiles();
-        List<File> imageFiles = new ArrayList<>();
-        if (files != null) {
-            for (File file : files) {
-                var extension = FilenameUtils.getExtension(file.getName()).toLowerCase();
-                if (!file.isDirectory() && extensions.contains(extension)) {
-                    imageFiles.add(file);
+    public List<File> getPersistedImages(){
+        var  imageJobFiles = new ArrayList<File>();
+        var directory = new File(imagePersistencePath);
+        File[] images = directory.listFiles();
+        if (images != null){
+            for (File image : images) {
+                if (extensions.contains(FilenameUtils.getExtension(image.getName()))) {
+                    imageJobFiles.add(image);
                 }
             }
         } else {
-            LOG.info("Read no images in ingest directory");
+            LOG.error("Could not open image persistence directory.");
         }
-        return imageFiles;
-    }
-
-    /**
-     * Creates local directory for file
-     * @param path the directory to create
-     * @return whether the directory was successfully created or not
-     */
-    public boolean createDirectory(String path){
-        File directory = new File(path);
-        if (directory.exists()){
-            LOG.error("A file with path {} has already been ingested. You should change " +
-                    "the name of this file in the ingest directory.", path);
-            return false;
-        } else {
-            boolean success = directory.mkdir();
-            if (success) {
-                LOG.info("Created directory: {}", directory.getAbsolutePath());
-                return true;
-            } else {
-                LOG.error("Failed to create folder {}, check output directory and permissions.", path);
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Moves an image file into an already created destination directory, removing
-     * it from the ingest directory. A JSON file containing the image job information
-     * will also be created. This will allow for easy interchange of information between
-     * Java Script and Python, etc.
-     *
-     * @param source The image file to copy
-     * @param destinationDirectory The directory to copy into (w/o file separator)
-     */
-    public void initializeDirectory(File source, String destinationDirectory) {
-        String sourcePath = source.getAbsolutePath();
-        String destinationFilePath = destinationDirectory + File.separator + source.getName();
-        String jsonPath = destinationDirectory + File.separator + jsonName;
-        String jsonArchiveDirectory = destinationDirectory + File.separator + "archive";
-        String cropsDirectory = destinationDirectory + File.separator + "crops";
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-        try {
-            Files.move(Paths.get(sourcePath), Paths.get(destinationFilePath));
-            ImageJob imageJob = new ImageJob();
-            imageJob.setId(FilenameUtils.getBaseName(sourcePath));
-            imageJob.setVersion("0.2");
-            imageJob.setCompleted(false);
-            imageJob.setEdited(false);
-            imageJob.setStatus("Ingested");
-            imageJob.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-            objectMapper.writeValue(new File(jsonPath), imageJob);
-            createDirectory(jsonArchiveDirectory);
-            createDirectory(cropsDirectory);
-            LOG.info("Initialized directory {}", destinationFilePath);
-        } catch (IOException e) {
-            LOG.error("Failed to initialize file {} in {}", sourcePath, destinationFilePath);
-        }
+        LOG.info("Successfully read images in.");
+        return imageJobFiles;
     }
 
     /**

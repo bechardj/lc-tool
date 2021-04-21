@@ -44,9 +44,11 @@ public class AuthorizedUser implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<UserAuthority> authorities = new ArrayList<>();
-//        UserAuthority userAuthority = new UserAuthority();
-//        userAuthority.setAuthority("ROLE_" + persistedUser.getUserType().toString());
-//        authorities.add(userAuthority);
+        for(var role : user.getRoles()) {
+            var userAuthority = new UserAuthority();
+            userAuthority.setAuthority("ROLE_" + role.getRoleName());
+            authorities.add(userAuthority);
+        }
         return authorities;
     }
 
@@ -80,7 +82,7 @@ public class AuthorizedUser implements UserDetails {
         return true;
     }
 
-    public User getPersistedUser() {
+    public User getUser() {
         return user;
     }
 

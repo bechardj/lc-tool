@@ -17,7 +17,6 @@ import us.jbec.lct.services.ImageService;
 import java.io.IOException;
 
 @RestController
-@Profile("!remote")
 public class ImageController {
 
     Logger LOG = LoggerFactory.getLogger(ImageController.class);
@@ -34,7 +33,7 @@ public class ImageController {
     public @ResponseBody String getJobImage(@RequestParam String id) throws IOException {
         LOG.info("Received request for job associated with id: {}", id);
         try {
-            return imageService.getImageById(id);
+            return imageService.getBase64EncodedImageById(id);
         } catch (Exception e) {
             LOG.error("An error occurred while getting image!", e);
             throw e;

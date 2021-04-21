@@ -1,4 +1,4 @@
-function init() {
+function initListing() {
     $('#jobListing').dataTable( {
         "iDisplayLength": 25,
         "initComplete": function() {
@@ -26,5 +26,12 @@ function init() {
             }
         });
 
+    $('.confirm-delete').click ( e  => {
+            if(!confirm("Delete This File?")) {
+                e.preventDefault();
+            }
+        }
+    )
+
 }
-init();
+initListing();

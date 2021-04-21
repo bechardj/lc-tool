@@ -2,11 +2,13 @@ package us.jbec.lct.models.database;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.firebase.auth.FirebaseToken;
+import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -26,6 +28,9 @@ public class User {
 
     @OneToMany
     private Set<RemotelySubmittedJob> remotelySubmittedJobs;
+
+    @OneToMany(mappedBy = "owner")
+    private List<CloudCaptureDocument> cloudCaptureDocuments;
 
     public User (FirebaseToken firebaseToken) {
         this.firebaseIdentifier = firebaseToken.getUid();
@@ -83,5 +88,13 @@ public class User {
 
     public void setRemotelySubmittedJobs(Set<RemotelySubmittedJob> remotelySubmittedJobs) {
         this.remotelySubmittedJobs = remotelySubmittedJobs;
+    }
+
+    public List<CloudCaptureDocument> getCloudCaptureDocuments() {
+        return cloudCaptureDocuments;
+    }
+
+    public void setCloudCaptureDocuments(List<CloudCaptureDocument> cloudCaptureDocuments) {
+        this.cloudCaptureDocuments = cloudCaptureDocuments;
     }
 }
