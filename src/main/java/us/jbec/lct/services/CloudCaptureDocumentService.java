@@ -5,10 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.ImageJob;
-import us.jbec.lct.models.ImageJobFile;
 import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.database.ArchivedJobData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
@@ -114,7 +112,9 @@ public class CloudCaptureDocumentService {
         var result = new HashMap<CloudCaptureDocument, ImageJob>();
 
         for (var document : cloudCaptureDocumentRepository.findAll()) {
-            result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+            if (DocumentStatus.DELETED != document.getDocumentStatus()) {
+                result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+            }
         }
 
         return result;

@@ -73,10 +73,8 @@ public class ListingController {
             var cloudCaptureDocument = entry.getKey();
             var imageJob = entry.getValue();
             try {
-                if (!DocumentStatus.DELETED.equals(cloudCaptureDocument.getDocumentStatus())) {
-                    ImageJobListing imageJobListing = new ImageJobListing(cloudCaptureDocument, imageJob);
-                    imageJobListings.add(imageJobListing);
-                }
+                ImageJobListing imageJobListing = new ImageJobListing(cloudCaptureDocument, imageJob);
+                imageJobListings.add(imageJobListing);
             } catch (IOException e) {
                 LOG.error("Error creating image job listing for job file {}", cloudCaptureDocument.getUuid());
             }

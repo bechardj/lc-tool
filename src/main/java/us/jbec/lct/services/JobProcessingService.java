@@ -82,30 +82,6 @@ public class JobProcessingService {
     }
 
 
-    public void processImageJobWithFile(ImageJob job, CropsDestination cropsDestination) throws IOException {
-        var optionalImageJobFile = primaryImageIO.getImageJobFiles().stream()
-                .filter(imageJobFile -> imageJobFile.getImageJob().getId().equals(job.getId()))
-                .findFirst();
-        if (optionalImageJobFile.isPresent()) {
-            LOG.info("Found job: {}", job.getId());
-            var fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-            job.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-            job.setVersion("0.3");
-            if (CropsDestination.PAGE.equals(cropsDestination)) {
-                LOG.info("Saving JSON...");
-                primaryImageIO.saveImageJobJson(job);
-            }
-            var jobFileToProcess = new ImageJobFile(optionalImageJobFile.get().getImageFile(),
-                    job);
-            writeCharacterCrops(jobFileToProcess, cropsDestination);
-            writeLineCrops(jobFileToProcess, cropsDestination, CropsType.LINES);
-            writeLineCrops(jobFileToProcess, cropsDestination, CropsType.WORDS);
-        } else {
-            LOG.error("Image Job {} not found in output directory!", job.getId());
-            throw new RuntimeException();
-        }
-    }
-
     private void writeCharacterCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
         var job = imageJobFile.getImageJob();
         var imageFile = imageJobFile.getImageFile();
@@ -175,23 +151,6 @@ public class JobProcessingService {
         }
         LOG.info("Writing all cropped and labeled images...");
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
-    }
-
-    public ImageJob getImageJob(String id) {
-        List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
-        for (ImageJobFile imageJobFile : imageJobFiles) {
-            if (id.equals(imageJobFile.getImageFileName())){
-                return imageJobFile.getImageJob();
-            }
-        }
-        LOG.error("Image job with id: {} not found in output directory", id);
-        return null;
-    }
-
-    public List<ImageJobFile> getAllImageJobFilesSorted() {
-        return primaryImageIO.getImageJobFiles().stream()
-                .sorted(Comparator.comparing(imageJobFile -> imageJobFile.getImageJob().getId()))
-                .collect(Collectors.toList());
     }
 
     public List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {

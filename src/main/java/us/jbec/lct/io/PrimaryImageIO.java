@@ -1,6 +1,7 @@
 package us.jbec.lct.io;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -30,12 +32,6 @@ public class PrimaryImageIO {
 
     @Value("${image.persistence.path}")
     private String imagePersistencePath;
-
-    @Value("${image.output.path}")
-    private String outputPath;
-
-    @Value("${image.output.json.name}")
-    private String jsonName;
 
     Logger LOG = LoggerFactory.getLogger(PrimaryImageIO.class);
 
@@ -103,146 +99,12 @@ public class PrimaryImageIO {
         return imageJobFiles;
     }
 
-    /**
-     * Read image job files from the output directory
-     * @return List of image job files from the output directory
-     */
-    public List<ImageJobFile> getImageJobFiles(){
-        List<ImageJobFile> imageJobFiles = new ArrayList<>();
-        File directory = new File(outputPath);
-        File[] outputFolders = directory.listFiles();
-        if (outputFolders != null){
-            for (File outputFolder : outputFolders) {
-                if (outputFolder.isDirectory()){
-                    File imageFile = getImageFileFromDirectory(outputFolder);
-                    ImageJob imageJob = readJsonFileFromDirectory(outputFolder);
-                    if (imageFile == null) {
-                        LOG.error("Could not find image file in directory {}", outputFolder.getAbsolutePath());
-                        continue;
-                    }
-                    if (imageJob == null) {
-                        LOG.error("Could not read json file in directory {}", outputFolder.getAbsolutePath());
-                        continue;
-                    }
-                    ImageJobFieldTransformer.transform(imageJob);
-                    imageJobFiles.add(new ImageJobFile(imageFile, imageJob));
-                }
-            }
-        } else {
-            LOG.error("Could not open output directory.");
-        }
-        LOG.info("Successfully read image job files in.");
-        return imageJobFiles;
-    }
-
-    /**
-     * Read image file from output directory
-     * @param directory
-     * @return null if unable to read
-     */
-    private File getImageFileFromDirectory(File directory) {
-        String fileName = directory.getName();
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (!file.isDirectory() && file.getName().contains(fileName) &&
-                        extensions.contains(FilenameUtils.getExtension(file.getName())))
-                    return file;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Read image file from output directory
-     * @param directory
-     * @return ImageJob deserialized from JSON. null if unable to read
-     */
-    private ImageJob readJsonFileFromDirectory(File directory) {
-        File jsonFile = null;
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (!file.isDirectory() && file.getName().equals(jsonName)) {
-                    jsonFile = file;
-                    break;
-                }
-            }
-        }
-        if (jsonFile != null) {
-            try {
-                return objectMapper.readValue(jsonFile, ImageJob.class);
-            } catch (Exception e) {
-                LOG.error("Error reading JSON in file {}", jsonFile.getAbsolutePath(), e);
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    public void saveImageJobJson(ImageJob imageJob) throws IOException {
-        if (!backupJsonById(imageJob.getId())){
-            LOG.error("Archiving JSON Failed.");
-            throw new RuntimeException();
-        };
-        File outputDirectory = findOutputDirectoryByID(imageJob.getId());
-        if (outputDirectory == null) {
-            LOG.error("Opening output directory for image {} failed.", imageJob.getId());
-            throw new RuntimeException();
-        }
-        String jsonPath = outputDirectory.getAbsolutePath() + File.separator + jsonName;
-        objectMapper.writeValue(new File(jsonPath), imageJob);
-        LOG.info("Wrote JSON for image {}.", imageJob.getId());
-    }
-
-    private boolean backupJsonById(String id) throws IOException {
-        File outputDirectory = findOutputDirectoryByID(id);
-        if (outputDirectory != null) {
-            File jsonFile = null;
-            File[] files = outputDirectory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (!file.isDirectory() && file.getName().equals(jsonName)) {
-                        jsonFile = file;
-                        break;
-                    }
-                }
-            }
-            if (jsonFile != null) {
-                String sourcePath = jsonFile.getAbsolutePath();
-                String destinationFilePath = outputDirectory.getAbsolutePath()
-                        + File.separator
-                        + "archive"
-                        + File.separator
-                        + LocalDateTime.now().toString().replaceAll(":", "-")
-                        + ".json";
-                Files.move(Paths.get(sourcePath), Paths.get(destinationFilePath));
-                return true;
-            } else {
-                LOG.error("Failed to open jsonFile.");
-                return false;
-            }
-        }
-        LOG.error("Failed to open output directory.");
-        return false;
-    }
-
-    private File findOutputDirectoryByID(String id){
-        File directory = new File(outputPath);
-        File[] outputFolders = directory.listFiles();
-        if (outputFolders != null){
-            for (File outputFolder : outputFolders) {
-                if (outputFolder.isDirectory() && id.contains(FilenameUtils.getBaseName(outputFolder.getName()))){
-                    return outputFolder;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void saveFileInOutputDirectory(File file) {
-
+    public String persistImage(String encodedImage, String uuid, String extension) throws IOException {
+        var bytes = Base64.getDecoder().decode(encodedImage);
+        String path = new File(imagePersistencePath).getAbsolutePath();
+        File target = new File(path + File.separator + uuid + "." + extension);
+        FileUtils.writeByteArrayToFile(target, bytes);
+        return target.getAbsolutePath();
     }
 
 
