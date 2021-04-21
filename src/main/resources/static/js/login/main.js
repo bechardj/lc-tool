@@ -30,7 +30,7 @@ ui.start('#firebaseui-auth-container', {
                     'Content-Type': 'application/json'
                 },
                 body: data}
-                ).then(response => window.location = "/")
+                ).then(response => window.location = "/secure/listing")
             );
             return false;
         }
