@@ -47,6 +47,11 @@ public class PrimaryController {
         return "help";
     }
 
+    @GetMapping("migrate")
+    public String migrate(){
+        return "migrate";
+    }
+
     @GetMapping("/ingest")
     public void ingest() {
         try {

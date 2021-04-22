@@ -23,25 +23,25 @@
                 <li>
                     <a href="/statistics">Statistics</a>
                 </li>
-                <li class="active">
-                    <a href="#">Export</a>
-                </li>
                 <li>
-                    <a href="/migrate">Migrate</a>
+                    <a href="/export">Export</a>
+                </li>
+                <li class="active">
+                    <a href="#">Migrate</a>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 <div class="container">
-    <h1 class="title">Bulk Export Crops</h1>
     <div class = "nbs-container" align="center">
-        <p>Use the button below to bulk export crops to your output directory: </p>
-        <b th:text="${path}"></b>
-        <button id="exportBtn" class="nbs-button-sm">Export</button>
+        <h1 class="nbs-title">Migrate To Cloud</h1>
+        <p>Use the button below to migrate your local capture data to the cloud. This may take some time.</p>
+        <p>This will erase all previously migrated data!</p>
+        <button id="migrateBtn" class="nbs-button-sm">Migrate</button>
     </div>
     <div class="padded-body">
-        <div id="exportMsg" class = "alert alert-success" hidden>
+        <div id="migrateMsg" class = "alert alert-success" hidden>
             Message
         </div>
     </div>
@@ -50,6 +50,11 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-<script src="/js/export.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+
+<script src="/js/migrate.js"></script>
 </body>
 </html>
