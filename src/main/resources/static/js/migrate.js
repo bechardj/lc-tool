@@ -81,6 +81,7 @@ function initMigration() {
 
     $('#migrateBtn').click(
         () => {
+            $('#migrateBtn').prop("disabled",true);
             popupLogin(
                 () => {
                     $(this).prop("disabled", true);

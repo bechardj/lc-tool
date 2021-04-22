@@ -41,18 +41,18 @@ public class RemoteSubmissionService {
     }
 
     public void submitJobsToRemote(List<ImageJob> imageJob) {
-        try {
-            LOG.info("Submitting to remote server: {}", REMOTE_BASE_URL);
-            WebClient.create()
-                    .post()
-                    .uri(REMOTE_BASE_URL + ENDPOINT + API_KEY)
-                    .body(BodyInserters.fromValue(imageJob))
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .exchange()
-                    .block();
-        } catch (Exception e) {
-            LOG.error("Failed to sync job with remote: {}", e.getMessage());
-        }
+//        try {
+//            LOG.info("Submitting to remote server: {}", REMOTE_BASE_URL);
+//            WebClient.create()
+//                    .post()
+//                    .uri(REMOTE_BASE_URL + ENDPOINT + API_KEY)
+//                    .body(BodyInserters.fromValue(imageJob))
+//                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+//                    .exchange()
+//                    .block();
+//        } catch (Exception e) {
+//            LOG.error("Failed to sync job with remote: {}", e.getMessage());
+//        }
     }
 
     @Scheduled(fixedDelayString = "${lct.api.sync.frequency}")
