@@ -45,7 +45,6 @@ function initLogin(id) {
         ],
         callbacks: {
             signInSuccessWithAuthResult: (authObject, redirectUrl) => {
-                console.log(authObject);
                 firebase.auth().currentUser.getIdToken().then(data => fetch('/firebaseLogin', {
                         method: 'post',
                         headers: {
@@ -54,7 +53,7 @@ function initLogin(id) {
                         },
                         body: data
                     }
-                    ).then(response => window.location = "/secure/listing")
+                    ).then(response => window.location = "/")
                 );
                 return false;
             }

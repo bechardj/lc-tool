@@ -173,7 +173,7 @@
 						</platforms>
 					</from>
 					<to>
-						<image>lyrasiscapture.jfrog.io/docker-local/lct</image>
+						<image>lyrasiscapture.jfrog.io/docker-local/lct_cloud</image>
 					</to>
 					<container>
 						<ports>
