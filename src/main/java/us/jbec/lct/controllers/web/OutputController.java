@@ -8,19 +8,30 @@ import us.jbec.lct.services.ZipOutputService;
 
 import javax.servlet.http.HttpServletRequest;
 
-
+/**
+ * Controller for serving output of processing data
+ */
 @Controller
-public class RemoteOutputController {
+public class OutputController {
 
     @Value("${lct.remote.baseUrl:#{null}}")
     private String baseUrl;
 
     private final ZipOutputService zipOutputService;
 
-    public RemoteOutputController(ZipOutputService zipOutputService) {
+    /**
+     * Controller for serving output of processing data
+     * @param zipOutputService autowired parameter
+     */
+    public OutputController(ZipOutputService zipOutputService) {
         this.zipOutputService = zipOutputService;
     }
 
+    /**
+     * Endpoint to get the latest bulk processing output
+     * @param request request to get base URL from
+     * @return redirect view to latest zip archive
+     */
     @GetMapping("/bulkOutput/latest")
     public RedirectView getLatestZip(HttpServletRequest request) {
         var optionalZipUri = zipOutputService.getLatestZipUri();

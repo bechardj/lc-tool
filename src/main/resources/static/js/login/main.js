@@ -1,2 +1,2 @@
-popupLogin(() => {window.location.href = '/'}, true);
+//popupLogin(() => {window.location.href = '/'}, true);
 initLogin('#signIn');

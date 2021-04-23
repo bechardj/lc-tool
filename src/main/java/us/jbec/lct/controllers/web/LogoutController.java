@@ -10,15 +10,28 @@ import javax.servlet.http.HttpSession;
 
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
+/**
+ * Controller for handling user logout
+ */
 @Controller
 public class LogoutController {
 
-    @GetMapping("/secure/logout")
+    /**
+     * Perform user logout by clearing security context
+     * @param req servlet request to clear security context from
+     * @return logout view
+     */
+    @GetMapping("/logout")
     public String doLogout(HttpServletRequest req) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        securityContext.setAuthentication(null);
-        HttpSession session = req.getSession(false);
-        session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
+        if (securityContext != null)
+        {
+            securityContext.setAuthentication(null);
+            HttpSession session = req.getSession(false);
+            if (session != null) {
+                session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
+            }
+        }
         return "logout";
     }
 }

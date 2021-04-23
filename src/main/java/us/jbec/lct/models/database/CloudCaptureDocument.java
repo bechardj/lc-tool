@@ -53,6 +53,8 @@ public class CloudCaptureDocument implements Serializable {
 
     private boolean migrated;
 
+    private String fileChecksum;
+
     public String getUuid() {
         return uuid;
     }
@@ -141,4 +143,11 @@ public class CloudCaptureDocument implements Serializable {
         this.migrated = migrated;
     }
 
+    public String getFileChecksum() {
+        return fileChecksum;
+    }
+
+    public void setFileChecksum(String fileChecksum) {
+        this.fileChecksum = fileChecksum;
+    }
 }

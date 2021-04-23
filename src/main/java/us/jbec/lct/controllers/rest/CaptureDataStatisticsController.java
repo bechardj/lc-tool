@@ -9,17 +9,29 @@ import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lct.models.CaptureDataStatistics;
 import us.jbec.lct.services.CaptureDataStatisticsService;
 
+/**
+ * Controller for serving capture data statistics
+ */
 @RestController
-public class RemoteStatisticsController {
+public class CaptureDataStatisticsController {
 
-    Logger LOG = LoggerFactory.getLogger(RemoteStatisticsController.class);
+    Logger LOG = LoggerFactory.getLogger(CaptureDataStatisticsController.class);
 
     private final CaptureDataStatisticsService captureDataStatisticsService;
 
-    public RemoteStatisticsController(CaptureDataStatisticsService captureDataStatisticsService) {
+    /**
+     * Controller for serving capture data statistics
+     * @param captureDataStatisticsService autowired parameter
+     */
+    public CaptureDataStatisticsController(CaptureDataStatisticsService captureDataStatisticsService) {
         this.captureDataStatisticsService = captureDataStatisticsService;
     }
 
+    /**
+     * Return cumulative capture data statistics
+     * @return
+     * @throws JsonProcessingException
+     */
     @Cacheable("remoteStatistics")
     @GetMapping("/statistics")
     public CaptureDataStatistics statistics() throws JsonProcessingException {

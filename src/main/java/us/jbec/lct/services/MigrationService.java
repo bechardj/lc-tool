@@ -42,18 +42,21 @@ public class MigrationService {
         ImageJobFieldTransformer.transform(job);
         if (first) {
             var existingDocs = user.getCloudCaptureDocuments();
-            existingDocs.stream()
-                    .filter(CloudCaptureDocument::isMigrated)
-                    .map(CloudCaptureDocument::getUuid)
-                    .forEach(cloudCaptureDocumentService::markDocumentDeleted);
+            if (existingDocs != null) {
+                existingDocs.stream()
+                        .filter(CloudCaptureDocument::isMigrated)
+                        .map(CloudCaptureDocument::getUuid)
+                        .forEach(id -> cloudCaptureDocumentService.markDocumentDeleted(id, false));
+            }
         }
         LOG.info("Received request to save migrated job...");
         String uuid = cloudCaptureDocumentService.retrieveNewId();
+        job.setId(uuid);
         var cloudCaptureDocument = new CloudCaptureDocument();
-        cloudCaptureDocument.setName(FilenameUtils.getBaseName(job.getId()));
+        cloudCaptureDocument.setName(FilenameUtils.getBaseName(migrationRequest.getOriginalFileName()));
         cloudCaptureDocument.setUuid(uuid);
         cloudCaptureDocument.setOwner(user);
-        cloudCaptureDocument.setDocumentStatus(DocumentStatus.INGESTED);
+        cloudCaptureDocument.setDocumentStatus(DocumentStatus.MIGRATED);
         cloudCaptureDocument.setMigrated(true);
         cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(job));
         cloudCaptureDocument.setProject(projectService.getDefaultProject());

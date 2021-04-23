@@ -12,6 +12,8 @@ public class CaptureDataStatistics {
     private Map<String, Integer> punctuationFrequency;
     private Map<String, Integer> upperFrequency;
     private Map<String, Integer> lowerFrequency;
+    private Map<String, Integer> userCounts;
+
     private Integer pagesWithData;
     private Integer pagesMarkedCompleted;
     private Integer totalCaptured;
@@ -21,6 +23,7 @@ public class CaptureDataStatistics {
         punctuationFrequency = new HashMap<>();
         upperFrequency = new HashMap<>();
         lowerFrequency = new HashMap<>();
+        userCounts = new HashMap<>();
         totalCaptured = 0;
     }
 
@@ -118,5 +121,21 @@ public class CaptureDataStatistics {
 
     public void setTotalCaptured(Integer totalCaptured) {
         this.totalCaptured = totalCaptured;
+    }
+
+    public Map<String, Integer> getUserCounts() {
+        return userCounts;
+    }
+
+    public void setUserCounts(Map<String, Integer> userCounts) {
+        this.userCounts = userCounts;
+    }
+
+    public void addUserCount(String user, Integer count) {
+        if (!userCounts.containsKey(user)) {
+            userCounts.put(user, 0);
+        }
+        var currentCount = userCounts.get(user);
+        userCounts.put(user, currentCount + count);
     }
 }

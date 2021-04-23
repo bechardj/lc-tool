@@ -1,6 +1,8 @@
 package us.jbec.lct.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 
+import java.io.File;
 import java.io.IOException;
 
 @Component
@@ -46,8 +49,10 @@ public class IngestService {
         cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(jobProcessingService.initializeImageJob(uuid)));
         cloudCaptureDocument.setProject(projectService.getDefaultProject());
         cloudCaptureDocument.setMigrated(false);
-        var filePath = primaryImageIO.persistImage(uploadedFile, uuid);
-        cloudCaptureDocument.setFilePath(filePath);
+        var imageFile = primaryImageIO.persistImage(uploadedFile, uuid);
+        var checksum = DigestUtils.sha256Hex((FileUtils.readFileToByteArray(imageFile)));
+        cloudCaptureDocument.setFileChecksum(checksum);
+        cloudCaptureDocument.setFilePath(imageFile.getAbsolutePath());
         cloudCaptureDocumentService.saveCloudCaptureDocument(cloudCaptureDocument);
     }
 

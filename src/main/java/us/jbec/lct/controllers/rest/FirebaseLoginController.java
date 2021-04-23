@@ -14,17 +14,29 @@ import javax.servlet.http.HttpSession;
 
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
+/**
+ * Controller for handling Firebase Authentication
+ */
 @RestController
 public class FirebaseLoginController {
 
     private final AuthenticationFilter authenticationFilter;
 
+    /**
+     * Controller for handling Firebase Authentication
+     * @param authenticationFilter autowired parameter
+     */
     public FirebaseLoginController(AuthenticationFilter authenticationFilter) {
         this.authenticationFilter = authenticationFilter;
     }
 
+    /**
+     * Authenticate the current session using a provided Firebase token
+     * @param req servlet request containing the session to authenticate
+     * @param token Firebase token to use for authentication
+     */
     @PostMapping("/firebaseLogin")
-    public String doLogin(HttpServletRequest req, @RequestBody String token) {
+    public void doLogin(HttpServletRequest req, @RequestBody String token) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("", token);
         Authentication authentication = authenticationFilter.attemptAuthentication(authenticationToken);
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -32,6 +44,5 @@ public class FirebaseLoginController {
         HttpSession session = req.getSession(true);
         session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, securityContext);
-        return "success";
     }
 }

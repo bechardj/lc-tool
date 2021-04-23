@@ -29,13 +29,23 @@ public class ListingController {
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
 
+    /**
+     * Controller for handling the listing of documents
+     * @param cloudCaptureDocumentService autowired parameter
+     */
     public ListingController(CloudCaptureDocumentService cloudCaptureDocumentService) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
     }
 
+    /**
+     * Endpoint for listing all documents
+     * @param authentication authentication object
+     * @param model view model
+     * @return listing view
+     * @throws JsonProcessingException
+     */
     @GetMapping("/secure/listing/all")
     public String listingAll(Authentication authentication, Model model) throws JsonProcessingException {
-        var user =  LCToolUtils.getUserFromAuthentication(authentication);
         try {
             var cloudCaptureDocuments = cloudCaptureDocumentService
                     .getActiveCloudCaptureDocuments();
@@ -50,6 +60,13 @@ public class ListingController {
         }
     }
 
+    /**
+     * Endpoint for listing documents owned by a user
+     * @param authentication authentication object
+     * @param model view model
+     * @return listing view
+     * @throws JsonProcessingException
+     */
     @GetMapping("/secure/listing")
     public String listing(Authentication authentication, Model model) throws JsonProcessingException {
         var user =  LCToolUtils.getUserFromAuthentication(authentication);

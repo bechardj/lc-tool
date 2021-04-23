@@ -92,6 +92,27 @@ class StatisticsInfo {
                 },
             }
         });
+
+        const byUserCtx = $("#byUserCtx")[0].getContext("2d");
+        let byUserChart = new Chart(byUserCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: Object.keys(this.statistics.userCounts),
+                datasets: [{
+                    label: 'User Collected Labels',
+                    backgroundColor: 'rgb(217,52,90)',
+                    borderColor: 'rgb(217,52,90)',
+                    data: Object.values(this.statistics.userCounts)
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                legend: {
+                    display: false,
+                },
+            }
+        });
+
     }
 
     addLabels() {

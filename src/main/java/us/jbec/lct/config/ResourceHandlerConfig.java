@@ -11,6 +11,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
 
+/**
+ * Configuration class for specifying additional resource directories at runtime
+ * to be served by the embedded Tomcat server
+ */
 @Configuration
 public class ResourceHandlerConfig implements WebMvcConfigurer {
 

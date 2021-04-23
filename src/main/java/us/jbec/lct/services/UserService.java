@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
@@ -55,6 +56,10 @@ public class UserService {
                 LOG.info("Login successful for existing user {}", user.getFirebaseEmail());
             } else {
                 user = new User(token);
+                if (!user.getFirebaseEmail().contains("uconn.edu")) {
+                    LOG.error("User Without UConn Account Attempted Login");
+                    throw new LCToolException("Bad Domain");
+                }
                 user.setRoles(defaultRoles());
                 LOG.info("First login for user {}, generating DB rows.", user.getFirebaseEmail());
                 userRepository.save(user);

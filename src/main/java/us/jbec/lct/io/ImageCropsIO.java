@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * IO Class for writing image crops
+ */
 @Component
 public class ImageCropsIO {
 
@@ -26,6 +29,14 @@ public class ImageCropsIO {
     @Value("${image.bulk.output.path}")
     private String bulkOutputPath;
 
+    /**
+     * Write labels to the autowired output directory
+     * @param job image job to use for naming and metadata
+     * @param labeledImageCrops image crops to write
+     * @param destination destination (bulk output vs single file output)
+     * @param cropsType crops type to generate
+     * @throws IOException
+     */
     public void writeLabeledImageCrops(ImageJob job, List<LabeledImageCrop> labeledImageCrops,
                                        CropsDestination destination, CropsType cropsType) throws IOException {
         int nameCounter = 0;
@@ -54,6 +65,13 @@ public class ImageCropsIO {
         }
     }
 
+    /**
+     * Build output directory file path
+     * @param labeledImageCrop image crop to write
+     * @param destination destination type
+     * @param cropsType crops type
+     * @return file containing the directory to use (and to create if needed)
+     */
     private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsDestination destination, CropsType cropsType) {
         var label = labeledImageCrop.getLabel();
         if (CropsDestination.PAGE.equals(destination)) {
@@ -77,6 +95,12 @@ public class ImageCropsIO {
         return null;
     }
 
+    /**
+     * Delete crops directory for single file output
+     * @param source image job source file
+     * @param cropsType crops type
+     * @throws IOException
+     */
     private void deleteCropsDirectoryBySourceFile(File source, CropsType cropsType) throws IOException {
         LOG.info("Clearing existing crops directory....");
         var cropsDirectory = new File(source.getParentFile().getAbsolutePath()
@@ -94,6 +118,13 @@ public class ImageCropsIO {
         }
     }
 
+    /**
+     * Perform upgrade of subdirectory structure
+     * Originally, before word/line crops were saved, letter crops were stored directly in the output directory
+     * This cleans up those files.
+     * @param subDirectory subdirectory to upgrade
+     * @throws IOException
+     */
     private void performCropsDirectoryUpgrade(File subDirectory) throws IOException {
         var parentDirectory = subDirectory.getParentFile();
         if (parentDirectory.exists()) {
@@ -109,6 +140,7 @@ public class ImageCropsIO {
         }
         parentDirectory.mkdirs();
     }
+
 
     private void deleteBulkCropsByImageJob(ImageJob imageJob, CropsType cropsType) throws IOException {
         LOG.info("Clearing bulk image crops for job id {}....", imageJob.getId());

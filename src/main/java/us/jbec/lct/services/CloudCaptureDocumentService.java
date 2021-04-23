@@ -2,6 +2,8 @@ package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +16,7 @@ import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.ArchivedJobDataRepository;
 import us.jbec.lct.repositories.CloudCaptureDocumentRepository;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +27,8 @@ import java.util.UUID;
 
 @Service
 public class CloudCaptureDocumentService {
+
+    Logger LOG = LoggerFactory.getLogger(CloudCaptureDocumentService.class);
 
     private int MAX_ATTEMPTS = 3;
 
@@ -64,6 +69,7 @@ public class CloudCaptureDocumentService {
             if (!userOwnsDocument(userToken, document)) {
                 throw new LCToolException("User not authorized to save job!");
             }
+            document.setDocumentStatus(DocumentStatus.EDITED);
             if (document.getArchivedJobDataList().isEmpty()) {
                 document.setArchivedJobDataList(new ArrayList<>());
             }
@@ -100,7 +106,9 @@ public class CloudCaptureDocumentService {
         Optional<User> optionalUser = userService.getUserByFirebaseIdentifier(identifier);
         if (optionalUser.isPresent()) {
             for (var document : optionalUser.get().getCloudCaptureDocuments()) {
-                result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+                if (DocumentStatus.DELETED != document.getDocumentStatus()) {
+                    result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+                }
             }
             return result;
         } else {
@@ -133,11 +141,17 @@ public class CloudCaptureDocumentService {
         return objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
     }
 
-    public boolean markDocumentDeleted(String id) {
+    public boolean markDocumentDeleted(String id, boolean keepImage) {
         var optionalDocument = cloudCaptureDocumentRepository.findById(id);
         if (optionalDocument.isPresent()) {
             var doc = optionalDocument.get();
             doc.setDocumentStatus(DocumentStatus.DELETED);
+            if (!keepImage) {
+                var file = new File(doc.getFilePath());
+                if(!file.delete()) {
+                    LOG.error("Failed to Delete Image {}", id);
+                }
+            }
             cloudCaptureDocumentRepository.save(doc);
             return true;
         }

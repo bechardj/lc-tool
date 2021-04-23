@@ -2,7 +2,9 @@ package us.jbec.lct.models;
 
 public enum DocumentStatus {
     INGESTED("Ingested"),
-    DELETED("Deleted");
+    DELETED("Deleted"),
+    EDITED("Edited"),
+    MIGRATED("Migrated");
 
     private String description;
 

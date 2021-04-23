@@ -15,6 +15,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * Configuration class for Google Firebase
+ */
 @Configuration
 public class FirebaseConfig {
 
@@ -44,7 +47,7 @@ public class FirebaseConfig {
             FirebaseApp.initializeApp(options);
             LOG.info("FirebaseApp successfully initialized");
         } catch (FileNotFoundException e) {
-            LOG.error("Could not find serviced account JSON. Check the path in applications.yml.", e);
+            LOG.error("Could not find serviced account JSON. Check the path in applications.properties.", e);
         } catch (IOException e) {
             LOG.error("Failed to build FirebaseOptions.", e);
         }

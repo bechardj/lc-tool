@@ -3,7 +3,7 @@ import { Rectangle, Line } from './geometry.js';
 function loadJob(jobId, state, callback) {
     $.getJSON("/getJob",
         {
-            id: jobId
+            uuid: jobId
         },
         function (response) {
             let jobInfo = response;
@@ -25,7 +25,7 @@ function loadJob(jobId, state, callback) {
 }
 
 function loadImage(jobId, image) {
-    let request = $.get("/getImage", {id: jobId})
+    let request = $.get("/getImage", {uuid: jobId})
     request.done(function (data) {
         // there is likely a better way to do this, this was just the quickest
         image.src = 'data:image/png;base64,' + data;

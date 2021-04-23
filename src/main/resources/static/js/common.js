@@ -67,6 +67,7 @@ function getBearerToken() {
 
 async function getBearerTokenWithPrompt() {
     if (!firebaseLoggedIn) {
+        notify("Login required - If you don't see a prompt, make sure pop-ups are enabled)", 5000);
         await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
     }
     return firebase.auth().currentUser.getIdToken();
@@ -130,10 +131,14 @@ function popupLogin(callback, backendAuth) {
 firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
         firebaseLoggedIn = true;
+        console.log("Logged in.")
     } else {
         //$('.req-auth').hide();
         firebaseLoggedIn = false;
+        console.log("Not logged in.")
     }
     $('.wait-for-auth').removeClass('hidden-occupy');
 });
+
+firebase.auth();
 

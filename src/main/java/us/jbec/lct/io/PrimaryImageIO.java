@@ -52,10 +52,10 @@ public class PrimaryImageIO {
     /**
      * Persist an uploaded file to the file system
      * @param file file to persist
-     * @return String containing the absolute path to the file
+     * @return File persisted
      * @throws IOException
      */
-    public String persistImage(MultipartFile file, String uuid) throws IOException {
+    public File persistImage(MultipartFile file, String uuid) throws IOException {
         var extension = FilenameUtils.getExtension(file.getOriginalFilename());
         if (!extensions.contains(extension)) {
             throw new RuntimeException("Unsupported file type");
@@ -63,7 +63,7 @@ public class PrimaryImageIO {
         String path = new File(imagePersistencePath).getAbsolutePath();
         File target = new File(path + File.separator + uuid + "." + extension);
         file.transferTo(target);
-        return target.getAbsolutePath();
+        return target;
     }
 
     public Optional<File> getImageByUuid(String uuid) {

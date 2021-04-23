@@ -1,6 +1,7 @@
 package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class JobProcessingService {
+
+    @Value("${image.bulk.output.path}")
+    private String bulkOutputPath;
 
     private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
@@ -172,6 +176,13 @@ public class JobProcessingService {
     @Scheduled(fixedDelayString = "${lct.remote.export.frequency}")
     public void exportCurrentRemoteJobs() throws IOException {
         if (exportEnabled) {
+            File outputDirectory = new File(bulkOutputPath);
+            LOG.info("Clearing bulk output directory.");
+            FileUtils.deleteDirectory(outputDirectory);
+            var created = outputDirectory.mkdir();
+            if (!created) {
+                LOG.error("Could not create output directory");
+            }
             processAllImageJobCrops(CropsDestination.BULK);
             zipOutputService.updateZipOutput();
             zipOutputService.cleanupZipDirectory();
