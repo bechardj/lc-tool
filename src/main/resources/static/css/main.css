@@ -7,6 +7,14 @@
     display: block;
 }
 
+.nbs-container-no-font {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
 .height75 {
     min-height: 75vh;
 }
@@ -50,6 +58,21 @@
     display: block;
 }
 
+.nbs-button-link {
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    color: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.nbs-button-link-disabled {
+    color: #646464;
+}
+
 .nbs-button-sm {
     border-radius: 5px;
     font-family: 'Roboto', serif;
@@ -84,7 +107,7 @@
     position: fixed;
     top: 0px;
     right: 0px;
-    z-index: 3;
+    z-index: 99999;
 }
 
 .alert-prediction {
@@ -246,7 +269,7 @@
 }
 
 .notifications {
-    z-index: 99;
+    z-index: 9999;
     position: fixed;
     text-align: center;
     top: 10px;
@@ -278,3 +301,27 @@
 .hidden-occupy {
     visibility: hidden
 }
+
+.navbar-pad-top {
+    padding-top: 65px;
+}
+
+.navbar-pad-bottom {
+    padding-bottom: 65px;
+}
+
+.navbar-fixed-height{
+    max-height: 65px;
+}
+
+.navbar-brand-pink{
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    color: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+

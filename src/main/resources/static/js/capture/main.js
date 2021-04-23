@@ -176,6 +176,9 @@ function captureCanvasInit (predictionEngine) {
 
     function setCaptureMode(mode) {
         if (mode === state.captureMode) {
+            if (mode === CaptureModes.ERASER) {
+                setCaptureMode(state.previousCaptureMode);
+            }
             return;
         }
         state.previousCaptureMode = state.captureMode;
@@ -191,6 +194,29 @@ function captureCanvasInit (predictionEngine) {
             state.clearEraserQueues();
         } else {
             alert("Can't change modes while drawing or while rectangle is unlabeled.");
+        }
+        $('.capture-mode').addClass('nbs-button-link-disabled');
+        if(state.captureMode === CaptureModes.ERASER) {
+            $('#eraser').removeClass('nbs-button-link-disabled');
+            if(state.previousCaptureMode === CaptureModes.LETTER) {
+                $('#letterCap').removeClass('nbs-button-link-disabled');
+            }
+            if(state.previousCaptureMode === CaptureModes.WORD) {
+                $('#wordCap').removeClass('nbs-button-link-disabled');
+            }
+            if(state.previousCaptureMode === CaptureModes.LINE) {
+                $('#lineCap').removeClass('nbs-button-link-disabled');
+            }
+        } else {
+            if(state.captureMode === CaptureModes.LETTER) {
+                $('#letterCap').removeClass('nbs-button-link-disabled');
+            }
+            if(state.captureMode === CaptureModes.WORD) {
+                $('#wordCap').removeClass('nbs-button-link-disabled');
+            }
+            if(state.captureMode === CaptureModes.LINE) {
+                $('#lineCap').removeClass('nbs-button-link-disabled');
+            }
         }
         draw();
     }
@@ -298,7 +324,7 @@ function captureCanvasInit (predictionEngine) {
             return false;
         });
 
-        hotkeys('ctrl+shift+., command+shift+.', function () {
+        function toggleHideCaptureData() {
             if (!state.drawing) {
                 hideCapture = !hideCapture;
                 if (hideCapture) {
@@ -308,13 +334,62 @@ function captureCanvasInit (predictionEngine) {
                 }
             }
             return false;
-        });
+        }
+
+        hotkeys('ctrl+shift+., command+shift+.', toggleHideCaptureData);
 
         document.addEventListener('keypress', keyHandler);
 
-        $('#save').click(save);
+        $('#saveMenuOption').click(() => {
+            save();
+            return false;
+        });
 
-        $('#download').click(saveJsonLocally);
+        $('#downloadMenuOption').click(() => {
+            saveJsonLocally();
+            return false;
+        });
+
+        $('#uploadMenuOption').click(() => {
+            $('#imageJobUploadFile').click();
+            return false;
+        });
+
+        $('#imageJobUploadFile').on('change', () =>{
+            $('#jobUploadSubmit').click();
+        })
+
+        $('#closeMenuOption').click(() => {
+            window.location.href = '/secure/listing';
+            return false;
+        });
+
+        $('#undoMenuOption').click(() => {
+            undo();
+            return false;
+        });
+
+        $('#redoMenuOption').click(() => {
+            redo();
+            return false;
+        });
+
+        $('#hideCaptureOption').click(() => {
+            toggleHideCaptureData();
+            return false;
+        });
+
+        $('#transparencyOption').click(() => {
+            transparency = !transparency;
+            draw();
+            return false;
+        });
+
+        $('#predictionsOption').click(() => {
+            predictionAutofill = !predictionAutofill;
+            return false;
+        });
+
 
         $('#jobUploadSubmit').click(function(e) {
             e.preventDefault();
@@ -325,9 +400,6 @@ function captureCanvasInit (predictionEngine) {
             }
         });
 
-        $('#close').click(function() {
-            window.location.href = '/secure/listing'
-        })
 
         $('#undo').click(undo);
         $('#redo').click(redo);
@@ -361,26 +433,9 @@ function captureCanvasInit (predictionEngine) {
         textFieldSelector.focusin(() => textFieldEdit = true);
         textFieldSelector.focusout(() => textFieldEdit = false);
 
-        const enableTransparency = $('#enableTransparency')[0];
-        enableTransparency.checked = transparency;
-        enableTransparency.addEventListener("change", function () {
-                transparency = enableTransparency.checked;
-                draw();
-            }
-        );
-
-        const enablePredictionsSelector = $('#enablePredictions');
-        const enablePredictions = enablePredictionsSelector[0];
-        enablePredictions.checked = predictionAutofill;
-        enablePredictions.addEventListener("change", function () {
-            predictionAutofill = enablePredictions.checked;
-            if (!predictionAutofill) {
-                $('.alert-prediction').hide();
-            }
-        });
         if (predictionEngine === undefined) {
-            enablePredictions.disabled = true;
-            enablePredictionsSelector.parent().hide();
+            predictionAutofill = false;
+            $('#predictionsOption').hide();
         }
     }
 

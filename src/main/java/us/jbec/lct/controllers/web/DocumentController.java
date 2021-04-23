@@ -43,6 +43,7 @@ public class DocumentController {
         LOG.info("User {} opening document with id: {} - owned by user: [{}]", user.getFirebaseEmail(), uuid, owns);
         model.addAttribute("imageId", uuid);
         model.addAttribute("editable", owns);
+        model.addAttribute("email", user.getFirebaseEmail());
         return "capture";
     }
 

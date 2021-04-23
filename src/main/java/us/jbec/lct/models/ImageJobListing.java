@@ -36,8 +36,8 @@ public class ImageJobListing {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }
         this.status = cloudCaptureDocument.getDocumentStatus().getDescription();
-        this.openUrl = "/secure/open/document?id=" + cloudCaptureDocument.getUuid();
-        this.deleteUrl = "/secure/delete/document?id=" + cloudCaptureDocument.getUuid();
+        this.openUrl = "/secure/open/document?uuid=" + cloudCaptureDocument.getUuid();
+        this.deleteUrl = "/secure/delete/document?uuid=" + cloudCaptureDocument.getUuid();
     }
 
     public String getFileName() {

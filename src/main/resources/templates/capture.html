@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo:wght@500;700&display=swap" >
 
@@ -17,29 +18,92 @@
     <div th:insert="fragments/full-screen-load.html :: div"></div>
     <div th:insert="fragments/notifications.html :: div"></div>
 
-    <div id="main-content-container" class="hidden">
-        <div class="nbs-container">
-        <h1 class="nbs-title">LC Document Tool</h1>
-        <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> The tool will try to predict the correct label - correct it by pressing a key on the keyboard. <br> The tool will not automatically save, so be sure to save your work before leaving the page. <br> <a href="/shortcuts">Shortcuts</a> &nbsp &nbsp &nbsp<a href="/help">Help Section</a></p>
-        <div th:insert="fragments/demo-warning.html :: div"></div>
-    </div>
+    <nav class="navbar navbar-expand-md fixed-top navbar-light bg-light">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <div class="nbs-container" align="center">
-        <div style="display: inline-block"> <button class = "nbs-button" id = "close" type="button">Close</button> </div>
-    </div>
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="fileMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        File
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <div th:if="${editable}">
+                            <a class="dropdown-item" href="#" id="saveMenuOption"><i class="bi bi-save"></i> &nbsp; Save</a>
+                        </div>
+                        <div th:if="${!editable}">
+                            <a class="dropdown-item disabled" href="#" id=""> <i class="bi bi-save"></i>&nbsp; Save (Document not owned by you)</a>
+                        </div>
+                        <a class="dropdown-item" href="#" id="downloadMenuOption"><i class="bi bi-cloud-download"></i></i> &nbsp; Download Job Info</a>
+                        <div th:if="${editable}">
+                            <a class="dropdown-item" href="#" id="uploadMenuOption"><i class="bi bi-cloud-upload"></i> &nbsp; Upload Job Info</a>
+                        </div>
+                        <div th:if="${!editable}">
+                            <a class="dropdown-item disabled" href="#" ><i class="bi bi-cloud-upload"></i> &nbsp; Upload Job Info</a>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" id="closeMenuOption"><i class="bi bi-x-circle"></i> &nbsp; Close</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="editMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Edit
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#" id="undoMenuOption"><i class="bi bi-arrow-counterclockwise"></i> &nbsp; Undo (Ctrl+Z or Left Bracket)</a>
+                        <a class="dropdown-item" href="#" id="redoMenuOption"><i class="bi bi-arrow-clockwise"></i> &nbsp; Redo (Ctrl+Shift+Z or Right Bracket)</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="optionsMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Options
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#" id="hideCaptureOption"><i class="bi bi-eye-slash"></i> &nbsp; Hide Capture Data</a>
+                        <a class="dropdown-item" href="#" id="transparencyOption"><i class="bi bi-eyedropper"></i> &nbsp; Toggle Transparency</a>
+                        <a class="dropdown-item" href="#" id="predictionsOption"><i class="bi bi-cpu"></i> &nbsp; Toggle Prediction Engine</a>
+                        <div th:if="${editable}" class="nbs-container-no-font dropdown-item" align="center">
+                            <input type="checkbox" id="completed" name="completed" value="Completed">
+                            &nbsp;&nbsp;
+                            <label for="completed">Mark As Completed</label><br>
+                        </div>
+                        <div class="container dropdown-item" align="center">
+                            <label for="fontSlider">Font Size</label>
+                            <input type="range" min="12" max="68" value="40" class="slider" id="fontSlider">
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="helpMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Help
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/shortcuts"><i class="bi bi-keyboard"></i> &nbsp; Shortcuts</a>
+                        <a class="dropdown-item" href="/help"><i class="bi bi-info-circle"></i> &nbsp; General Help</a>
+                    </div>
+                </li>
+            </ul>
 
-    <div class="nbs-container" align="center">
-        <div style="display: inline-block"> <button class = "nbs-button" id = "undo" type="button">Undo</button> </div>
-        <div style="display: inline-block"> <button class = "nbs-button" id = "redo" type="button">Redo</button> </div>
-    </div>
+            <a class="navbar-brand" href="#">
+                <img src="/img/logo_full.png" alt="Logo" style="width:30px;">
+            </a>
+        </div>
+    </nav>
 
-    <div class="nbs-container" align="center">
-        <div style="display: inline-block"> <button class = "nbs-button" id = "letterCap" type="button">Letter Capture Mode</button> </div>
-        <div style="display: inline-block"> <button class = "nbs-button" id = "wordCap" type="button">Word Capture Mode</button> </div>
-        <div style="display: inline-block"> <button class = "nbs-button" id = "lineCap" type="button">Line Capture Mode</button> </div>
-        <div style="display: inline-block"> <button class = "nbs-button" id = "eraser" type="button">Eraser</button> </div>
+    <div id="main-content-container" class="hidden navbar-pad-top">
+
+    <div class="container-fluid fixed-bottom bg-light w-100 navbar-fixed-height">
+        <div class="d-flex justify-content-center w-100">
+            <div> <a class = "nbs-button-link capture-mode" id = "letterCap">Letter Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "wordCap" >Word Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "lineCap">Line Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "eraser">Eraser</a> </div>
+        </div>
     </div>
-    <div class="nbs-container">
+    <div class="nbs-container hidden">
         <p id="captureMode" class="body"> </p>
     </div>
     <span hidden id="imageId" th:text="${imageId}"></span>
@@ -50,45 +114,25 @@
     </div>
     </div>
     <img id="renderedCrop" src="" hidden/>
-    <div class="prediction-container">
+    <div class="prediction-container navbar-pad-top">
         <div class="alert alert-danger alert-prediction labelText hidden">
             <canvas id="cropCanvas" class="nbs-container"></canvas>
             <div id="prediction">Prediction:</div>
         </div>
     </div>
-    <div class="nbs-container" align="center">
-        <input type="checkbox" id="completed" name="completed" value="Completed">
-        <label for="completed">Mark As Completed</label><br>
-    </div>
-    <div class="nbs-container" align="center">
-        <input type="checkbox" id="enableTransparency" name="enableTransparency">
-        <label for="enableTransparency">Enable Rectangle Translucency</label><br>
-    </div>
+
     <input type="text" class="hidden-mobile-input">
-    <div class="nbs-container" align="center">
-        <input type="checkbox" id="enablePredictions" name="enablePredictions">
-        <label for="enablePredictions">Enable Prediction & Autofill</label><br>
-    </div>
-    <div class="container w-25" align="center">
-        <label for="fontSlider">Font Size</label>
-        <input type="range" min="12" max="68" value="40" class="slider" id="fontSlider">
-    </div>
-    <div class="container w-25 padded-body">
+
+    <div class="container w-25 padded-body navbar-pad-bottom">
         <label for="notes">Notes:</label>
         <textarea class="form-control text-entry" id="notes" rows="3"></textarea>
     </div>
-    <div class="nbs-container">
-        <p id="saveText" class="body hidden"> </p>
-    </div>
-        <div th:if="${editable}">
-            <button class = "nbs-button" id = "save" type="button">Save</button>
-        </div>
-    <button class = "nbs-button" id = "download" type="button">Download Job Info</button>
-    <div th:if="${editable}">
+
+    <div th:if="${editable}" class="hidden">
         <div class="body top-pad-2">Upload and Replace Job Info</div>
         <form id="jobUpload" class="file-form" method="POST" th:action="${'/secure/job/upload?id=' + imageId}" enctype="multipart/form-data">
             <div class="nbs-container" align="center">
-                <input type="file" name="file" />
+                <input type="file" id="imageJobUploadFile" name="file" />
                 <input type="submit" id = "jobUploadSubmit" value="Submit" />
             </div>
         </form>
