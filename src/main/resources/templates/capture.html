@@ -130,7 +130,7 @@
 
     <div th:if="${editable}" class="hidden">
         <div class="body top-pad-2">Upload and Replace Job Info</div>
-        <form id="jobUpload" class="file-form" method="POST" th:action="${'/secure/job/upload?id=' + imageId}" enctype="multipart/form-data">
+        <form id="jobUpload" class="file-form" method="POST" th:action="${'/secure/job/upload?uuid=' + imageId}" enctype="multipart/form-data">
             <div class="nbs-container" align="center">
                 <input type="file" id="imageJobUploadFile" name="file" />
                 <input type="submit" id = "jobUploadSubmit" value="Submit" />

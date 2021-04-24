@@ -8,17 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import us.jbec.lct.io.ImageCropsIO;
 import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LabeledImageCrop;
-import us.jbec.lct.util.geometry.GeometricCollectionUtils;
 import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.OffsetRectangle;
+import us.jbec.lct.util.geometry.GeometricCollectionUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -35,11 +36,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
-public class JobProcessingService {
+/**
+ * Service for processing image jobs, writing character, line, and word crops
+ */
+@Service
+public class ImageJobProcessingService {
 
     @Value("${image.bulk.output.path}")
     private String bulkOutputPath;
+
+    @Value("${lct.remote.export.enabled}")
+    private boolean exportEnabled;
 
     private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
@@ -47,16 +54,20 @@ public class JobProcessingService {
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
     private final ZipOutputService zipOutputService;
 
-    Logger LOG = LoggerFactory.getLogger(JobProcessingService.class);
-
-    @Value("${lct.remote.export.enabled}")
-    private boolean exportEnabled;
+    Logger LOG = LoggerFactory.getLogger(ImageJobProcessingService.class);
 
 
     private static final Set<String> ILLEGAL_CHARACTERS = new HashSet<>(Arrays.asList("/", "\n", "\r", "\t", "\0", "\f", "`", "?", "*", "\\", "<", ">", "|", "\"", ":"));
 
-
-    public JobProcessingService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO, GeometricCollectionUtils geometricCollectionUtils, CloudCaptureDocumentService cloudCaptureDocumentService, ZipOutputService zipOutputService) {
+    /**
+     * Service for processing image jobs, writing character, line, and word crops
+     * @param imageCropsIO autowired parameter
+     * @param primaryImageIO autowired parameter
+     * @param geometricCollectionUtils autowired parameter
+     * @param cloudCaptureDocumentService autowired parameter
+     * @param zipOutputService autowired parameter
+     */
+    public ImageJobProcessingService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO, GeometricCollectionUtils geometricCollectionUtils, CloudCaptureDocumentService cloudCaptureDocumentService, ZipOutputService zipOutputService) {
         this.imageCropsIO = imageCropsIO;
         this.primaryImageIO = primaryImageIO;
         this.geometricCollectionUtils = geometricCollectionUtils;
@@ -64,9 +75,14 @@ public class JobProcessingService {
         this.zipOutputService = zipOutputService;
     }
 
-    public ImageJob initializeImageJob(String id) {
+    /**
+     * Initialize a new image job with the provided UUID corresponding to the CloudCaptureDocument
+     * @param uuid UUID of the corresponding CloudCaptureDocument
+     * @return initialized ImageJob
+     */
+    public ImageJob initializeImageJob(String uuid) {
         ImageJob imageJob = new ImageJob();
-        imageJob.setId(id);
+        imageJob.setId(uuid);
         imageJob.setVersion("0.5");
         imageJob.setCompleted(false);
         imageJob.setEdited(false);
@@ -76,6 +92,11 @@ public class JobProcessingService {
         return imageJob;
     }
 
+    /**
+     * Process all image jobs for all active CloudCaptureDocuments, generating character, line, and word crops
+     * @param cropsDestination processed job output destination
+     * @throws IOException
+     */
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
         var imageJobFiles = buildImageJobFiles();
         for(var imageJobFile : imageJobFiles) {
@@ -86,6 +107,12 @@ public class JobProcessingService {
     }
 
 
+    /**
+     * Generate and write character crops to disk for a given ImageJobFile
+     * @param imageJobFile image job file to generate character crops for
+     * @param destination processed job output destination
+     * @throws IOException
+     */
     private void writeCharacterCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
         var job = imageJobFile.getImageJob();
         var imageFile = imageJobFile.getImageFile();
@@ -111,7 +138,19 @@ public class JobProcessingService {
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, CropsType.LETTERS);
     }
 
+    /**
+     * Generate and write line crops to disk for a given ImageJobFile
+     * @param imageJobFile image job file to generate line crops for
+     * @param destination processed job output destination
+     * @param cropsType crops type (line or word)
+     * @throws IOException
+     */
     private void writeLineCrops(ImageJobFile imageJobFile, CropsDestination destination, CropsType cropsType) throws IOException {
+
+        if(cropsType == CropsType.LETTERS || cropsType == null) {
+            throw new LCToolException("Invalid Crops Type for writing line crops");
+        }
+
         ImageJob job = imageJobFile.getImageJob();
         File imageFile = imageJobFile.getImageFile();
 
@@ -125,7 +164,7 @@ public class JobProcessingService {
                 .groupLabeledRectanglesByLineSegment(rectangles, lineSegments);
 
         List<Set<LabeledRectangle>> groupedRectangles = geometricCollectionUtils
-                .combineLabeledRectanglesByLineSegment(unGroupedRectangles);
+                .mergeLabeledRectangleSets(unGroupedRectangles);
 
         for (var rectangleGroup : groupedRectangles) {
             var upperLeft = geometricCollectionUtils.uppermostLeftPoint(rectangleGroup);
@@ -157,7 +196,12 @@ public class JobProcessingService {
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
     }
 
-    public List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
+    /**
+     * Build ImageJobFile objects from active cloud capture documents
+     * @return List of ImageJobFiles
+     * @throws JsonProcessingException
+     */
+    private List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
         var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocuments();
         HashMap<String, File> images = new HashMap<>();
         primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));
@@ -173,8 +217,12 @@ public class JobProcessingService {
         return imageJobFiles;
     }
 
+    /**
+     * Method for performing scheduled bulk processing of image jobs
+     * @throws IOException
+     */
     @Scheduled(fixedDelayString = "${lct.remote.export.frequency}")
-    public void exportCurrentRemoteJobs() throws IOException {
+    public void exportCurrentImageJobs() throws IOException {
         if (exportEnabled) {
             File outputDirectory = new File(bulkOutputPath);
             LOG.info("Clearing bulk output directory.");

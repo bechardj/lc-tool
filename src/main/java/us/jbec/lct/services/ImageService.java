@@ -15,6 +15,9 @@ import java.io.InputStream;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * Service for retrieving Base64 encoded images by uuid
+ */
 @Component
 public class ImageService {
 
@@ -22,10 +25,20 @@ public class ImageService {
 
     private final PrimaryImageIO primaryImageIO;
 
+    /**
+     * Service for retrieving Base64 encoded images by uuid
+     * @param primaryImageIO autowired parameter
+     */
     public ImageService(PrimaryImageIO primaryImageIO) {
         this.primaryImageIO = primaryImageIO;
     }
 
+    /**
+     * Retrieve a base 64 encoded image corresponding to the provided document UUID
+     * @param uuid UUID of document to retrieve the corresponding image of
+     * @return Base64 encoded image
+     * @throws IOException
+     */
     public String getBase64EncodedImageById(String uuid) throws IOException {
         var optionalImage = primaryImageIO.getImageByUuid(uuid);
         if (optionalImage.isPresent()) {

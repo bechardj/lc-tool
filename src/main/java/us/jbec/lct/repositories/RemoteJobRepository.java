@@ -8,6 +8,7 @@ import us.jbec.lct.models.database.RemotelySubmittedJob;
 
 import java.util.List;
 
+@Deprecated
 public interface RemoteJobRepository extends CrudRepository<RemotelySubmittedJob, Integer> {
 
     @Query(value = "SELECT A.id, A.api_key, A.job_id, A.json, A. submit_time FROM remotely_submitted_job A " +

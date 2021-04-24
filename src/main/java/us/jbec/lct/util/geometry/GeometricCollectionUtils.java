@@ -15,6 +15,11 @@ import java.util.stream.Collectors;
 @Component
 public class GeometricCollectionUtils {
 
+    /**
+     * Determine the uppermost left coordinate in a collection of rectangles
+     * @param rectangles group of rectangles to search
+     * @return point of the uppermost left coordinate within the collection
+     */
     public Point uppermostLeftPoint(Collection<LabeledRectangle> rectangles) {
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
@@ -30,6 +35,11 @@ public class GeometricCollectionUtils {
         return new Point(minX, minY);
     }
 
+    /**
+     * Determine the lowermost right coordinate in a collection of rectangles
+     * @param rectangles group of rectangles to search
+     * @return point of the lowermost right coordinate within the collection
+     */
     public Point lowermostRightPoint(Collection<LabeledRectangle> rectangles) {
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
@@ -45,7 +55,15 @@ public class GeometricCollectionUtils {
         return new Point(maxX, maxY);
     }
 
-    public List<Set<LabeledRectangle>> groupLabeledRectanglesByLineSegment(Collection<LabeledRectangle> rectangles, Collection<LineSegment> lineSegments){
+    /**
+     * Given a collection of rectangles and line segments, group rectangles that are intersected by the same line segment
+     * into a set
+     * @param rectangles collection of rectangles to group
+     * @param lineSegments collection of line segments to use for the grouping
+     * @return list of sets of rectangles that are intersected by the same line segment
+     */
+    public List<Set<LabeledRectangle>> groupLabeledRectanglesByLineSegment(Collection<LabeledRectangle> rectangles,
+                                                                           Collection<LineSegment> lineSegments){
         List<Set<LabeledRectangle>> unGroupedRectangles = new ArrayList<>();
         for (var lineSegment : lineSegments) {
             Set<LabeledRectangle> thisGroupsRectangles = rectangles.stream()
@@ -56,7 +74,12 @@ public class GeometricCollectionUtils {
         return unGroupedRectangles;
     }
 
-    public List<Set<LabeledRectangle>> combineLabeledRectanglesByLineSegment(List<Set<LabeledRectangle>> ungroupedRectangles) {
+    /**
+     * Given a list of sets of rectangle, merge sets with shared rectangles
+     * @param ungroupedRectangles ungrouped list of sets of rectangles to merge
+     * @return list of merged rectangle sets
+     */
+    public List<Set<LabeledRectangle>> mergeLabeledRectangleSets(List<Set<LabeledRectangle>> ungroupedRectangles) {
 
         var ungroupedRectanglesSets = ungroupedRectangles.stream()
                 .filter(set -> set.size() != 0)
@@ -67,7 +90,9 @@ public class GeometricCollectionUtils {
         for (var ungroupedRectanglesSet : ungroupedRectanglesSets) {
             boolean grouped = false;
             for (var labeledRectangle : ungroupedRectanglesSet) {
-                var matchingSet = groupedRectangles.stream().filter(set -> set.contains(labeledRectangle)).findFirst();
+                var matchingSet = groupedRectangles.stream()
+                        .filter(set -> set.contains(labeledRectangle))
+                        .findFirst();
                 if (matchingSet.isPresent()) {
                     grouped = true;
                     matchingSet.get().addAll(ungroupedRectanglesSet);

@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * Main entry point for the application
+ */
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling

@@ -14,9 +14,11 @@ import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 
-import java.io.File;
 import java.io.IOException;
 
+/**
+ * Service for ingesting uploaded images
+ */
 @Component
 public class IngestService {
 
@@ -26,16 +28,30 @@ public class IngestService {
     private final ObjectMapper objectMapper;
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
     private final ProjectService projectService;
-    private final JobProcessingService jobProcessingService;
+    private final ImageJobProcessingService imageJobProcessingService;
 
-    public IngestService(PrimaryImageIO primaryImageIO, ObjectMapper objectMapper, CloudCaptureDocumentService cloudCaptureDocumentService, ProjectService projectService, JobProcessingService jobProcessingService) {
+    /**
+     * Service for ingesting uploaded images
+     * @param primaryImageIO autowired parameter
+     * @param objectMapper autowired parameter
+     * @param cloudCaptureDocumentService autowired parameter
+     * @param projectService autowired parameter
+     * @param imageJobProcessingService autowired parameter
+     */
+    public IngestService(PrimaryImageIO primaryImageIO, ObjectMapper objectMapper, CloudCaptureDocumentService cloudCaptureDocumentService, ProjectService projectService, ImageJobProcessingService imageJobProcessingService) {
         this.primaryImageIO = primaryImageIO;
         this.objectMapper = objectMapper;
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
         this.projectService = projectService;
-        this.jobProcessingService = jobProcessingService;
+        this.imageJobProcessingService = imageJobProcessingService;
     }
 
+    /**
+     * Given a user and uploaded image, create a new CloudCaptureDocument for the uploaded image
+     * @param user User to assign ownership of the uploaded image to
+     * @param uploadedFile uploaded image file to ingest and create a CloudCaptureDocument from
+     * @throws IOException
+     */
     @Transactional
     public void ingest(User user, MultipartFile uploadedFile) throws IOException {
         LOG.info("Received request to save image...");
@@ -46,7 +62,7 @@ public class IngestService {
         cloudCaptureDocument.setOwner(user);
         cloudCaptureDocument.setDocumentStatus(DocumentStatus.INGESTED);
         cloudCaptureDocument.setMigrated(false);
-        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(jobProcessingService.initializeImageJob(uuid)));
+        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(imageJobProcessingService.initializeImageJob(uuid)));
         cloudCaptureDocument.setProject(projectService.getDefaultProject());
         cloudCaptureDocument.setMigrated(false);
         var imageFile = primaryImageIO.persistImage(uploadedFile, uuid);

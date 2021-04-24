@@ -5,6 +5,9 @@ import org.springframework.security.core.Authentication;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.security.AuthorizedUser;
 
+/**
+ * General utility class
+ */
 public class LCToolUtils {
 
     /**

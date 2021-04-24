@@ -15,6 +15,9 @@ import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
 
+/**
+ * Controller for processing uploads of images and JSON jobs
+ */
 @Controller
 public class UploadController {
 
@@ -24,25 +27,46 @@ public class UploadController {
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
 
+    /**
+     * Controller for processing uploads of images and JSON jobs
+     * @param ingestService autowired parameter
+     * @param cloudCaptureDocumentService autowired parameter
+     */
     public UploadController(IngestService ingestService, CloudCaptureDocumentService cloudCaptureDocumentService) {
         this.ingestService = ingestService;
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
     }
 
+    /**
+     * Endpoint for processing user image uploads and ingesting them
+     * @param authentication authentication object
+     * @param file image file to ingest
+     * @return success view
+     * @throws IOException
+     */
     @PostMapping("/secure/image/upload")
     public String imageUpload(Authentication authentication, @RequestParam("file") MultipartFile file) throws IOException {
         User user = LCToolUtils.getUserFromAuthentication(authentication);
         ingestService.ingest(user, file);
-        return "help";
+        return "success";
     }
 
+    /**
+     * Endpoint for processing user image job uploads to replace the image job contained in the database
+     * @param model provided model
+     * @param authentication authentication object
+     * @param file file containing image job
+     * @param uuid uuid of image job to assign the uploaded image job
+     * @return capture view
+     * @throws IOException
+     */
     @PostMapping("/secure/job/upload")
-    public String jobUpload(Model model, Authentication authentication, @RequestParam("file") MultipartFile file, @RequestParam String id) throws IOException {
+    public String jobUpload(Model model, Authentication authentication, @RequestParam("file") MultipartFile file, @RequestParam String uuid) throws IOException {
         User user = LCToolUtils.getUserFromAuthentication(authentication);
-        cloudCaptureDocumentService.saveCloudCaptureDocument(user.getFirebaseIdentifier(), file, id);
-        var owns = cloudCaptureDocumentService.userOwnsDocument(user.getFirebaseIdentifier(), id);
-        LOG.info("Opening document with id: {}", id);
-        model.addAttribute("imageId", id);
+        cloudCaptureDocumentService.saveCloudCaptureDocument(user.getFirebaseIdentifier(), file, uuid);
+        var owns = cloudCaptureDocumentService.userOwnsDocument(user.getFirebaseIdentifier(), uuid);
+        LOG.info("Opening document with id: {}", uuid);
+        model.addAttribute("imageId", uuid);
         model.addAttribute("editable", owns);
         return "capture";
     }

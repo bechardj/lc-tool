@@ -7,31 +7,44 @@ import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Service for computing capture data statistics
+ */
 @Service
 public class CaptureDataStatisticsService {
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
 
+    /**
+     * Service for computing capture data statistics
+     * @param cloudCaptureDocumentService autowired parameter
+     */
     public CaptureDataStatisticsService(CloudCaptureDocumentService cloudCaptureDocumentService) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
     }
 
+    /**
+     * Calculate statistics for all active cloud capture documents
+     * @return computed capture data statistics
+     * @throws JsonProcessingException
+     */
     public CaptureDataStatistics calculateAllStatistics() throws JsonProcessingException {
         return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocuments());
     }
 
+    /**
+     * Calculate statistics for provided image jobs and cloud capture documents
+     * @param cloudCaptureDocuments map containing cloud capture documents and corresponding image job
+     * @return computed capture data statistics
+     */
     public CaptureDataStatistics calculateStatistics(Map<CloudCaptureDocument, ImageJob> cloudCaptureDocuments) {
         var statistics = new CaptureDataStatistics();
         var imageJobList = cloudCaptureDocuments.values().stream().toList();
-
-        HashMap<String, CloudCaptureDocument> docsMap = new HashMap<>();
-        cloudCaptureDocuments.keySet().forEach(doc -> docsMap.put(doc.getUuid(), doc));
 
         for(var entry : cloudCaptureDocuments.entrySet()) {
             var doc = entry.getKey();
@@ -60,6 +73,7 @@ public class CaptureDataStatisticsService {
         statistics.setDateGenerated(LocalDateTime.now());
         return statistics;
     }
+
     private int determineEditedPages(List<ImageJob> imageJobs) {
         return (int) imageJobs.stream().filter(ImageJob::isEdited).count();
     }

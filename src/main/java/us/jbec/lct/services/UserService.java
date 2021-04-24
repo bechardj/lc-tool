@@ -18,25 +18,35 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Service for interacting with authenticated users
+ */
 @Service
 public class UserService {
 
     Logger LOG = LoggerFactory.getLogger(UserService.class);
 
-    private static final String USER_ROLE = "USER";
-
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final FirebaseAuth firebaseAuth;
 
+    /**
+     * Service for interacting with authenticated users
+     * @param userRepository autowired parameter
+     * @param roleRepository autowired parameter
+     * @param firebaseAuth autowired parameter
+     */
     public UserService(UserRepository userRepository, RoleRepository roleRepository, FirebaseAuth firebaseAuth) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.firebaseAuth = firebaseAuth;
     }
 
+    /**
+     * Initialize user roles
+     */
     @PostConstruct
-    public void initializeRoles() {
+    private void initializeRoles() {
         for(var userRole : UserRoles.values()){
             if(roleRepository.findById(userRole.getDescription()).isEmpty()) {
                 var role = new Role();
@@ -46,6 +56,15 @@ public class UserService {
         }
     }
 
+    /**
+     * Given an encoded token, lookup the corresponding AuthorizedUser (if one exists). If the user does not already
+     * exist, a new user is created and assigned to the default project with the User Role, provided the user's email
+     * is an @uconn.edu email
+     *
+     * @param encodedToken encoded token to decode and to then use for user lookup
+     * @return the AuthorizedUser
+     * @throws FirebaseAuthException
+     */
     public AuthorizedUser getAuthorizedUserByToken(String encodedToken) throws FirebaseAuthException {
         try {
             var token = firebaseAuth.verifyIdToken(encodedToken);
@@ -72,10 +91,19 @@ public class UserService {
         }
     }
 
-    public Optional<User> getUserByFirebaseIdentifier(String identifier) {
-        return userRepository.findById(identifier);
+    /**
+     * Find a User (if one exists) from the database using a decoded firebase UUID
+     * @param uuid Decoded firebase UUID to use for the user lookup
+     * @return optionally return the user for the given firebase UUID
+     */
+    public Optional<User> getUserByFirebaseIdentifier(String uuid) {
+        return userRepository.findById(uuid);
     }
 
+    /**
+     * Retrieve default user roles
+     * @return Set of default user roles
+     */
     private Set<Role> defaultRoles() {
         // TODO: better handle initial creation here for testing
         var roles = new HashSet<Role>();

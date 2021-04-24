@@ -19,11 +19,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service for managing the Zip archive output
+ */
 @Service
-@Profile("remote")
 public class ZipOutputService {
 
     Logger LOG = LoggerFactory.getLogger(ZipOutputService.class);
+
+    private final int ZIP_ARCHIVE_COUNT = 2;
 
     @Value("${image.zip.resource.path:#{null}}")
     private String zipResourcePath;
@@ -36,10 +40,18 @@ public class ZipOutputService {
 
     private final ZipOutputRepository zipOutputRepository;
 
+    /**
+     * Service for managing the Zip archive output
+     * @param zipOutputRepository autowired parameter
+     */
     public ZipOutputService(ZipOutputRepository zipOutputRepository) {
         this.zipOutputRepository = zipOutputRepository;
     }
 
+    /**
+     * Get the URI of the most recently generated Zip archive
+     * @return optionally return the URI of the latest Zip archive, provided one exists
+     */
     public Optional<String> getLatestZipUri() {
         List<ZipOutputRecord> allZips = new ArrayList<>();
         zipOutputRepository.findAll().forEach(allZips::add);
@@ -53,10 +65,16 @@ public class ZipOutputService {
         }
     }
 
+    /**
+     * Generate a new Zip archive from the content of the bulk output directory,
+     * and persist the output path to the database
+     * @throws ZipException
+     */
     @Transactional
     public void updateZipOutput() throws ZipException {
         if (zipResourcePath != null) {
             LOG.info("Updating Zip Output directory using {}...", bulkOutputPath);
+            //TODO : make this a UUID
             String fileName = LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond() + ".zip";
             String zipOutputPath = zipResourcePath + File.separator + fileName;
             String zipUri = "/zipOutput/" + fileName;
@@ -70,6 +88,10 @@ public class ZipOutputService {
         }
     }
 
+    /**
+     * Cleanup the zip directory for this project source, keeping only the ZIP_ARCHIVE_COUNT
+     * most recent archives
+     */
     @Transactional
     public void cleanupZipDirectory() {
         LOG.info("Cleaning up zip directory...");
@@ -79,7 +101,7 @@ public class ZipOutputService {
                 .filter(record -> source.equals(record.getSource()))
                 .sorted(Comparator.comparing(ZipOutputRecord::getCreateDate))
                 .toList();
-        for (int i = 0; i < sortedZips.size() - 2; i++) {
+        for (int i = 0; i < sortedZips.size() - ZIP_ARCHIVE_COUNT; i++) {
             var zipRecord = sortedZips.get(i);
             File zipFile = new File(zipRecord.getFilePath());
             var deleted = zipFile.delete();

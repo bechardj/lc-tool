@@ -193,7 +193,7 @@ function captureCanvasInit (predictionEngine) {
             }
             state.clearEraserQueues();
         } else {
-            alert("Can't change modes while drawing or while rectangle is unlabeled.");
+            notify("Can't change modes while drawing or while rectangle is unlabeled.", 3000);
         }
         $('.capture-mode').addClass('nbs-button-link-disabled');
         if(state.captureMode === CaptureModes.ERASER) {

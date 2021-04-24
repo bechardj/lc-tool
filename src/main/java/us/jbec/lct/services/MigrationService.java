@@ -15,6 +15,9 @@ import us.jbec.lct.transformers.ImageJobFieldTransformer;
 
 import java.io.IOException;
 
+/**
+ * Service for processing migration of legacy image jobs from the standalone application into the cloud application
+ */
 @Service
 public class MigrationService {
 
@@ -26,6 +29,14 @@ public class MigrationService {
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Service for processing migration of legacy image jobs from the standalone application into the cloud application
+     * @param userService autowired parameter
+     * @param primaryImageIO autowired parameter
+     * @param projectService autowired parameter
+     * @param cloudCaptureDocumentService autowired parameter
+     * @param objectMapper autowired parameter
+     */
     public MigrationService(UserService userService, PrimaryImageIO primaryImageIO, ProjectService projectService, CloudCaptureDocumentService cloudCaptureDocumentService, ObjectMapper objectMapper) {
         this.userService = userService;
         this.primaryImageIO = primaryImageIO;
@@ -34,6 +45,15 @@ public class MigrationService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Process a migration request, and create a new CloudCaptureDocument for the user sending the migration request
+     * If this is the first migration request, delete all other migrated jobs
+     *
+     * @param migrationRequest migration request to process
+     * @param first whether or not this is the first migration request of the migration
+     * @throws FirebaseAuthException
+     * @throws IOException
+     */
     @Transactional
     public void migrate(MigrationRequest migrationRequest, boolean first) throws FirebaseAuthException, IOException {
         var user = userService.getAuthorizedUserByToken(migrationRequest.getFirebaseUuid()).getUser();
