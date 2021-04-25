@@ -26,7 +26,7 @@ public class ImageCropsIO {
 
     Logger LOG = LoggerFactory.getLogger(ImageCropsIO.class);
 
-    @Value("${image.bulk.output.path}")
+    @Value("${lct.path.image.bulk.output}")
     private String bulkOutputPath;
 
     /**

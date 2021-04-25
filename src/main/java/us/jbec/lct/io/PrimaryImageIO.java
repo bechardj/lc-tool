@@ -30,7 +30,7 @@ import java.util.Set;
 @Component
 public class PrimaryImageIO {
 
-    @Value("${image.persistence.path}")
+    @Value("${lct.path.image.persistence}")
     private String imagePersistencePath;
 
     Logger LOG = LoggerFactory.getLogger(PrimaryImageIO.class);

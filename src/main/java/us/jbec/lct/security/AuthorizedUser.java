@@ -86,7 +86,7 @@ public class AuthorizedUser implements UserDetails {
         return user;
     }
 
-    public void setPersistedUser(User user) {
+    public void setUser(User user) {
         this.user = user;
     }
 }

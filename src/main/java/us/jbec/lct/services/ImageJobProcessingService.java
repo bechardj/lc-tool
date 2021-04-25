@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @Service
 public class ImageJobProcessingService {
 
-    @Value("${image.bulk.output.path}")
+    @Value("${lct.path.image.bulk.output}")
     private String bulkOutputPath;
 
     @Value("${lct.remote.export.enabled}")

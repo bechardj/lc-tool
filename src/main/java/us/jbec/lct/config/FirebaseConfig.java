@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ import java.io.IOException;
 /**
  * Configuration class for Google Firebase
  */
+@Profile("!dev")
 @Configuration
 public class FirebaseConfig {
 
@@ -43,7 +45,7 @@ public class FirebaseConfig {
     public void init() {
         try {
             FileInputStream serviceAccount = new FileInputStream(servicedAccountJsonPath);
-            FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).setDatabaseUrl("https://sdp-sp.firebaseio.com").build();
+            FirebaseOptions options = FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
             FirebaseApp.initializeApp(options);
             LOG.info("FirebaseApp successfully initialized");
         } catch (FileNotFoundException e) {

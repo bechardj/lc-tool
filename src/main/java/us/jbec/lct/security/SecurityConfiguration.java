@@ -54,7 +54,6 @@ public class SecurityConfiguration {
 
         @Override
         public void configure(final WebSecurity webSecurity) {
-//            webSecurity.ignoring().antMatchers("/dev/**");
         }
 
         @Override
@@ -114,8 +113,6 @@ public class SecurityConfiguration {
 
         @Override
         public void configure(final WebSecurity webSecurity) {
-//            webSecurity.ignoring().antMatchers("/api/**");
-//            webSecurity.ignoring().antMatchers("/login**");
         }
 
         @Override

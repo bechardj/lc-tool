@@ -19,9 +19,6 @@ public class UserAuthenticationProvider extends AbstractUserDetailsAuthenticatio
     final Logger LOG = LoggerFactory.getLogger(UserAuthenticationProvider.class);
 
     @Autowired
-    FirebaseAuth firebaseAuth;
-
-    @Autowired
     UserService userService;
 
     @Override

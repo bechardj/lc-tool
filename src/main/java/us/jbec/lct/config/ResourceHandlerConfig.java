@@ -23,7 +23,7 @@ public class ResourceHandlerConfig implements WebMvcConfigurer {
     @Value("${lct.tf.modelPath:#{null}}")
     public String localModelPath;
 
-    @Value("${image.zip.resource.path:#{null}}")
+    @Value("${lct.path.zip.output:#{null}}")
     private String zipResourcePath;
 
     Environment environment;

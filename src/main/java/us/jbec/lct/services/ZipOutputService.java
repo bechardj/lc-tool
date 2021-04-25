@@ -29,10 +29,10 @@ public class ZipOutputService {
 
     private final int ZIP_ARCHIVE_COUNT = 2;
 
-    @Value("${image.zip.resource.path:#{null}}")
+    @Value("${lct.path.zip.output:#{null}}")
     private String zipResourcePath;
 
-    @Value("${image.bulk.output.path}")
+    @Value("${lct.path.image.bulk.output}")
     private String bulkOutputPath;
 
     @Value("${lct.remote.source}")
