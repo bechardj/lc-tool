@@ -1,15 +1,10 @@
 package us.jbec.lct.models.database;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.errorprone.annotations.FormatString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import us.jbec.lct.models.DocumentStatus;
-import us.jbec.lct.models.ImageJob;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
@@ -19,41 +14,81 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Database Entity for keeping track of ImageJobs, their owner, associated image, and other metadata
+ */
 @Entity
 public class CloudCaptureDocument implements Serializable {
 
+    /**
+     * Document UUID
+     */
     @Id
     private String uuid;
 
+    /**
+     * Document name, taken from image name on upload
+     */
     private String name;
 
+    /**
+     * Owner of the document
+     */
     @ManyToOne
     @JoinColumn(name = "firebase_identifier")
     private User owner;
 
+    /**
+     * Associated project
+     */
     @ManyToOne
     @JoinColumn(name = "project")
     private Project project;
 
+    /**
+     * List of archived saved job data, backing up prior versions of ImageJob data on every save
+     */
     @OneToMany(mappedBy = "sourceDocumentUuid")
     List<ArchivedJobData> archivedJobDataList;
 
+    /**
+     * Creation time
+     */
     @CreationTimestamp
     private LocalDateTime createTime;
 
+    /**
+     * Last update of the document
+     */
     @UpdateTimestamp
     private LocalDateTime updateTime;
 
+    /**
+     * ImageJob data serialized and stored in a Lob
+     */
     @Lob
     private String jobData;
 
+    /**
+     * File path to associated image
+     */
     private String filePath;
 
+    /**
+     * Checksum of associated image
+     */
+    private String fileChecksum;
+
+    /**
+     * Document Status
+     */
     private DocumentStatus documentStatus;
 
+    /**
+     * Was the document created via MigrationService?
+     */
     private boolean migrated;
 
-    private String fileChecksum;
 
     public String getUuid() {
         return uuid;

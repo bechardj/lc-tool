@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.LCToolException;
@@ -22,6 +23,7 @@ import java.util.Set;
 /**
  * Service for interacting with authenticated users
  */
+@Primary
 @Profile("!dev")
 @Service
 public class UserService {

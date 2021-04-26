@@ -31,7 +31,7 @@ public class ImageJobListing {
         } else {
             this.dateAdded = "Unknown";
         }
-        this.notes =  StringUtils.defaultString((String) imageJob.getFields().get(ImageJobFields.NOTES.name()));
+        this.notes =  StringUtils.defaultString( imageJob.getFields().get(ImageJobFields.NOTES.name()));
         if (StringUtils.length(this.notes) > MAX_LEN) {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }

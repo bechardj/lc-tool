@@ -1,12 +1,13 @@
 package us.jbec.lct.models.database;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import java.util.Set;
 
+/**
+ * Database entity representing User Roles
+ */
 @Entity
 public class Role {
 

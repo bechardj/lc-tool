@@ -9,11 +9,11 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>us.jbec</groupId>
-	<artifactId>lc-tool</artifactId>
-	<version>0.5.0</version>
+	<artifactId>lc-cloud-tool</artifactId>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
-	<name>lc-tool</name>
-	<description>LC Capture Tool</description>
+	<name>lc-cloud-tool</name>
+	<description>LC Cloud Capture Tool</description>
 
 	<properties>
 		<java.version>16</java.version>

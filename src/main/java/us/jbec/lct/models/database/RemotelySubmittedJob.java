@@ -9,6 +9,7 @@ import javax.persistence.Lob;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@Deprecated
 @Entity
 public class RemotelySubmittedJob implements Serializable {
     @Id

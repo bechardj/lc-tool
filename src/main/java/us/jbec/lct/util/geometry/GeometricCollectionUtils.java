@@ -67,7 +67,7 @@ public class GeometricCollectionUtils {
         List<Set<LabeledRectangle>> unGroupedRectangles = new ArrayList<>();
         for (var lineSegment : lineSegments) {
             Set<LabeledRectangle> thisGroupsRectangles = rectangles.stream()
-                    .filter(lineSegment::interceptsRectangle)
+                    .filter(lineSegment::intersectsRectangle)
                     .collect(Collectors.toSet());
             unGroupedRectangles.add(thisGroupsRectangles);
         }

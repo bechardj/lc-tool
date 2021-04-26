@@ -2,7 +2,6 @@ package us.jbec.lct.models.database;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.firebase.auth.FirebaseToken;
-import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,6 +11,9 @@ import javax.persistence.OneToMany;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Database entity representing Users
+ */
 @Entity
 public class User {
 

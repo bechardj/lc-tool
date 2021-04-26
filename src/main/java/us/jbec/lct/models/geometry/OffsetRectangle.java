@@ -3,7 +3,11 @@ package us.jbec.lct.models.geometry;
 import java.util.List;
 import java.util.Objects;
 
-
+/**
+ * Model for mapping canvas rectangle coordinates (which store the start start point,
+ * the width, and the height), converting all the starting points to the top left,
+ * and providing other utility methods
+ */
 public class OffsetRectangle {
 
     private double x1;
@@ -103,6 +107,22 @@ public class OffsetRectangle {
      */
     public LineSegment getRightEdge() {
         return new LineSegment(getX2(), y1, getX2(), getY2());
+    }
+
+    /**
+     * Line segment of the top edge of this rectangle
+     * @return line segment corresponding to left rectangle edge
+     */
+    public LineSegment getTopEdge() {
+        return new LineSegment(x1, y1, getX2(), y1);
+    }
+
+    /**
+     * Line segment of the top edge of this rectangle
+     * @return line segment corresponding to left rectangle edge
+     */
+    public LineSegment getBottomEdge() {
+        return new LineSegment(x1, getY2(), getX2(), getY2());
     }
 
     @Override

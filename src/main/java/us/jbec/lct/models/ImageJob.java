@@ -20,7 +20,7 @@ public class ImageJob {
     private List<List<Double>> lineLines;
     private boolean completed;
     private boolean edited;
-    private HashMap<String, Object> fields;
+    private HashMap<String, String> fields;
 
     public boolean isEdited() {
         return edited;
@@ -135,14 +135,14 @@ public class ImageJob {
         this.completed = completed;
     }
 
-    public HashMap<String, Object> getFields() {
+    public HashMap<String, String> getFields() {
         if (null == fields) {
-            fields = new HashMap<String, Object>();
+            fields = new HashMap<String, String>();
         }
         return fields;
     }
 
-    public void setFields(HashMap<String, Object> fields) {
+    public void setFields(HashMap<String, String> fields) {
         this.fields = fields;
     }
 }

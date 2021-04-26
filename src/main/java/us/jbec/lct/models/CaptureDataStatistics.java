@@ -6,12 +6,36 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Model for representing CaptureDataStatistics shown on the home page
+ */
 public class CaptureDataStatistics {
+
     private LocalDateTime dateGenerated;
+
+    /**
+     * Map of all label count
+     */
     private Map<String, Integer> labelFrequency;
-    private Map<String, Integer> punctuationFrequency;
+
+    /**
+     * Map of non-alphabetic to label count
+     */
+    private Map<String, Integer> otherFrequency;
+
+    /**
+     * Map of uppercase letter to label count
+     */
     private Map<String, Integer> upperFrequency;
+
+    /**
+     * Map of lowercase letter to label count
+     */
     private Map<String, Integer> lowerFrequency;
+
+    /**
+     * Map of user email to label count
+     */
     private Map<String, Integer> userCounts;
 
     private Integer pagesWithData;
@@ -20,7 +44,7 @@ public class CaptureDataStatistics {
 
     public CaptureDataStatistics() {
         labelFrequency = new HashMap<>();
-        punctuationFrequency = new HashMap<>();
+        otherFrequency = new HashMap<>();
         upperFrequency = new HashMap<>();
         lowerFrequency = new HashMap<>();
         userCounts = new HashMap<>();
@@ -43,6 +67,10 @@ public class CaptureDataStatistics {
         this.labelFrequency = labelFrequency;
     }
 
+    /**
+     * Add Label to statistics, and update the appropriate associated counts (lowercase, uppercase, other)
+     * @param label
+     */
     public void addLabelFrequency(String label) {
         totalCaptured++;
         addLabelToMap(labelFrequency, label);
@@ -51,7 +79,7 @@ public class CaptureDataStatistics {
 
     private void addSpecificTypeFrequency(String label) {
         if (!StringUtils.isAlpha(label) || StringUtils.length(label) > 1) {
-            addLabelToMap(punctuationFrequency, label);
+            addLabelToMap(otherFrequency, label);
         } else if (StringUtils.isAlpha(label) && StringUtils.length(label) == 1) {
             if (StringUtils.isAllLowerCase(label)) {
                 addLabelToMap(lowerFrequency, label);
@@ -75,12 +103,12 @@ public class CaptureDataStatistics {
         return labelFrequency.getOrDefault(label, 0);
     }
 
-    public Map<String, Integer> getPunctuationFrequency() {
-        return punctuationFrequency;
+    public Map<String, Integer> getOtherFrequency() {
+        return otherFrequency;
     }
 
-    public void setPunctuationFrequency(Map<String, Integer> punctuationFrequency) {
-        this.punctuationFrequency = punctuationFrequency;
+    public void setOtherFrequency(Map<String, Integer> otherFrequency) {
+        this.otherFrequency = otherFrequency;
     }
 
     public Map<String, Integer> getUpperFrequency() {
@@ -131,6 +159,11 @@ public class CaptureDataStatistics {
         this.userCounts = userCounts;
     }
 
+    /**
+     * Add to the provided users label capture count, starting at 0 if the user has no count
+     * @param user the label of the user to add to the count of
+     * @param count how much to add to the count
+     */
     public void addUserCount(String user, Integer count) {
         if (!userCounts.containsKey(user)) {
             userCounts.put(user, 0);

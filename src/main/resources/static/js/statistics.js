@@ -78,12 +78,12 @@ class StatisticsInfo {
         let punctuationChart = new Chart(punctuationCharCtx, {
             type: 'bar',
             data: {
-                labels: Object.keys(this.statistics.punctuationFrequency),
+                labels: Object.keys(this.statistics.otherFrequency),
                 datasets: [{
                     label: 'Character Label Frequency',
                     backgroundColor: 'rgb(217,52,90)',
                     borderColor: 'rgb(217,52,90)',
-                    data: Object.values(this.statistics.punctuationFrequency)
+                    data: Object.values(this.statistics.otherFrequency)
                 }]
             },
             options: {

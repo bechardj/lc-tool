@@ -3,6 +3,7 @@ package us.jbec.lct.services;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.UserRoles;
 import us.jbec.lct.models.database.Role;
@@ -20,6 +21,7 @@ import java.util.Set;
  * development user to avoid needing to configure the Firebase Admin SDK
  */
 @Service
+@Profile("dev")
 public class DevelopmentUserService extends UserService {
 
     Logger LOG = LoggerFactory.getLogger(DevelopmentUserService.class);

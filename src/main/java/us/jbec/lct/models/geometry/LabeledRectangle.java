@@ -2,6 +2,11 @@ package us.jbec.lct.models.geometry;
 
 import java.util.List;
 
+/**
+ * Model for mapping canvas rectangle coordinates (which store the start point,
+ * the width, and the height), converting all the starting points to the top left,
+ * storing the label, and providing other utility methods
+ */
 public class LabeledRectangle extends OffsetRectangle {
 
     private String label;

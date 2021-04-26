@@ -10,6 +10,9 @@ import javax.persistence.OneToMany;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Database entity representing a Project
+ */
 @Entity
 public class Project {
 

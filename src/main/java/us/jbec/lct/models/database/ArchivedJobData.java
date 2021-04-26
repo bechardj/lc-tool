@@ -10,19 +10,32 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 
+/**
+ * Database entity for archived CloudCaptureData - on save, the previous ImageJob data is saved to an archive table
+ */
 @Entity
 public class ArchivedJobData {
+
     @Id
     @GeneratedValue
     private long id;
 
+    /**
+     * Cloud capture document for which this version was archived
+     */
     @ManyToOne
     @JoinColumn(name = "uuid")
     private CloudCaptureDocument sourceDocumentUuid;
 
+    /**
+     * Archived serialized ImageJob data
+     */
     @Lob
     private String jobData;
 
+    /**
+     * When was this archive created
+     */
     @CreationTimestamp
     private LocalDateTime createTime;
 
