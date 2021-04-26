@@ -28,6 +28,8 @@ class CaptureState {
         this.erasedWordLines = [];
         this.erasedLineLines = [];
 
+        this.notes = "";
+
         this.captureMode = CaptureModes.WORD;
         this.previousCaptureMode = undefined;
 

@@ -19,7 +19,12 @@ function loadJob(jobId, state, callback) {
             if (jobInfo.lineLines !== null) {
                 state.lineLines = Line.convertFromArrayOfPoints(jobInfo.lineLines);
             }
+            if (jobInfo.fields.NOTES !== null) {
+                state.notes = jobInfo.fields.NOTES;
+            }
+
             state.jobInfo = jobInfo;
+
             callback.call();
         });
 }

@@ -507,6 +507,7 @@ function captureCanvasInit (predictionEngine) {
                 draw();
             })
             setCaptureMode(CaptureModes.LETTER);
+            $('#notes')[0].value = state.notes;
             $('#full-screen-load').delay(500).fadeOut();
             $('#main-content-container').delay(750).fadeIn();
         }
