@@ -7,6 +7,9 @@ import us.jbec.lct.models.database.Project;
 
 import java.util.Optional;
 
+/**
+ * Repository interface for providing default CRUD operations and native queries
+ */
 public interface ProjectRepository extends CrudRepository<Project, Long> {
 
     @Query(value = "select * from project A where A.name = :name",

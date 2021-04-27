@@ -1,5 +1,8 @@
-package us.jbec.lct.models;
+package us.jbec.lct.security;
 
+/**
+ * Model representing user roles for authorization purposes
+ */
 public enum UserRoles {
     USER("USER"),
     ADMIN("ADMIN");

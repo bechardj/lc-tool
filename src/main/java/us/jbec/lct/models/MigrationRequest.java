@@ -2,6 +2,10 @@ package us.jbec.lct.models;
 
 import java.io.Serializable;
 
+/**
+ * Model representing a Migration Request from the standalone desktop application, to be
+ * processed by the MigrationService and added to the cloud version of the tool
+ */
 public class MigrationRequest implements Serializable {
     private ImageJob imageJob;
     private String originalFileName;

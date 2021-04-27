@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.transformers.ImageJobFieldTransformer;
 
 import java.io.File;
@@ -27,6 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Data Access Object for images. Handles File IO
+ */
 @Component
 public class PrimaryImageIO {
 
@@ -40,8 +44,7 @@ public class PrimaryImageIO {
     public static final Set<String> extensions = Set.of("jpeg", "jpg", "png");
 
     /**
-     * Data Access Object for images
-     * Handles FileIO
+     * Data Access Object for images. Handles File IO
      *
      * @param objectMapper The JSON Object Mapper
      */
@@ -58,7 +61,7 @@ public class PrimaryImageIO {
     public File persistImage(MultipartFile file, String uuid) throws IOException {
         var extension = FilenameUtils.getExtension(file.getOriginalFilename());
         if (!extensions.contains(extension)) {
-            throw new RuntimeException("Unsupported file type");
+            throw new LCToolException("Unsupported file type");
         }
         String path = new File(imagePersistencePath).getAbsolutePath();
         File target = new File(path + File.separator + uuid + "." + extension);

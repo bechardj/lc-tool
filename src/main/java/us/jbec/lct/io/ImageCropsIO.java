@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LabeledImageCrop;
 
 import javax.imageio.ImageIO;
@@ -52,7 +53,7 @@ public class ImageCropsIO {
 
                 var directory = buildOutputDirectory(labeledImageCrop, destination, cropsType);
                 if (directory == null) {
-                    throw new RuntimeException("Unable to open output directory");
+                    throw new LCToolException("Unable to open output directory");
                 }
                 if (!directory.exists()) {
                     directory.mkdirs();

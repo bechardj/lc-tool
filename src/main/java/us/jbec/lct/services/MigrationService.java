@@ -46,7 +46,7 @@ public class MigrationService {
     }
 
     /**
-     * Process a migration request, and create a new CloudCaptureDocument for the user sending the migration request
+     * Process a migration request, and create a new CloudCaptureDocument for the user sending the migration request.
      * If this is the first migration request, delete all other migrated jobs
      *
      * @param migrationRequest migration request to process

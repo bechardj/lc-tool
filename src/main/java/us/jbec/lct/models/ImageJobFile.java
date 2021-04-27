@@ -4,15 +4,18 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 
+/**
+ * Convenience model for grouping an image file, and the corresponding ImageJob
+ */
 public class ImageJobFile {
     private File imageFile;
     private ImageJob imageJob;
 
     /**
-     * Object representing an ImageJob File in the output directory
+     * Convenience model for grouping an image file, and the corresponding ImageJob
      *
-     * @param imageFile The file for the corresponding information
-     * @param imageJob The corresponding deserialized JSON
+     * @param imageFile The image file for the corresponding ImageJob information
+     * @param imageJob The corresponding deserialized ImageJob JSON
      */
     public ImageJobFile(File imageFile, ImageJob imageJob) {
         this.imageFile = imageFile;

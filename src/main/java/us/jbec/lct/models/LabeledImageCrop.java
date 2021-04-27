@@ -6,6 +6,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDateTime;
 
+/**
+ * Model for representing a labeled, cropped portion of a larger image
+ */
 public class LabeledImageCrop {
 
     private String label;
@@ -14,6 +17,12 @@ public class LabeledImageCrop {
     private BufferedImage image;
 
 
+    /**
+     * Model for representing a labeled, cropped portion of a larger image
+     * @param label label of the crop
+     * @param source the source image from which the crop was generated
+     * @param image the cropped image
+     */
     public LabeledImageCrop(String label, File source, BufferedImage image) {
         this.label = label;
         this.source = source;
@@ -29,7 +38,12 @@ public class LabeledImageCrop {
         this.image = image;
     }
 
+    /**
+     * Return the label of the crop, taking into account file system limitations
+     * @return crop label
+     */
     public String getLabel() {
+        // TODO: refactor this into either a utility class or something cleaner
         // This is to avoid file system limitations.
         if (StringUtils.length(label) == 1) {
             if (StringUtils.isAlpha(label) && StringUtils.isAllLowerCase(label)) {

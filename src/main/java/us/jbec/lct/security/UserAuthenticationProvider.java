@@ -1,6 +1,5 @@
 package us.jbec.lct.security;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +10,12 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.services.UserService;
 
+/**
+ * Authentication Provider for retrieving authorized user by token
+ */
 @Component
 public class UserAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
@@ -26,17 +29,17 @@ public class UserAuthenticationProvider extends AbstractUserDetailsAuthenticatio
 
     }
 
-    @Override
     /**
      * Retrieve UserDetails by searching the token passed in the
      * UsernamePasswordAuthenticationToken
      */
+    @Override
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         String token = (String) authentication.getCredentials();
         try {
             return userService.getAuthorizedUserByToken(token);
-        } catch (RuntimeException | FirebaseAuthException e) {
-            LOG.error("User authentication failed.");
+        } catch (LCToolException | FirebaseAuthException e) {
+            LOG.error("User authentication failed:", e);
             throw new UsernameNotFoundException("Invalid Username!");
         }
     }

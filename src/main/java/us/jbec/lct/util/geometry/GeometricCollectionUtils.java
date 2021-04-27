@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class providing methods for helping with dealing with geometric shapes
+ */
 @Component
 public class GeometricCollectionUtils {
 

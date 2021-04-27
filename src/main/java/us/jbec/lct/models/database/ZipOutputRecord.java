@@ -1,6 +1,7 @@
-package us.jbec.lct.models;
+package us.jbec.lct.models.database;
 
 import org.hibernate.annotations.CreationTimestamp;
+import us.jbec.lct.models.ZipType;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,6 +9,9 @@ import javax.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * Database entity storing the location of a Zip File, as well as other metadata
+ */
 @Entity
 public class ZipOutputRecord implements Serializable {
     @Id
@@ -20,6 +24,7 @@ public class ZipOutputRecord implements Serializable {
     private String fileUri;
     private String filePath;
     private String source;
+    private ZipType zipType;
 
     public long getId() {
         return id;
@@ -59,5 +64,13 @@ public class ZipOutputRecord implements Serializable {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public ZipType getZipType() {
+        return zipType;
+    }
+
+    public void setZipType(ZipType zipType) {
+        this.zipType = zipType;
     }
 }

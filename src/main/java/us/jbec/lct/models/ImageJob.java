@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Image representing Capture Data sent from the client-side of the app, used for
+ * processing and creating image crops
+ */
 public class ImageJob {
     private String version;
     private String id;

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.LCToolException;
-import us.jbec.lct.models.UserRoles;
+import us.jbec.lct.security.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.RoleRepository;

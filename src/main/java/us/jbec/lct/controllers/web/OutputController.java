@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.view.RedirectView;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.services.ZipOutputService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,7 +37,7 @@ public class OutputController {
     public RedirectView getLatestZip(HttpServletRequest request) {
         var optionalZipUri = zipOutputService.getLatestZipUri();
         if (optionalZipUri.isEmpty()) {
-            throw new RuntimeException("No Zips Available!");
+            throw new LCToolException("No Zips Available!");
         }
         var redirectView = new RedirectView();
         var zipUri = optionalZipUri.get();

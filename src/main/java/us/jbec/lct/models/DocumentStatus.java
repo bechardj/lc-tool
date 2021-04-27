@@ -1,5 +1,8 @@
 package us.jbec.lct.models;
 
+/**
+ * Model representing the status of a CloudCaptureDocument
+ */
 public enum DocumentStatus {
     INGESTED("Ingested"),
     DELETED("Deleted"),

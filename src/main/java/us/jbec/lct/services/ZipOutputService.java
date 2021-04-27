@@ -5,10 +5,10 @@ import net.lingala.zip4j.exception.ZipException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import us.jbec.lct.models.ZipOutputRecord;
+import us.jbec.lct.models.ZipType;
+import us.jbec.lct.models.database.ZipOutputRecord;
 import us.jbec.lct.repositories.ZipOutputRepository;
 
 import java.io.File;
@@ -82,6 +82,7 @@ public class ZipOutputService {
             zipOutputRecord.setFilePath(zipOutputPath);
             zipOutputRecord.setFileUri(zipUri);
             zipOutputRecord.setSource(source);
+            zipOutputRecord.setZipType(ZipType.BULK);
             new ZipFile(zipOutputPath).addFolder(new File(bulkOutputPath));
             zipOutputRepository.save(zipOutputRecord);
             LOG.info("Zip Output directory updated");

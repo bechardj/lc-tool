@@ -16,6 +16,9 @@ import java.io.IOException;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+/**
+ * Authentication filter for extracting Firebase tokens and attempting authentication
+ */
 public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     AuthenticationFilter(final RequestMatcher requestMatcher) {
@@ -23,10 +26,10 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     /**
-     * This extracts the firebase token from the header
-     * @param httpServletRequest
-     * @param httpServletResponse
-     * @return
+     * Extracts the firebase token from the header and attempt authentication
+     * @param httpServletRequest servlet request
+     * @param httpServletResponse servlet response
+     * @return authentication object
      * @throws AuthenticationException
      * @throws IOException
      * @throws ServletException
@@ -39,6 +42,13 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         return attemptAuthentication(requestAuthentication);
     }
 
+    /**
+     * Perform authentication directly against the authentication manager using a provided token. Used for performing
+     * authentication with a token directly, when authenticating a web-based session with Firebase
+     * @param usernamePasswordAuthenticationToken authentication object with credentials set to token
+     * @return Authenticated authentication object
+     * @throws AuthenticationException
+     */
     public Authentication attemptAuthentication(Authentication usernamePasswordAuthenticationToken) throws AuthenticationException {
         return getAuthenticationManager().authenticate(usernamePasswordAuthenticationToken);
     }

@@ -24,6 +24,9 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Configuration class for Spring Security, securing REST endpoints and web pages
+ */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)

@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Convenience model for displaying an ImageJob Listing in the document listing views
+ */
 public class ImageJobListing {
 
     private final int MAX_LEN = 50;
