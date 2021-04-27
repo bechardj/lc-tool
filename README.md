@@ -12,7 +12,7 @@
 2. In IntelliJ, open the `pom.xml` and import as a Maven project
 3. Open `src/main/resources/docker/docker-compose.yml` for a sample MariaDB docker container. Update the volumes path, replacing `/Users/joey/lyrasis/mysql` with a path on your machine. Start the container with the IDE's 'Run' button
 4. Edit the Run Configuration using the 'Edit Configuration' option in the dropdown in the top right of the IDE, near the Start & Debug buttons
-5. Add `dev` to the Active Profiles section. Override paramaters from `src/main/resources/application-dev.properties` in the "Override paramaters" section as needed to match your local setup
+5. Add `dev` to the Active Profiles section. Override parameters from `src/main/resources/application-dev.properties` in the "Override paramaters" section as needed to match your local setup
 6. Run the application with either the Start or Debug button
 
 ## Develpoper Profile
