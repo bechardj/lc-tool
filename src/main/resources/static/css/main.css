@@ -1,5 +1,17 @@
+a {
+    color: #d9345a;
+}
+
 .nbs-container {
     font-family: 'Roboto', serif;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.nbs-container-no-font {
     padding-left: 0;
     padding-right: 0;
     margin-left: auto;
@@ -11,12 +23,13 @@
     min-height: 75vh;
 }
 
-.title {
+.nbs-title {
     font-family: 'Roboto', serif;
     font-size: 36px;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
+    padding-top: 10px;
     display: block;
 }
 
@@ -47,6 +60,25 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+}
+
+.nbs-button-link {
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    color: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+a.nbs-button-link:hover {
+    color: #d9345a !important;
+}
+
+.nbs-button-link-disabled {
+    color: #646464;
 }
 
 .nbs-button-sm {
@@ -83,7 +115,7 @@
     position: fixed;
     top: 0px;
     right: 0px;
-    z-index: 3;
+    z-index: 99999;
 }
 
 .alert-prediction {
@@ -234,3 +266,78 @@
     opacity: 0;
     z-index: -1;
 }
+
+.hidden{
+    display: none;
+}
+
+.hidden-important {
+    display: none !important;
+}
+
+.demo-warning {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.notifications {
+    z-index: 9999;
+    position: fixed;
+    text-align: center;
+    top: 10px;
+    width: 100%;
+}
+
+.third-wide {
+    min-width: 50%;
+}
+
+.side-pad-5 {
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.light-grey{
+    background: #f3f3f3;
+}
+
+.file-form{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.top-pad-2 {
+    padding-top: 2%;
+}
+
+.hidden-occupy {
+    visibility: hidden
+}
+
+.navbar-pad-top {
+    padding-top: 65px;
+}
+
+.navbar-pad-bottom {
+    padding-bottom: 65px;
+}
+
+.navbar-fixed-height{
+    max-height: 65px;
+}
+
+.navbar-brand-pink{
+    font-family: 'Roboto', serif;
+    font-size: 20px;
+    color: #d9345a;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.navbar-pink{
+    color: #d9345a !important;
+}
+

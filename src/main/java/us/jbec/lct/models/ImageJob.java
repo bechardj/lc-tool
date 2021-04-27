@@ -1,8 +1,19 @@
 package us.jbec.lct.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import us.jbec.lct.models.geometry.LabeledRectangle;
+import us.jbec.lct.models.geometry.LineSegment;
+import us.jbec.lct.models.geometry.OffsetRectangle;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Image representing Capture Data sent from the client-side of the app, used for
+ * processing and creating image crops
+ */
 public class ImageJob {
     private String version;
     private String id;
@@ -13,7 +24,7 @@ public class ImageJob {
     private List<List<Double>> lineLines;
     private boolean completed;
     private boolean edited;
-    private HashMap<String, Object> fields;
+    private HashMap<String, String> fields;
 
     public boolean isEdited() {
         return edited;
@@ -32,6 +43,9 @@ public class ImageJob {
     }
 
     public List<String> getCharacterLabels() {
+        if (characterLabels == null) {
+            characterRectangles = new ArrayList<>();
+        }
         return characterLabels;
     }
 
@@ -56,7 +70,24 @@ public class ImageJob {
     }
 
     public List<List<Double>> getCharacterRectangles() {
+        if (characterLabels == null) {
+            characterRectangles = new ArrayList<>();
+        }
         return characterRectangles;
+
+    }
+
+    @JsonIgnore
+    public List<LabeledRectangle> getLabeledRectangles() {
+        var characterRectangles = getCharacterRectangles();
+        var characterLabels = getCharacterLabels();
+        List<LabeledRectangle> labeledRectangles = new ArrayList<>();
+
+        for(int i = 0; i < getCharacterRectangles().size(); i++) {
+            labeledRectangles.add(new LabeledRectangle(characterRectangles.get(i), characterLabels.get(i)));
+
+        }
+        return labeledRectangles;
     }
 
     public void setCharacterRectangles(List<List<Double>> characterRectangles) {
@@ -65,7 +96,17 @@ public class ImageJob {
 
 
     public List<List<Double>> getWordLines() {
+        if (wordLines == null) {
+            wordLines = new ArrayList<>();
+        }
         return wordLines;
+    }
+
+    @JsonIgnore
+    public List<LineSegment> getWordLineSegments() {
+        return getWordLines().stream()
+                .map(LineSegment::new)
+                .toList();
     }
 
     public void setWordLines(List<List<Double>> wordLines) {
@@ -73,7 +114,17 @@ public class ImageJob {
     }
 
     public List<List<Double>> getLineLines() {
+        if (lineLines == null) {
+            lineLines = new ArrayList<>();
+        }
         return lineLines;
+    }
+
+    @JsonIgnore
+    public List<LineSegment> getLineLineSegments() {
+        return getLineLines().stream()
+                .map(LineSegment::new)
+                .toList();
     }
 
     public void setLineLines(List<List<Double>> lineLines) {
@@ -88,14 +139,14 @@ public class ImageJob {
         this.completed = completed;
     }
 
-    public HashMap<String, Object> getFields() {
+    public HashMap<String, String> getFields() {
         if (null == fields) {
-            fields = new HashMap<String, Object>();
+            fields = new HashMap<String, String>();
         }
         return fields;
     }
 
-    public void setFields(HashMap<String, Object> fields) {
+    public void setFields(HashMap<String, String> fields) {
         this.fields = fields;
     }
 }
