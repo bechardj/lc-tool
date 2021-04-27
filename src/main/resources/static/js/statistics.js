@@ -110,6 +110,14 @@ class StatisticsInfo {
                 legend: {
                     display: false,
                 },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }]
+                }
             }
         });
 

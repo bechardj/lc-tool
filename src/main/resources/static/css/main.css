@@ -1,3 +1,7 @@
+a {
+    color: #d9345a;
+}
+
 .nbs-container {
     font-family: 'Roboto', serif;
     padding-left: 0;
@@ -67,6 +71,10 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+}
+
+a.nbs-button-link:hover {
+    color: #d9345a !important;
 }
 
 .nbs-button-link-disabled {
@@ -263,6 +271,10 @@
     display: none;
 }
 
+.hidden-important {
+    display: none !important;
+}
+
 .demo-warning {
     text-align: center;
     vertical-align: middle;
@@ -323,5 +335,9 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+}
+
+.navbar-pink{
+    color: #d9345a !important;
 }
 

@@ -65,7 +65,7 @@
                         <a class="dropdown-item" href="#" id="hideCaptureOption"><i class="bi bi-eye-slash"></i> &nbsp; Hide Capture Data</a>
                         <a class="dropdown-item" href="#" id="transparencyOption"><i class="bi bi-eyedropper"></i> &nbsp; Toggle Transparency</a>
                         <a class="dropdown-item" href="#" id="predictionsOption"><i class="bi bi-cpu"></i> &nbsp; Toggle Prediction Engine</a>
-                        <div th:if="${editable}" class="nbs-container-no-font dropdown-item" align="center">
+                        <div class="nbs-container-no-font dropdown-item" align="center" th:classappend="${editable} ? '' : disabled">
                             <input type="checkbox" id="completed" name="completed" value="Completed">
                             &nbsp;&nbsp;
                             <label for="completed">Mark As Completed</label><br>
