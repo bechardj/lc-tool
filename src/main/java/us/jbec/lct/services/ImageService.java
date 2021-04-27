@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import us.jbec.lct.io.ImageCropsIO;
 import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.ImageJobFile;
+import us.jbec.lct.models.LCToolException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,28 +15,39 @@ import java.io.InputStream;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * Service for retrieving Base64 encoded images by uuid
+ */
 @Component
 public class ImageService {
 
     Logger LOG = LoggerFactory.getLogger(ImageService.class);
 
-    private final ImageCropsIO imageCropsIO;
     private final PrimaryImageIO primaryImageIO;
 
-
-    public ImageService(ImageCropsIO imageCropsIO, PrimaryImageIO primaryImageIO) {
-        this.imageCropsIO = imageCropsIO;
+    /**
+     * Service for retrieving Base64 encoded images by uuid
+     * @param primaryImageIO autowired parameter
+     */
+    public ImageService(PrimaryImageIO primaryImageIO) {
         this.primaryImageIO = primaryImageIO;
     }
 
-    public String getImageById(String id) throws IOException {
-        List<ImageJobFile> imageJobFiles = primaryImageIO.getImageJobFiles();
-        for (ImageJobFile imageJobFile : imageJobFiles) {
-            if (id.equals(imageJobFile.getImageFileName())){
-                InputStream in = new FileInputStream(imageJobFile.getImageFile().getPath());
-                return Base64.getEncoder().encodeToString(IOUtils.toByteArray(in));
-            }
+    /**
+     * Retrieve a base 64 encoded image corresponding to the provided document UUID
+     * @param uuid UUID of document to retrieve the corresponding image of
+     * @return Base64 encoded image
+     * @throws IOException
+     */
+    public String getBase64EncodedImageById(String uuid) throws IOException {
+        var optionalImage = primaryImageIO.getImageByUuid(uuid);
+        if (optionalImage.isPresent()) {
+            var image = optionalImage.get();
+            var in = new FileInputStream(image);
+            return Base64.getEncoder().encodeToString(IOUtils.toByteArray(in));
+        } else {
+            LOG.error("Image not found!");
+            throw new LCToolException("Image not found!");
         }
-        return null;
     }
 }

@@ -4,10 +4,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import us.jbec.lct.models.RemotelySubmittedJob;
+import us.jbec.lct.models.database.RemotelySubmittedJob;
 
 import java.util.List;
 
+@Deprecated
 public interface RemoteJobRepository extends CrudRepository<RemotelySubmittedJob, Integer> {
 
     @Query(value = "SELECT A.id, A.api_key, A.job_id, A.json, A. submit_time FROM remotely_submitted_job A " +
@@ -18,6 +19,10 @@ public interface RemoteJobRepository extends CrudRepository<RemotelySubmittedJob
     @Query(value = "select * from remotely_submitted_job A where A.api_key = :key and A.job_id = :job ",
             nativeQuery = true)
     List<RemotelySubmittedJob> selectJobByKeyAndId(@Param("key") String key, @Param("job") String jobId);
+
+    @Query(value = "select * from remotely_submitted_job A where A.api_key = :key",
+            nativeQuery = true)
+    List<RemotelySubmittedJob> selectJobLegacyKey(@Param("key") String key);
 
     @Modifying
     @Query(value = "insert into remotely_submitted_job_archive " +

@@ -7,8 +7,10 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import us.jbec.lct.controllers.JobController;
 
+/**
+ * Configuration class for evicting cached Service layer results
+ */
 @EnableScheduling
 @EnableCaching
 @Configuration
@@ -16,6 +18,9 @@ public class CachingConfig {
 
     Logger LOG = LoggerFactory.getLogger(CachingConfig.class);
 
+    /**
+     * Periodically reset remote statistics result cache
+     */
     @Scheduled(fixedDelayString = "${lct.cache.purge.stats:900000}")
     @CacheEvict(value = "remoteStatistics", allEntries = true)
     public void evictAllRemoteStatistics() {

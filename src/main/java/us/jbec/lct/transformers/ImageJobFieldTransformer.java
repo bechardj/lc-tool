@@ -9,6 +9,7 @@ import us.jbec.lct.models.ImageJobFields;
  * To maintain interoperability with previous versions of the application, we see if fields are present here, and if not,
  * add them. Older versions will ignore the added fields.
  */
+@Deprecated
 public class ImageJobFieldTransformer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ImageJobFieldTransformer.class);

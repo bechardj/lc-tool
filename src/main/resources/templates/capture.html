@@ -8,92 +8,146 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo:wght@500;700&display=swap" >
 
 </head>
 <body>
-<div class="full-page-parent" id="full-screen-load">
-<div class="semipolar-spinner" :style="spinnerStyle">
-    <div class="ring"></div>
-    <div class="ring"></div>
-    <div class="ring"></div>
-    <div class="ring"></div>
-    <div class="ring"></div>
-</div>
-</div>
-<div class="pixel-spinner">
-    <div class="pixel-spinner-inner"></div>
-</div>
-<div id="main-content-container" hidden>
-<div class="nbs-container">
-    <h1 class="title">LC Document Tool</h1>
-    <p class="body">Click and drag a bounding box over the letter you are trying to capture. <br> Press a keyboard key after drawing the bounding box to label the box. <br> After labeling all letters on the page, use the save button to save. <a href="/help">Help Section</a></p>
-</div>
+    <div th:insert="fragments/full-screen-load.html :: div"></div>
+    <div th:insert="fragments/notifications.html :: div"></div>
 
-<div class="nbs-container" align="center">
-    <div style="display: inline-block"> <button class = "nbs-button" id = "close" type="button">Close</button> </div>
-</div>
+    <nav class="navbar navbar-expand-md fixed-top navbar-light bg-light">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-<div class="nbs-container" align="center">
-    <div style="display: inline-block"> <button class = "nbs-button" id = "undo" type="button">Undo</button> </div>
-    <div style="display: inline-block"> <button class = "nbs-button" id = "redo" type="button">Redo</button> </div>
-</div>
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="fileMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        File
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <div th:if="${editable}">
+                            <a class="dropdown-item" href="#" id="saveMenuOption"><i class="bi bi-save"></i> &nbsp; Save</a>
+                        </div>
+                        <div th:if="${!editable}">
+                            <a class="dropdown-item disabled" href="#" id=""> <i class="bi bi-save"></i>&nbsp; Save (Document not owned by you)</a>
+                        </div>
+                        <a class="dropdown-item" href="#" id="downloadMenuOption"><i class="bi bi-cloud-download"></i></i> &nbsp; Download Job Info</a>
+                        <div th:if="${editable}">
+                            <a class="dropdown-item" href="#" id="uploadMenuOption"><i class="bi bi-cloud-upload"></i> &nbsp; Upload Job Info</a>
+                        </div>
+                        <div th:if="${!editable}">
+                            <a class="dropdown-item disabled" href="#" ><i class="bi bi-cloud-upload"></i> &nbsp; Upload Job Info</a>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" id="closeMenuOption"><i class="bi bi-x-circle"></i> &nbsp; Close</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="editMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Edit
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#" id="undoMenuOption"><i class="bi bi-arrow-counterclockwise"></i> &nbsp; Undo (Ctrl+Z or Left Bracket)</a>
+                        <a class="dropdown-item" href="#" id="redoMenuOption"><i class="bi bi-arrow-clockwise"></i> &nbsp; Redo (Ctrl+Shift+Z or Right Bracket)</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="optionsMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Options
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#" id="hideCaptureOption"><i class="bi bi-eye-slash"></i> &nbsp; Hide Capture Data</a>
+                        <a class="dropdown-item" href="#" id="transparencyOption"><i class="bi bi-eyedropper"></i> &nbsp; Toggle Transparency</a>
+                        <a class="dropdown-item" href="#" id="predictionsOption"><i class="bi bi-cpu"></i> &nbsp; Toggle Prediction Engine</a>
+                        <div class="nbs-container-no-font dropdown-item" align="center" th:classappend="${editable} ? '' : disabled">
+                            <input type="checkbox" id="completed" name="completed" value="Completed">
+                            &nbsp;&nbsp;
+                            <label for="completed">Mark As Completed</label><br>
+                        </div>
+                        <div class="container dropdown-item" align="center">
+                            <label for="fontSlider">Font Size</label>
+                            <input type="range" min="12" max="68" value="40" class="slider" id="fontSlider">
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="helpMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Help
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/shortcuts"><i class="bi bi-keyboard"></i> &nbsp; Shortcuts</a>
+                        <a class="dropdown-item" href="/help"><i class="bi bi-info-circle"></i> &nbsp; General Help</a>
+                    </div>
+                </li>
+            </ul>
 
-<div class="nbs-container" align="center">
-    <div style="display: inline-block"> <button class = "nbs-button" id = "letterCap" type="button">Letter Capture Mode</button> </div>
-    <div style="display: inline-block"> <button class = "nbs-button" id = "wordCap" type="button">Word Capture Mode</button> </div>
-    <div style="display: inline-block"> <button class = "nbs-button" id = "lineCap" type="button">Line Capture Mode</button> </div>
-    <div style="display: inline-block"> <button class = "nbs-button" id = "eraser" type="button">Eraser</button> </div>
-</div>
-<div class="nbs-container">
-    <p id="captureMode" class="body"> </p>
-</div>
-<span hidden id="imageId" th:text="${imageId}"></span>
-<div class="nbs-container">
-<div class = "nbs-container stacked-parent">
-    <canvas id="mainCanvas" class="stacked-child"></canvas>
-    <canvas id="drawingCanvas" class="stacked-child"></canvas>
-</div>
-</div>
-<img id="renderedCrop" src="" hidden/>
-<div class="prediction-container">
-    <div class="alert alert-danger alert-prediction labelText" hidden>
-        <canvas id="cropCanvas" class="nbs-container"></canvas>
-        <div id="prediction">Prediction:</div>
+            <a class="navbar-brand" href="#">
+                <img src="/img/logo_full.png" alt="Logo" style="width:30px;">
+            </a>
+        </div>
+    </nav>
+
+    <div id="main-content-container" class="hidden navbar-pad-top">
+
+    <div class="container-fluid fixed-bottom bg-light w-100 navbar-fixed-height">
+        <div class="d-flex justify-content-center w-100">
+            <div> <a class = "nbs-button-link capture-mode" id = "letterCap">Letter Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "wordCap" >Word Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "lineCap">Line Capture Mode</a> </div>
+            <div> <a class = "nbs-button-link capture-mode" id = "eraser">Eraser</a> </div>
+        </div>
     </div>
-</div>
-<div class="nbs-container" align="center">
-    <input type="checkbox" id="completed" name="completed" value="Completed">
-    <label for="completed">Mark As Completed</label><br>
-</div>
-<div class="nbs-container" align="center">
-    <input type="checkbox" id="enableTransparency" name="enableTransparency">
-    <label for="enableTransparency">Enable Rectangle Translucency</label><br>
-</div>
-<input type="text" class="hidden-mobile-input">
-<div class="nbs-container" align="center">
-    <input type="checkbox" id="enablePredictions" name="enablePredictions">
-    <label for="enablePredictions">Enable Prediction & Autofill</label><br>
-</div>
-<div class="container w-25" align="center">
-    <label for="fontSlider">Font Size</label>
-    <input type="range" min="12" max="68" value="40" class="slider" id="fontSlider">
-</div>
-<div class="container w-25 padded-body">
-    <label for="notes">Notes:</label>
-    <textarea class="form-control text-entry" id="notes" rows="3"></textarea>
-</div>
-<div class="nbs-container">
-    <p hidden id="saveText" class="body"> </p>
-</div>
-<button class = "nbs-button" id = "save" type="button">Save</button>
-<button class = "nbs-button" id = "download" type="button">Download Job Info</button>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src = "https://cdn.jsdelivr.net/npm/hotkeys-js@3.7.3/dist/hotkeys.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
-<script src="/js/canvas.js"></script>
-</div>
+    <div class="nbs-container hidden">
+        <p id="captureMode" class="body"> </p>
+    </div>
+    <span hidden id="imageId" th:text="${imageId}"></span>
+    <div class="nbs-container">
+    <div class = "nbs-container stacked-parent">
+        <canvas id="mainCanvas" class="stacked-child"></canvas>
+        <canvas id="drawingCanvas" class="stacked-child"></canvas>
+    </div>
+    </div>
+    <img id="renderedCrop" src="" hidden/>
+    <div class="prediction-container navbar-pad-top">
+        <div class="alert alert-danger alert-prediction labelText hidden">
+            <canvas id="cropCanvas" class="nbs-container"></canvas>
+            <div id="prediction">Prediction:</div>
+        </div>
+    </div>
+
+    <input type="text" class="hidden-mobile-input">
+
+    <div class="container w-25 padded-body navbar-pad-bottom">
+        <label for="notes">Notes:</label>
+        <textarea class="form-control text-entry" id="notes" rows="3"></textarea>
+    </div>
+
+    <div th:if="${editable}" class="hidden">
+        <div class="body top-pad-2">Upload and Replace Job Info</div>
+        <form id="jobUpload" class="file-form" method="POST" th:action="${'/secure/job/upload?uuid=' + imageId}" enctype="multipart/form-data">
+            <div class="nbs-container" align="center">
+                <input type="file" id="imageJobUploadFile" name="file" />
+                <input type="submit" id = "jobUploadSubmit" value="Submit" />
+            </div>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
+    <script src="/webjars/github-com-jaywcjlove-hotkeys/hotkeys.min.js"></script>
+    <script src="/webjars/github-com-HarryStevens-geometric/geometric.js"></script>
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/js/common.js"></script>
+    <script type="module" src="/js/capture/main.js"></script>
+    </div>
 </body>
 </html>

@@ -1,33 +1,46 @@
 package us.jbec.lct.models;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import us.jbec.lct.models.database.CloudCaptureDocument;
 
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
+/**
+ * Convenience model for displaying an ImageJob Listing in the document listing views
+ */
 public class ImageJobListing {
 
     private final int MAX_LEN = 50;
 
     private String fileName;
+    private String owner;
     private String dateAdded;
     private String status;
     private String notes;
-    private String url;
+    private String openUrl;
+    private String deleteUrl;
 
-    public ImageJobListing(ImageJobFile imageJobFile) throws IOException {
-        this.fileName = FilenameUtils.removeExtension(imageJobFile.getImageFile().getName());
-        if (!imageJobFile.getImageJob().getFields().containsKey("timestamp")) {
-            this.dateAdded = "Never";
+    static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' hh:mm a");
+    static ZoneId easternZoneId = ZoneId.of("America/New_York");
+
+    public ImageJobListing(CloudCaptureDocument cloudCaptureDocument, ImageJob imageJob) throws IOException {
+        this.fileName = cloudCaptureDocument.getName();
+        this.owner = cloudCaptureDocument.getOwner().getFirebaseEmail();
+        if (cloudCaptureDocument.getUpdateTime() != null) {
+            var zonedTime = cloudCaptureDocument.getUpdateTime().atZone(easternZoneId);
+            this.dateAdded = fmt.format(cloudCaptureDocument.getUpdateTime());
         } else {
-            this.dateAdded = (String) imageJobFile.getImageJob().getFields().get("timestamp");
+            this.dateAdded = "Unknown";
         }
-        this.notes = (String) imageJobFile.getImageJob().getFields().get(ImageJobFields.NOTES.name());
+        this.notes =  StringUtils.defaultString( imageJob.getFields().get(ImageJobFields.NOTES.name()));
         if (StringUtils.length(this.notes) > MAX_LEN) {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }
-        this.status = imageJobFile.getImageJob().getStatus();
-        this.url = "/open/document?id=" + this.fileName;
+        this.status = cloudCaptureDocument.getDocumentStatus().getDescription();
+        this.openUrl = "/secure/open/document?uuid=" + cloudCaptureDocument.getUuid();
+        this.deleteUrl = "/secure/delete/document?uuid=" + cloudCaptureDocument.getUuid();
     }
 
     public String getFileName() {
@@ -54,12 +67,12 @@ public class ImageJobListing {
         this.status = status;
     }
 
-    public String getUrl() {
-        return url;
+    public String getOpenUrl() {
+        return openUrl;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setOpenUrl(String openUrl) {
+        this.openUrl = openUrl;
     }
 
     public String getNotes() {
@@ -68,5 +81,21 @@ public class ImageJobListing {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getDeleteUrl() {
+        return deleteUrl;
+    }
+
+    public void setDeleteUrl(String deleteUrl) {
+        this.deleteUrl = deleteUrl;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }
