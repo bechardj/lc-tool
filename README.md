@@ -1,11 +1,12 @@
 # LC Document Tool
 
+Video Demo: https://youtu.be/UyPV7N6FHfE
+
 ## Local Development Environment (Not IDE Specific)
 1. Install Java 16, Maven, Docker, and Docker Compose
-3. Setup datasource. See `src/main/resources/docker/docker-compose.yml` for a sample MariaDB docker container. Update the volumes path, replacing `/Users/joey/lyrasis/mysql` with a path on your machine. Start the container with `docker-compose up`
-4. Build a jar file using Maven. To do this, navigate to the main directory containing the `pom.xml` and run `mvn clean compile install`. This will build a compiled jar in `./target' You could also use the spring boot run maven plugin.
-5. Run the application with the developer profile. If you made changes directly to `src/main/resources/application-dev.properties`, use the argument `-Dspring.profiles.active=dev`. Otherwise, make a new `application.properties` file in the same directory as the jar with your custom settings. Run the har with `java -jar target.jar`. 
-6. As an alternative to steps 4 and 5, you could also use the Spring Boot Maven plugin, and run something like `mvn spring-boot:run -Dspring-boot.run.profiles=dev`
+2. Setup datasource. See `src/main/resources/docker/docker-compose.yml` for a sample MariaDB docker container. Update the volumes path, replacing `/Users/joey/lyrasis/mysql` with a path on your machine. Start the container with `docker-compose up`
+3. Update settings in `/src/main/resources/application-dev.properties` to match your local development environment. Namely, update the `lct.path.*` settings 
+4. Run the application using the Spring Boot Maven plugin. To do this, navigate to the main directory containing the `pom.xml` and run `mvn spring-boot:run -Dspring-boot.run.profiles=dev`. This will start the application.
 
 ## Local Development Environment (IntelliJ)
 1. Install Java 16, Maven, Docker, and Docker Compose
