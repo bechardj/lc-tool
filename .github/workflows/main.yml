@@ -16,6 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - shell: bash
+      env:
+         SUPER_SECRET: ${{ secrets.DOCKER_PASS }}
+      run: |
+          example-command "$SUPER_SECRET"
     - name: Set up JDK 16
       uses: actions/setup-java@v2
       with:
