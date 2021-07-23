@@ -52,4 +52,13 @@ public class PrimaryController {
     public String login() {
         return "login";
     }
+
+    /**
+     * Request Invite endpoint
+     * @return Invite Request view
+     */
+    @GetMapping("requestInvite")
+    public String requestInvite() {
+        return "requestInvite";
+    }
 }
