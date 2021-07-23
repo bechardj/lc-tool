@@ -7,7 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import us.jbec.lct.models.LCToolAuthException;
 import us.jbec.lct.models.LCToolException;
+import us.jbec.lct.models.UserInvitation;
+import us.jbec.lct.models.database.InvitationRecord;
+import us.jbec.lct.repositories.InvitationRepository;
 import us.jbec.lct.security.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
@@ -16,9 +21,12 @@ import us.jbec.lct.repositories.UserRepository;
 import us.jbec.lct.security.AuthorizedUser;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for interacting with authenticated users
@@ -33,17 +41,20 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final FirebaseAuth firebaseAuth;
+    private final InvitationRepository invitationRepository;
 
     /**
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
      * @param firebaseAuth autowired parameter
+     * @param invitationRepository autowired parameter
      */
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, FirebaseAuth firebaseAuth) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, FirebaseAuth firebaseAuth, InvitationRepository invitationRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.firebaseAuth = firebaseAuth;
+        this.invitationRepository = invitationRepository;
     }
 
     /**
@@ -80,8 +91,14 @@ public class UserService {
             } else {
                 user = new User(token);
                 if (!user.getFirebaseEmail().contains("uconn.edu")) {
-                    LOG.error("User Without UConn Account Attempted Login");
-                    throw new LCToolException("Bad Domain");
+                    var invitations = invitationRepository.selectInvitationByEmail(user.getFirebaseEmail());
+                    if (invitations.isEmpty()) {
+                        LOG.error("User {} Without UConn Account Attempted Login with No Invitation", user.getFirebaseEmail());
+                        throw new LCToolAuthException("Bad Domain");
+                    } else {
+                        LOG.error("Creating user and removing invitations for user {}", user.getFirebaseEmail());
+                        invitations.forEach(invitationRepository::delete);
+                    }
                 }
                 user.setRoles(defaultRoles());
                 LOG.info("First login for user {}, generating DB rows.", user.getFirebaseEmail());
@@ -102,6 +119,50 @@ public class UserService {
      */
     public Optional<User> getUserByFirebaseIdentifier(String uuid) {
         return userRepository.findById(uuid);
+    }
+
+    @Transactional
+    public void inviteUser(String userToken, UserInvitation userInvitation) {
+        Optional<User> optionalUser = getUserByFirebaseIdentifier(userToken);
+        if (optionalUser.isPresent()) {
+            var user = optionalUser.get();
+            LOG.info("Creating invitation for {} requested by: {}", userInvitation.getEmail(), user.getFirebaseEmail());
+
+            var existingInvites = invitationRepository.selectInvitationByEmail(userInvitation.getEmail());
+            if (!existingInvites.isEmpty()) {
+                LOG.info("Cleaning up existing invites for {}", userInvitation.getEmail());
+                existingInvites.forEach(invite -> invitationRepository.deleteById(invite.getId()));
+            }
+
+            var invitationRecord = new InvitationRecord();
+            invitationRecord.setEmail(userInvitation.getEmail());
+            invitationRecord.setRoles(defaultRoles());
+            invitationRecord.setRequester(user);
+            invitationRepository.save(invitationRecord);
+        } else {
+            throw new LCToolException("Invalid requester");
+        }
+    }
+
+    @Transactional
+    public void deleteInvitation(Long id) {
+        invitationRepository.deleteById(id);
+    }
+
+    public List<UserInvitation> getInvitations() {
+        var userInvitations = new ArrayList<UserInvitation>();
+        invitationRepository.findAll().forEach(invitationRecord -> {
+            var userInvitation = new UserInvitation();
+            userInvitation.setId(invitationRecord.getId());
+            userInvitation.setEmail(invitationRecord.getEmail());
+            userInvitation.setRequestedBy(invitationRecord.getRequester().getFirebaseEmail());
+            userInvitation.setRequestedRole(invitationRecord.getRoles().stream()
+                    .map(Role::getRoleName)
+                    .collect(Collectors.joining(", ")));
+            userInvitations.add(userInvitation);
+        });
+
+        return userInvitations;
     }
 
     /**

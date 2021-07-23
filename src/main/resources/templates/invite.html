@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LC Document Tool</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/datatables/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+
+</head>
+<body>
+
+<nav th:insert="fragments/navbar.html :: nav"></nav>
+<div th:insert="fragments/full-screen-load.html :: div"></div>
+
+<div id="main-content-container" class="container hidden">
+    <h1 class="nbs-title">
+        Invite User
+    </h1>
+    <div class="body">Enter the email corresponding to Google account of the user you are trying to invite.</div>
+    <div>
+        <form action="#" th:action="@{/secure/invite}" th:object="${userInvitation}" method="post">
+            <div class="alert alert-danger" role="alert" th:if="${validationErrors}" th:text="${validationErrors}">Email Error</div></p>
+            <div class="alert alert-success" role="alert" th:if="${success}">Invitation Created</div></p>
+            <div class="alert alert-success" role="alert" th:if="${deleteSuccess}">Invitation Deleted</div></p>
+
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" class="form-control" id="email" th:field="*{email}">
+            </div>
+            <input class="nbs-button" type="submit" value="Submit" />
+        </form>
+    </div>
+    <div class="table-responsive">
+        <h1 class="nbs-title top-pad-2">Outstanding Invitations</h1>
+        <table class="table table-striped" id="inviteListing">
+            <thead class="thead-light">
+            <tr>
+                <th>Email</th>
+                <th>Requester</th>
+                <th>Roles</th>
+                <th></th>
+            </tr>
+            </thead>
+
+            <tr th:each="invite : ${existingInvites}">
+                <td th:text="${invite.email}">1</td>
+                <td th:text="${invite.requestedBy}">John</td>
+                <td th:text="${invite.requestedRole}">John</td>
+                <td> <a class="confirm-delete" th:href="'/secure/invite/delete?id=' + ${invite.id}"><i class="bi bi-trash"></i></a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+<script src="/js/common.js"></script>
+<script src="/webjars/datatables/js/jquery.dataTables.min.js"></script>
+<script src="/js/invite/main.js"></script>
+</body>
+</html>

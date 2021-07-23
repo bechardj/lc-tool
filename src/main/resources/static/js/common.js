@@ -5,6 +5,13 @@ $('.nav-link').filter((i, item) => item.href === window.location.href)
     .parent('.nav-item')
     .addClass('active');
 
+$('.nav-link').click(function() {
+    let href = $(this).attr("href");
+    if (href !== '#') {
+        window.sessionStorage.setItem("loginTarget", href)
+    }
+})
+
 if (window.location.href.includes("testenv") || window.location.href.includes("demo")) {
     $('.demo-warning')
         .show();
@@ -52,8 +59,23 @@ function initLogin(id) {
                             'Content-Type': 'application/json'
                         },
                         body: data
-                    }
-                    ).then(response => window.location = "/")
+                    }).then(response => response.json())
+                        .then(data => {
+                            {
+                                console.log(data);
+                                if (data.error) {
+                                    window.location = "/requestInvite";
+                                } else {
+                                    let target = window.sessionStorage.getItem("loginTarget");
+                                    notify("Login Successful", 3000);
+                                    if (target != null) {
+                                        window.location = target;
+                                    } else {
+                                        window.location = "/";
+                                    }
+                                }
+                            }
+                        })
                 );
                 return false;
             }

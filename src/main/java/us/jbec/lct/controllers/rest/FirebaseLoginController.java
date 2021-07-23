@@ -1,5 +1,6 @@
 package us.jbec.lct.controllers.rest;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -7,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.jbec.lct.models.LCToolAuthException;
+import us.jbec.lct.models.LCToolResponse;
 import us.jbec.lct.security.AuthenticationFilter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,13 +39,20 @@ public class FirebaseLoginController {
      * @param token Firebase token to use for authentication
      */
     @PostMapping("/firebaseLogin")
-    public void doLogin(HttpServletRequest req, @RequestBody String token) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("", token);
-        Authentication authentication = authenticationFilter.attemptAuthentication(authenticationToken);
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        securityContext.setAuthentication(authentication);
-        HttpSession session = req.getSession(true);
-        session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
-        session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, securityContext);
+    public LCToolResponse doLogin(HttpServletRequest req, @RequestBody String token) {
+        var response = new LCToolResponse(false, "");
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("", token);
+            Authentication authentication = authenticationFilter.attemptAuthentication(authenticationToken);
+            SecurityContext securityContext = SecurityContextHolder.getContext();
+            securityContext.setAuthentication(authentication);
+            HttpSession session = req.getSession(true);
+            session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
+            session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        } catch (BadCredentialsException exception) {
+            response.setError(true);
+            response.setInfo(exception.getMessage());
+        }
+        return response;
     }
 }

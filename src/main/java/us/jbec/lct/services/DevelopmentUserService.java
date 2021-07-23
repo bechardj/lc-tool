@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import us.jbec.lct.models.LCToolAuthException;
+import us.jbec.lct.models.LCToolException;
+import us.jbec.lct.repositories.InvitationRepository;
 import us.jbec.lct.security.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
@@ -32,16 +35,18 @@ public class DevelopmentUserService extends UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final InvitationRepository invitationRepository;
 
     /**
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
      */
-    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository) {
-        super(userRepository, roleRepository, null);
+    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository, InvitationRepository invitationRepository) {
+        super(userRepository, roleRepository, null, invitationRepository);
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.invitationRepository = invitationRepository;
     }
 
     /**
