@@ -24,7 +24,7 @@
     <h1 class="nbs-title">
         Invite User
     </h1>
-    <div class="body">Enter the email corresponding to Google account of the user you are trying to invite.</div>
+    <div class="body">Enter the email corresponding to the Google account of the user you are trying to invite.</div>
     <div>
         <form action="#" th:action="@{/secure/invite}" th:object="${userInvitation}" method="post">
             <div class="alert alert-danger" role="alert" th:if="${validationErrors}" th:text="${validationErrors}">Email Error</div></p>
