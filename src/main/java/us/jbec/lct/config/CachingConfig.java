@@ -26,4 +26,13 @@ public class CachingConfig {
     public void evictAllRemoteStatistics() {
         LOG.info("Clearing Remote Statistics Cache");
     }
+
+    /**
+     * Periodically reset dynamic text cache
+     */
+    @Scheduled(fixedDelayString = "${lct.cache.purge.dynamictext:300000}")
+    @CacheEvict(value = "dynamicText", allEntries = true)
+    public void evictAllDynamicText() {
+        LOG.info("Clearing Dynamic Text Cache");
+    }
 }
