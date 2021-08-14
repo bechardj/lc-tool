@@ -1,19 +1,18 @@
 package us.jbec.lct.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import us.jbec.lct.models.LCToolAuthException;
-import us.jbec.lct.models.LCToolException;
-import us.jbec.lct.repositories.InvitationRepository;
-import us.jbec.lct.security.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
+import us.jbec.lct.repositories.InvitationRepository;
 import us.jbec.lct.repositories.RoleRepository;
 import us.jbec.lct.repositories.UserRepository;
 import us.jbec.lct.security.AuthorizedUser;
+import us.jbec.lct.security.UserRoles;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -36,17 +35,20 @@ public class DevelopmentUserService extends UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final InvitationRepository invitationRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
      */
-    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository, InvitationRepository invitationRepository) {
-        super(userRepository, roleRepository, null, invitationRepository);
+    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository,
+                                  InvitationRepository invitationRepository, ObjectMapper objectMapper) {
+        super(userRepository, roleRepository, null, invitationRepository, objectMapper);
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.invitationRepository = invitationRepository;
+        this.objectMapper = objectMapper;
     }
 
     /**

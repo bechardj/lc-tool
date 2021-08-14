@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseToken;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.util.List;
@@ -34,6 +35,9 @@ public class User {
 
     @OneToMany(mappedBy = "owner")
     private List<CloudCaptureDocument> cloudCaptureDocuments;
+
+    @Lob
+    private String userPrefs;
 
     public User (FirebaseToken firebaseToken) {
         this.firebaseIdentifier = firebaseToken.getUid();
@@ -99,5 +103,13 @@ public class User {
 
     public void setCloudCaptureDocuments(List<CloudCaptureDocument> cloudCaptureDocuments) {
         this.cloudCaptureDocuments = cloudCaptureDocuments;
+    }
+
+    public String getUserPrefs() {
+        return userPrefs;
+    }
+
+    public void setUserPrefs(String userPrefs) {
+        this.userPrefs = userPrefs;
     }
 }
