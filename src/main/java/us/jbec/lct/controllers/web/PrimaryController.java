@@ -5,6 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import us.jbec.lct.models.DynamicTextType;
+import us.jbec.lct.models.database.DynamicText;
+import us.jbec.lct.models.database.User;
+import us.jbec.lct.services.DynamicTextService;
+import us.jbec.lct.services.UserService;
+
+import javax.servlet.http.HttpSession;
+import java.util.List;
 
 /**
  * Web Controller for handling general page views
@@ -13,8 +21,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PrimaryController {
 
     Logger LOG = LoggerFactory.getLogger(PrimaryController.class);
-    public PrimaryController() {
-        this.LOG = LOG;
+
+    private final DynamicTextService dynamicTextService;
+    private final UserService userService;
+
+    public PrimaryController(DynamicTextService dynamicTextService,
+                             UserService userService) {
+        this.dynamicTextService = dynamicTextService;
+        this.userService = userService;
     }
 
     /**
@@ -24,6 +38,15 @@ public class PrimaryController {
     @GetMapping("help")
     public String help(){
         return "help";
+    }
+
+    /**
+     * License page
+     * @return License page view
+     */
+    @GetMapping("license")
+    public String license(){
+        return "license";
     }
 
     /**
@@ -40,7 +63,27 @@ public class PrimaryController {
      * @return Home page view
      */
     @GetMapping("/")
-    public String statistics() {
+    public String home(Model model, HttpSession session) {
+        var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
+        var user = (User) session.getAttribute("user");
+        maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
+        var releaseNotes = dynamicTextService.retrieveDynamicTextByType(DynamicTextType.RELEASE_NOTES);
+        if (null != user && !releaseNotes.isEmpty()) {
+            List<DynamicText> displayableReleaseNotes;
+                    var max = userService.retrieveUserPrefs(user)
+                    .getAcknowledgedDynamicText().get(DynamicTextType.RELEASE_NOTES);
+            if (max == null) {
+                displayableReleaseNotes = releaseNotes;
+            } else {
+                displayableReleaseNotes = releaseNotes.stream()
+                        .filter(t -> t.getSortOrder() > max)
+                        .toList();
+            }
+            if (!displayableReleaseNotes.isEmpty()) {
+                model.addAttribute("releaseNotes", displayableReleaseNotes);
+                model.addAttribute("releaseNotesDismiss", displayableReleaseNotes.get(0).getSortOrder());
+            }
+        }
         return "home";
     }
 

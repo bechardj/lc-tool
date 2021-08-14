@@ -7,6 +7,10 @@ function initListing() {
         }
     } );
 
+    $('#upload').click(() => {
+        $('#fileUploadInput').click();
+    })
+
     $('#imageUpload').fileupload({
         maxFileSize: 4000000,
         acceptFileTypes:  /(\.|\/)(jpe?g|png)$/i,
