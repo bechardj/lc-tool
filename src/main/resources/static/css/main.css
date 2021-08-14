@@ -47,6 +47,15 @@ a {
     display: block;
 }
 
+.license-tag {
+    font-family: 'Roboto', serif;
+    font-size: 12px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
 .labelText {
     font-family: 'Roboto', serif;
     font-size: 20px;
