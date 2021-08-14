@@ -1,0 +1,60 @@
+.navbar-pad-top {
+    padding-top: 65px;
+}
+
+.navbar-pad-bottom {
+    padding-bottom: 65px;
+}
+
+.navbar-fixed-height{
+    max-height: 65px;
+}
+
+.file-form {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.hidden-mobile-input {
+    height: 2px;
+    width: 2px;
+    position: relative;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -1px;
+    margin-left: -1px;
+    opacity: 0;
+    z-index: -1;
+}
+
+.prediction-container {
+    width: 15%;
+    min-width: 90px;
+    padding: 10px 15px;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    z-index: 99999;
+}
+
+.alert-prediction {
+    min-width: 120px;
+}
+#mainCanvas {
+    z-index: 1;
+}
+
+#drawingCanvas {
+    z-index: 2;
+}
+.stacked-parent {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+}
+
+.stacked-child {
+    grid-column: 1;
+    grid-row: 1;
+}
