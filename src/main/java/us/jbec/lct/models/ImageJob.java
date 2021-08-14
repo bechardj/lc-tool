@@ -1,14 +1,14 @@
 package us.jbec.lct.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.LineSegment;
-import us.jbec.lct.models.geometry.OffsetRectangle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Image representing Capture Data sent from the client-side of the app, used for
@@ -139,11 +139,20 @@ public class ImageJob {
         this.completed = completed;
     }
 
+    /**
+     * Retrieve sanitized fields
+     * @return sanitized fields
+     */
     public HashMap<String, String> getFields() {
         if (null == fields) {
-            fields = new HashMap<String, String>();
+            fields = new HashMap<>();
         }
-        return fields;
+        var cleanedFields = new HashMap<String, String>();
+        for(var entry : fields.entrySet()) {
+            cleanedFields.put(Jsoup.clean(entry.getKey(), Safelist.basic()),
+                    Jsoup.clean(entry.getValue(), Safelist.basic()));
+        }
+        return cleanedFields;
     }
 
     public void setFields(HashMap<String, String> fields) {
