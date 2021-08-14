@@ -43,8 +43,7 @@ public class FirebaseConfig {
      */
     @PostConstruct
     public void init() {
-        try {
-            FileInputStream serviceAccount = new FileInputStream(servicedAccountJsonPath);
+        try (FileInputStream serviceAccount = new FileInputStream(servicedAccountJsonPath)) {
             FirebaseOptions options = FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
             FirebaseApp.initializeApp(options);
             LOG.info("FirebaseApp successfully initialized");
