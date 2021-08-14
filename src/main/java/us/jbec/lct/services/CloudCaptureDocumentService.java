@@ -18,12 +18,7 @@ import us.jbec.lct.repositories.CloudCaptureDocumentRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Service for interacting with cloud capture documents
@@ -159,7 +154,7 @@ public class CloudCaptureDocumentService {
         if (optionalUser.isPresent()) {
             for (var document : optionalUser.get().getCloudCaptureDocuments()) {
                 if (DocumentStatus.DELETED != document.getDocumentStatus()) {
-                    result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+                    result.put(document, getImageJobFromDocument(document));
                 }
             }
             return result;
@@ -178,7 +173,7 @@ public class CloudCaptureDocumentService {
 
         for (var document : cloudCaptureDocumentRepository.findAll()) {
             if (DocumentStatus.DELETED != document.getDocumentStatus()) {
-                result.put(document, objectMapper.readValue(document.getJobData(), ImageJob.class));
+                result.put(document, getImageJobFromDocument(document));
             }
         }
 
