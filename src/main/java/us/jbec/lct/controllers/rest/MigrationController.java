@@ -14,6 +14,7 @@ import java.io.IOException;
  * Controller for handling migration of images from standalone client application to cloud instance
  */
 @RestController
+@Deprecated
 public class MigrationController {
 
     private final MigrationService migrationService;

@@ -1,4 +1,3 @@
-import { Rectangle, Line } from './geometry.js';
 import {CaptureModes, CaptureState} from "./captureState.js";
 import {loadJob, loadImage} from "./jobLoader.js";
 import { PredictionEngine } from "./predictionEngine.js";
@@ -26,8 +25,16 @@ function captureCanvasInit (predictionEngine) {
 
     let predictionAutofill;
 
+    const PanState = {
+        panning: false,
+        panX: 0,
+        panY: 0,
+        startScreenX: 0,
+        startScreenY: 0
+    }
+
     const Colors = {
-        PINK: "#d9345a",
+        PRIMARY: primaryColor,
         BLUE: "#0000FF",
         GREEN: "#00FF00",
         WHITE: "#FFFFFF"
@@ -36,7 +43,14 @@ function captureCanvasInit (predictionEngine) {
     // Click Functions
 
     function clickDown(event) {
-        if (!state.drawing) {
+        if (!PanState.panning && (event.ctrlKey || event.shiftKey)) {
+            PanState.panning = true;
+            PanState.panX = event.screenX;
+            PanState.panY = event.screenY;
+            PanState.startScreenX = window.scrollX;
+            PanState.startScreenY = window.scrollY;
+        } else if (!state.drawing) {
+            $('.alert-prediction').hide();
             const x = event.pageX - mainCanvas.offsetLeft;
             const y = event.pageY - mainCanvas.offsetTop;
             state.startDrawing(x, y)
@@ -44,21 +58,25 @@ function captureCanvasInit (predictionEngine) {
     }
 
     function clickUp(event) {
-        let index = state.characterRectangles.length-1
-        let rectangle = state.characterRectangles[index];
-        state.stopDrawing();
-        let removedBadRectangle = state.clean();
-        draw();
-        if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill
-            && state.captureMode === CaptureModes.LETTER) {
-            generateCropAndPredict(index, rectangle);
+        if (state.drawing) {
+            let index = state.characterRectangles.length - 1
+            let rectangle = state.characterRectangles[index];
+            state.stopDrawing();
+            let removedBadRectangle = state.clean();
+            draw();
+            if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill
+                && state.captureMode === CaptureModes.LETTER) {
+                generateCropAndPredict(index, rectangle);
+            }
+        } else if (PanState.panning) {
+            PanState.panning = false;
         }
     }
 
     function dragHandler(event) {
         if (state.drawing) {
-            let mouseX = event.pageX - mainCanvas.offsetLeft
-            let mouseY = event.pageY - mainCanvas.offsetTop
+            let mouseX = event.pageX - mainCanvas.offsetLeft;
+            let mouseY = event.pageY - mainCanvas.offsetTop;
             const captureMode = state.captureMode;
             if (captureMode === CaptureModes.LETTER && state.characterRectangles.length > 0 && state.drawing) {
                 const lastDrawn = state.characterRectangles.pop();
@@ -81,6 +99,18 @@ function captureCanvasInit (predictionEngine) {
                 eraser([mouseX, mouseY]);
             }
             draw();
+        } else if (PanState.panning) {
+            if (event.ctrlKey || event.shiftKey) {
+                let offsetY = PanState.panY - event.screenY;
+                let offsetX = PanState.panX - event.screenX;
+                window.scroll({
+                    top: PanState.startScreenY + offsetY,
+                    left: PanState.startScreenX + offsetX,
+                });
+            }
+            else {
+                PanState.panning = false;
+            }
         }
     }
 
@@ -123,12 +153,9 @@ function captureCanvasInit (predictionEngine) {
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             if (captureMode === CaptureModes.LETTER) {
                 let rectangle = state.characterRectangles[state.characterRectangles.length-1];
-                rectangle.draw(drawingCtx, Colors.PINK, 2, transparency, Colors.WHITE);
+                rectangle.draw(drawingCtx, Colors.PRIMARY, 2, transparency, Colors.WHITE);
             }
-            if (captureMode === CaptureModes.WORD) {
-                window.requestAnimationFrame(() => drawComplete());
-            }
-            if (captureMode === CaptureModes.LINE) {
+            if (captureMode === CaptureModes.WORD || captureMode === CaptureModes.LINE) {
                 window.requestAnimationFrame(() => drawComplete());
             }
             drawingCtx.stroke();
@@ -143,7 +170,7 @@ function captureCanvasInit (predictionEngine) {
         const captureMode = state.captureMode;
         const previousCaptureMode = state.previousCaptureMode;
         for (let i = 0; i < state.characterRectangles.length; i++) {
-            let color = Colors.PINK;
+            let color = Colors.PRIMARY;
             let rectangle = state.characterRectangles[i];
             if (captureMode !== CaptureModes.LETTER && captureMode !== CaptureModes.ERASER) {
                 let lines = captureMode === CaptureModes.WORD ? state.wordLines : state.lineLines
@@ -155,7 +182,7 @@ function captureCanvasInit (predictionEngine) {
                 }
             }
             rectangle.draw(mainCtx, color, 2, transparency, Colors.WHITE);
-            rectangle.drawLabel(mainCtx, state.characterLabels[i], Colors.PINK, 1, Colors.WHITE, "Exo", fontSize);
+            rectangle.drawLabel(mainCtx, state.characterLabels[i], Colors.PRIMARY, 1, Colors.WHITE, "Exo", fontSize);
         }
 
         if (captureMode === CaptureModes.WORD
@@ -198,25 +225,9 @@ function captureCanvasInit (predictionEngine) {
         $('.capture-mode').addClass('nbs-button-link-disabled');
         if(state.captureMode === CaptureModes.ERASER) {
             $('#eraser').removeClass('nbs-button-link-disabled');
-            if(state.previousCaptureMode === CaptureModes.LETTER) {
-                $('#letterCap').removeClass('nbs-button-link-disabled');
-            }
-            if(state.previousCaptureMode === CaptureModes.WORD) {
-                $('#wordCap').removeClass('nbs-button-link-disabled');
-            }
-            if(state.previousCaptureMode === CaptureModes.LINE) {
-                $('#lineCap').removeClass('nbs-button-link-disabled');
-            }
+            $('#' + state.previousCaptureMode.toLowerCase() + 'Cap').removeClass('nbs-button-link-disabled');
         } else {
-            if(state.captureMode === CaptureModes.LETTER) {
-                $('#letterCap').removeClass('nbs-button-link-disabled');
-            }
-            if(state.captureMode === CaptureModes.WORD) {
-                $('#wordCap').removeClass('nbs-button-link-disabled');
-            }
-            if(state.captureMode === CaptureModes.LINE) {
-                $('#lineCap').removeClass('nbs-button-link-disabled');
-            }
+            $('#' + state.captureMode.toLowerCase() + 'Cap').removeClass('nbs-button-link-disabled');
         }
         draw();
     }
@@ -475,17 +486,17 @@ function captureCanvasInit (predictionEngine) {
         }
     }
 
-    function init() {
+    async function init() {
         state.drawing = false;
         hideCapture = false;
-        background = new Image();
         jobId = $('#imageId')[0].textContent;
         fontSize = $('#fontSlider')[0].value;
         transparency = true;
         predictionAutofill = predictionEngine !== undefined;
         textFieldEdit = false;
-        loadJob(jobId, state, () => loadImage(jobId, background));
-
+        await loadJob(jobId, state);
+        background = await loadImage(jobId);
+        $('#notes')[0].value = state.notes;
         // Add event listeners
         initEventHandlersAndListeners();
 
@@ -496,21 +507,21 @@ function captureCanvasInit (predictionEngine) {
          * the risk of doing some bad math and causing misalignment between the captured data
          * and what actually gets cropped on the backend
          */
-        // Wait for image to load
-        background.onload = function () {
-            mainCanvas.width = background.width;
-            mainCanvas.height = background.height;
-            drawingCanvas.width = background.width;
-            drawingCanvas.height = background.height;
-            mainCtx.drawImage(background, 0, 0);
-            document.fonts.load(fontSize+  "px Exo").then(() => {
+        mainCanvas.width = drawingCanvas.width = background.width;
+        mainCanvas.height = drawingCanvas.height = background.height;
+
+        mainCtx.drawImage(background, 0, 0);
+
+        if (document.fonts) {
+            document.fonts.load(fontSize + "px Exo");
+            document.fonts.ready.then(() => {
                 draw();
             })
-            setCaptureMode(CaptureModes.LETTER);
-            $('#notes')[0].value = state.notes;
-            $('#full-screen-load').delay(500).fadeOut();
-            $('#main-content-container').delay(750).fadeIn();
         }
+
+        setCaptureMode(CaptureModes.LETTER);
+        $('#full-screen-load').delay(200).fadeOut();
+        $('#main-content-container').delay(200).fadeIn();
     }
 
     function generateCropAndPredict(index, rectangle) {
@@ -542,6 +553,7 @@ function captureCanvasInit (predictionEngine) {
     }
 
     init();
+
     $(window).bind('beforeunload', function () {
         return 'Before closing, make sure you saved your changes.';
     });

@@ -19,12 +19,34 @@
 <div th:insert="fragments/full-screen-load.html :: div"></div>
 
 <div id="main-content-container" class="container hidden">
+
+    <div th:if="${maintenance}" class="padded-body">
+        <div class="alert alert-warning">
+            [(${maintenance})]
+        </div>
+    </div>
+
     <h1 class="nbs-title">
         LC Capture Tool Home
     </h1>
+
+    <div th:if="${releaseNotes}" id="releaseNotes" class="padded-body-left">
+        <div class="alert alert-secondary">
+            <a id="dismissReleaseNotes" th:href="${'/user/dismiss/release?dismissUpTo=' + releaseNotesDismiss}" class="float-right">X</a>
+
+            Hi <div th:text="${session.user.firebaseName}" th:remove="tag"></div>! There's been some changes since you last logged in:
+
+            <div th:each="note : ${releaseNotes}">
+                <br/>
+                [(${note.text})]
+            </div>
+            <br/>
+        </div>
+    </div>
     <p class = "body"><a href="https://lct.jbec.us/bulkOutput/latest">Download Complete Dataset</a></p>
     <button class="nbs-button" id="loginButton">Login</button>
     <div th:insert="fragments/statistics.html :: div"></div>
+    <p class="pt-1 license-tag"><a href="/license">View Licenses</a></p>
 </div>
 
 

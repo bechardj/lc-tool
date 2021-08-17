@@ -2,6 +2,7 @@ package us.jbec.lct.controllers.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -29,16 +30,16 @@ public class ImageController {
     }
 
     /**
-     * Retrieve a Base 64 encoded image by id
+     * Retrieve an image by id
      * @param uuid image uuid to retrieve
-     * @return base 64 encoded image
+     * @return image
      * @throws IOException
      */
-    @GetMapping(value = "/getImage")
-    public @ResponseBody String getJobImage(@RequestParam String uuid) throws IOException {
+    @GetMapping(value = "/image", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getJobImage(@RequestParam String uuid) throws IOException {
         LOG.info("Received request for job associated with id: {}", uuid);
         try {
-            return imageService.getBase64EncodedImageById(uuid);
+            return imageService.getImageById(uuid);
         } catch (Exception e) {
             LOG.error("An error occurred while getting image!", e);
             throw e;

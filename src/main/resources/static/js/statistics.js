@@ -24,8 +24,8 @@ class StatisticsInfo {
                 labels: Object.keys(this.statistics.labelFrequency),
                 datasets: [{
                     label: 'Character Label Frequency',
-                    backgroundColor: 'rgb(217,52,90)',
-                    borderColor: 'rgb(217,52,90)',
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor,
                     data: Object.values(this.statistics.labelFrequency)
                 }]
             },
@@ -43,8 +43,8 @@ class StatisticsInfo {
                 labels: Object.keys(this.statistics.upperFrequency),
                 datasets: [{
                     label: 'Character Label Frequency',
-                    backgroundColor: 'rgb(217,52,90)',
-                    borderColor: 'rgb(217,52,90)',
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor,
                     data: Object.values(this.statistics.upperFrequency)
                 }]
             },
@@ -62,8 +62,8 @@ class StatisticsInfo {
                 labels: Object.keys(this.statistics.lowerFrequency),
                 datasets: [{
                     label: 'Character Label Frequency',
-                    backgroundColor: 'rgb(217,52,90)',
-                    borderColor: 'rgb(217,52,90)',
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor,
                     data: Object.values(this.statistics.lowerFrequency)
                 }]
             },
@@ -81,8 +81,8 @@ class StatisticsInfo {
                 labels: Object.keys(this.statistics.otherFrequency),
                 datasets: [{
                     label: 'Character Label Frequency',
-                    backgroundColor: 'rgb(217,52,90)',
-                    borderColor: 'rgb(217,52,90)',
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor,
                     data: Object.values(this.statistics.otherFrequency)
                 }]
             },
@@ -100,8 +100,8 @@ class StatisticsInfo {
                 labels: Object.keys(this.statistics.userCounts),
                 datasets: [{
                     label: 'User Collected Labels',
-                    backgroundColor: 'rgb(217,52,90)',
-                    borderColor: 'rgb(217,52,90)',
+                    backgroundColor: primaryColor,
+                    borderColor: primaryColor,
                     data: Object.values(this.statistics.userCounts)
                 }]
             },

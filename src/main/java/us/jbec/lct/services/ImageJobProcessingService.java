@@ -221,6 +221,8 @@ public class ImageJobProcessingService {
      * Method for performing scheduled bulk processing of image jobs
      * @throws IOException
      */
+    // TODO: should be queue driven and ideally separated into a separate module that does this work as a batch job
+    // the current approach works ok given the delay is sufficiently log, but limits scalability
     @Scheduled(fixedDelayString = "${lct.remote.export.frequency}")
     public void exportCurrentImageJobs() throws IOException {
         if (exportEnabled) {

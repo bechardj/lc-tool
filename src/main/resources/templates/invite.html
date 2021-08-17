@@ -26,7 +26,7 @@
     </h1>
     <div class="body">Enter the email corresponding to the Google account of the user you are trying to invite.</div>
     <div>
-        <form action="#" th:action="@{/secure/invite}" th:object="${userInvitation}" method="post">
+        <form th:action="@{/secure/invite}" th:object="${userInvitation}" method="post">
             <div class="alert alert-danger" role="alert" th:if="${validationErrors}" th:text="${validationErrors}">Email Error</div></p>
             <div class="alert alert-success" role="alert" th:if="${success}">Invitation Created</div></p>
             <div class="alert alert-success" role="alert" th:if="${deleteSuccess}">Invitation Deleted</div></p>

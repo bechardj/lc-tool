@@ -7,11 +7,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobListing;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.services.CloudCaptureDocumentService;
+import us.jbec.lct.services.DynamicTextService;
 import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
@@ -28,13 +28,17 @@ public class ListingController {
     Logger LOG = LoggerFactory.getLogger(ListingController.class);
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
+    private final DynamicTextService dynamicTextService;
 
     /**
      * Controller for handling the listing of documents
      * @param cloudCaptureDocumentService autowired parameter
+     * @param dynamicTextService autowired parameter
      */
-    public ListingController(CloudCaptureDocumentService cloudCaptureDocumentService) {
+    public ListingController(CloudCaptureDocumentService cloudCaptureDocumentService,
+                             DynamicTextService dynamicTextService) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
+        this.dynamicTextService = dynamicTextService;
     }
 
     /**
@@ -47,6 +51,8 @@ public class ListingController {
     @GetMapping("/secure/listing/all")
     public String listingAll(Authentication authentication, Model model) throws JsonProcessingException {
         try {
+            var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
+            maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
             var cloudCaptureDocuments = cloudCaptureDocumentService
                     .getActiveCloudCaptureDocuments();
             var imageJobListings = buildImageJobListings(cloudCaptureDocuments);
@@ -70,6 +76,8 @@ public class ListingController {
     @GetMapping("/secure/listing")
     public String listing(Authentication authentication, Model model) throws JsonProcessingException {
         var user =  LCToolUtils.getUserFromAuthentication(authentication);
+        var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
+        maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
         try {
             var cloudCaptureDocuments = cloudCaptureDocumentService
                     .getCloudCaptureDocumentsByUserIdentifier(user.getFirebaseIdentifier());

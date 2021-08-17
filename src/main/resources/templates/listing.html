@@ -18,17 +18,34 @@
 <div th:insert="fragments/notifications.html :: div"></div>
 
 <div class="container hidden" id="main-content-container">
+
+    <div th:if="${maintenance}" class="padded-body">
+        <div class="alert alert-warning">
+            [(${maintenance})]
+        </div>
+    </div>
+
     <h1 class = "nbs-title" align="center">LC Capture Tool</h1>
     <p class = "body" align="center">Select the image you would like to capture data from, and click it's name to open.</p>
-    <p class = "body" align="center">Drag an image on to the window to upload it.</p>
-    <form id="imageUpload" method="POST" class="hidden" action="/secure/image/upload" enctype="multipart/form-data">
-        <div class="nbs-container" align="center">
-        <input type="file" name="file" />
-        <input type="submit" value="Submit" />
-        </div>
-    </form>
 
-    <div class="table-responsive">
+    <div th:if="${!listingAll}">
+        <p class = "body" align="center">Drag an image on to the window to upload it.</p>
+        <form id="imageUpload" method="POST" class="hidden" th:action="@{/secure/image/upload}" enctype="multipart/form-data">
+            <div class="nbs-container" align="center">
+            <input id="fileUploadInput" type="file" name="file" />
+            <input type="submit" value="Submit" />
+            </div>
+        </form>
+        <div class="d-flex justify-content-end">
+            <div>
+                <button id="upload" class="nbs-button-compact">
+                    <i class="bi bi-cloud-upload"></i> &nbsp;Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table pt-3">
         <table class="table table-striped" id="jobListing">
             <thead class="thead-light">
             <tr>
