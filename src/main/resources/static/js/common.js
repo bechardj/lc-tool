@@ -4,9 +4,7 @@ var primaryColor = getComputedStyle(document.documentElement).getPropertyValue("
 
 
 $('.nav-link').filter((i, item) => item.href === window.location.href)
-    .attr("href", "#")
-    .parent('.nav-item')
-    .addClass('active');
+    .attr("href", "#");
 
 $('.nav-link').click(function() {
     let href = $(this).attr("href");
