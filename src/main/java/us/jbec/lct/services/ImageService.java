@@ -53,7 +53,7 @@ public class ImageService {
      * @param uuid UUID of document to retrieve the corresponding image of
      * @return image
      */
-
+    // TODO: this should be migrated to some form of object storage
     public byte[] getImageById(String uuid) throws IOException {
         var optionalImage = primaryImageIO.getImageByUuid(uuid);
         if (optionalImage.isPresent()) {

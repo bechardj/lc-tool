@@ -19,6 +19,7 @@ import java.io.IOException;
  * Service for processing migration of legacy image jobs from the standalone application into the cloud application
  */
 @Service
+@Deprecated
 public class MigrationService {
 
     Logger LOG = LoggerFactory.getLogger(MigrationService.class);
