@@ -30,6 +30,8 @@ public class LogoutController {
             HttpSession session = req.getSession(false);
             if (session != null) {
                 session.removeAttribute(SPRING_SECURITY_CONTEXT_KEY);
+                session.removeAttribute("user");
+                session.removeAttribute("prefs");
             }
         }
         return "logout";
