@@ -30,7 +30,7 @@
 
     <div th:if="${!listingAll}">
         <p class = "body" align="center">Drag an image on to the window to upload it.</p>
-        <form id="imageUpload" method="POST" class="hidden" action="/secure/image/upload" enctype="multipart/form-data">
+        <form id="imageUpload" method="POST" class="hidden" th:action="@{/secure/image/upload}" enctype="multipart/form-data">
             <div class="nbs-container" align="center">
             <input id="fileUploadInput" type="file" name="file" />
             <input type="submit" value="Submit" />

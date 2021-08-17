@@ -128,9 +128,7 @@ public class SecurityConfiguration {
                     .loginPage("/login")
                     .and()
                     .authorizeRequests()
-                    .anyRequest().hasRole("USER")
-                    .and()
-                    .csrf().disable();
+                    .anyRequest().hasRole("USER");
         }
 
         AuthenticationFilter authenticationFilter() throws Exception {
