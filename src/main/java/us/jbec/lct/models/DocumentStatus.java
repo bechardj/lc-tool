@@ -7,9 +7,11 @@ public enum DocumentStatus {
     INGESTED("Ingested"),
     DELETED("Deleted"),
     EDITED("Edited"),
-    MIGRATED("Migrated");
+    MIGRATED("Migrated"),
+    COMPLETED("Completed"),
+    IGNORED("Ignored");
 
-    private String description;
+    private final String description;
 
     DocumentStatus(String description) {
         this.description = description;

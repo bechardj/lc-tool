@@ -1,5 +1,6 @@
 package us.jbec.lct.models.geometry;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +28,18 @@ public class OffsetRectangle {
         width = coordinates.get(2);
         height = coordinates.get(3);
 
+        cleanCoordinates();
+    }
+
+    public OffsetRectangle(OffsetRectangle source) {
+        x1 = source.getX1();
+        y1 = source.getY1();
+        width = source.getWidth();
+        height = source.getHeight();
+        cleanCoordinates();
+    }
+
+    private void cleanCoordinates() {
         if (width < 0) {
             x1 = x1 + width;
             width *= -1;
@@ -35,6 +48,10 @@ public class OffsetRectangle {
             y1 = y1 + height;
             height *= -1;
         }
+    }
+
+    public List<Double> generateCoordinatesAsList() {
+        return Arrays.asList(x1, y1, width, height);
     }
 
     /**

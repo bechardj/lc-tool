@@ -1,5 +1,8 @@
 package us.jbec.lct.models.geometry;
 
+import org.locationtech.jts.geom.Coordinate;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,6 +30,10 @@ public class LineSegment extends org.locationtech.jts.geom.LineSegment {
         super(x1, y1, x2, y2);
     }
 
+    public LineSegment (LineSegment source) {
+        super(new Coordinate(source.p0), new Coordinate(source.p1));
+    }
+
     /**
      * Does this line intersect the provided rectangle?
      * @param rectangle OffsetRectangle to check if this line intersects
@@ -37,5 +44,9 @@ public class LineSegment extends org.locationtech.jts.geom.LineSegment {
                 || this.intersection(rectangle.getRightEdge()) != null
                 || this.intersection(rectangle.getTopEdge()) != null
                 || this.intersection(rectangle.getBottomEdge()) != null;
+    }
+
+    public List<Double> getCoordinatesAsList() {
+        return Arrays.asList(p0.x, p0.y, p1.x, p1.y);
     }
 }

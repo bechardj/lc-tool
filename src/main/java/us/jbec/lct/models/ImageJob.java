@@ -9,6 +9,7 @@ import us.jbec.lct.models.geometry.LineSegment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Image representing Capture Data sent from the client-side of the app, used for
@@ -24,7 +25,7 @@ public class ImageJob {
     private List<List<Double>> lineLines;
     private boolean completed;
     private boolean edited;
-    private HashMap<String, String> fields;
+    private Map<String, String> fields;
 
     public boolean isEdited() {
         return edited;
@@ -44,7 +45,7 @@ public class ImageJob {
 
     public List<String> getCharacterLabels() {
         if (characterLabels == null) {
-            characterRectangles = new ArrayList<>();
+            characterLabels = new ArrayList<>();
         }
         return characterLabels;
     }
@@ -70,7 +71,7 @@ public class ImageJob {
     }
 
     public List<List<Double>> getCharacterRectangles() {
-        if (characterLabels == null) {
+        if (characterRectangles == null) {
             characterRectangles = new ArrayList<>();
         }
         return characterRectangles;
@@ -155,7 +156,7 @@ public class ImageJob {
         return cleanedFields;
     }
 
-    public void setFields(HashMap<String, String> fields) {
+    public void setFields(Map<String, String> fields) {
         this.fields = fields;
     }
 }
