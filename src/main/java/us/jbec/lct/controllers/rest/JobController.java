@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.services.CloudCaptureDocumentService;
 import us.jbec.lct.util.LCToolUtils;
 
@@ -41,10 +42,10 @@ public class JobController {
      * @throws JsonProcessingException
      */
     @GetMapping(value = "/getJob")
-    public @ResponseBody ImageJob getJob(@RequestParam String uuid) throws JsonProcessingException {
+    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) throws JsonProcessingException {
         LOG.info("Received request for job: {}", uuid);
         try {
-            return cloudCaptureDocumentService.getImageJobByUuid(uuid);
+            return cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid);
         } catch (Exception e) {
             LOG.error("An error occurred while getting image job!", e);
             throw e;
@@ -67,6 +68,11 @@ public class JobController {
             LOG.error("An error occurred while saving image job!", e);
             throw e;
         }
+    }
+
+    @PostMapping(value = "/sec/api/saveDoc", consumes= { "application/json" })
+    public @ResponseBody void saveDoc(Authentication authentication,  @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
+        var user = LCToolUtils.getUserFromAuthentication(authentication);
     }
 
 }

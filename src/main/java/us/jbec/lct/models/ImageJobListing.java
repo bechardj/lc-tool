@@ -30,7 +30,7 @@ public class ImageJobListing {
         this.owner = cloudCaptureDocument.getOwner().getFirebaseEmail();
         if (cloudCaptureDocument.getUpdateTime() != null) {
             var zonedTime = cloudCaptureDocument.getUpdateTime().atZone(easternZoneId);
-            this.dateAdded = fmt.format(cloudCaptureDocument.getUpdateTime());
+//            this.dateAdded = fmt.format(cloudCaptureDocument.getUpdateTime());
         } else {
             this.dateAdded = "Unknown";
         }

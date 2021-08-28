@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public class ImageJobTransformer {
 
-    public DocumentCaptureData apply(ImageJob imageJob) {
+    public static DocumentCaptureData apply(ImageJob imageJob) {
 
         DocumentCaptureData documentCaptureData = new DocumentCaptureData(imageJob.getId());
 

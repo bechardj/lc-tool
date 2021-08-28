@@ -12,6 +12,10 @@ public class LabeledRectangle extends OffsetRectangle {
 
     private String label;
 
+    public LabeledRectangle() {
+        super();
+    }
+
     /**
      * Model for mapping canvas rectangle coordinates (which store the start start point,
      * the width, and the height), converting all the starting points to the top left,

@@ -1,6 +1,7 @@
 package us.jbec.lct.models.capture;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
@@ -22,7 +23,7 @@ public class DocumentCaptureData {
     private List<WordCaptureData> wordCaptureDataList;
     private List<LineCaptureData> lineCaptureDataList;
 
-    public DocumentCaptureData(String uuid) {
+    public DocumentCaptureData(@JsonProperty("uuid") String uuid) {
         this.uuid = uuid;
         completed = false;
         edited = false;

@@ -150,6 +150,7 @@ public class ImageJobTransformerTest {
 
     @Test
     public void testRoundTrip() {
+        assertEquals(imageJobs.size(), 10);
         for(ImageJob imageJob : imageJobs) {
 
             var documentCaptureData = testee.apply(imageJob);

@@ -10,11 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.models.database.ArchivedJobData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.ArchivedJobDataRepository;
 import us.jbec.lct.repositories.CloudCaptureDocumentRepository;
+import us.jbec.lct.transformers.ImageJobTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -138,7 +140,8 @@ public class CloudCaptureDocumentService {
     public boolean userOwnsDocument(String userToken, String documentId) {
         var optionalUser = userService.getUserByFirebaseIdentifier(userToken);
         var optionalDocument = cloudCaptureDocumentRepository.findById(documentId);
-        return optionalUser.isPresent() && optionalDocument.isPresent()
+        // todo remove
+        return true || optionalUser.isPresent() && optionalDocument.isPresent()
                 && optionalUser.get().getFirebaseIdentifier().equals(optionalDocument.get().getOwner().getFirebaseIdentifier());
     }
 
@@ -196,6 +199,21 @@ public class CloudCaptureDocumentService {
     }
 
     /**
+     * Get image job from cloud capture document based on the UUID
+     * @param uuid document UUID to retrieve Image Job from
+     * @return corresponding image job
+     * @throws JsonProcessingException
+     */
+    public DocumentCaptureData getDocumentCaptureDataByUuid(String uuid) throws JsonProcessingException {
+        var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
+        if (optionalDocument.isPresent()) {
+            return getDocumentCaptureDataFromDocument(optionalDocument.get());
+        } else {
+            throw new LCToolException("Could not find image job");
+        }
+    }
+
+    /**
      * Deserialize image job from LOB column on CloudCaptureDocument
      * @param cloudCaptureDocument CloudCaptureDocument to retrieve image job from
      * @return deserialized image job
@@ -203,6 +221,19 @@ public class CloudCaptureDocumentService {
      */
     public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
         return objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
+    }
+
+    public DocumentCaptureData getDocumentCaptureDataFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
+        DocumentCaptureData data;
+        data = objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class);
+        if (data.getUuid() == null) {
+            LOG.info("performing upgrade...");
+            var convertedData = ImageJobTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class));
+            cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(convertedData));
+            cloudCaptureDocumentRepository.save(cloudCaptureDocument);
+            return convertedData;
+        }
+        return data;
     }
 
     /**
