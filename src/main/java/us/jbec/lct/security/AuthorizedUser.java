@@ -4,6 +4,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import us.jbec.lct.models.database.User;
 
+import java.io.Serializable;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.List;
  * Many classes are overridden or return hard-coded values, because we let Firebase handle
  * the relevant concerns.
  */
-public class AuthorizedUser implements UserDetails {
+public class AuthorizedUser implements UserDetails, Principal, Serializable {
 
     User user;
 
@@ -26,6 +28,11 @@ public class AuthorizedUser implements UserDetails {
     public AuthorizedUser(User user) {
         super();
         this.user = user;
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getCanonicalName();
     }
 
     /**

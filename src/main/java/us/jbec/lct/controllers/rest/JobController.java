@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.models.LCToolResponse;
 import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.services.CloudCaptureDocumentService;
 import us.jbec.lct.util.LCToolUtils;
@@ -42,37 +42,20 @@ public class JobController {
      * @throws JsonProcessingException
      */
     @GetMapping(value = "/getJob")
-    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) throws JsonProcessingException {
+    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) throws JsonProcessingException,
+            CloneNotSupportedException {
         LOG.info("Received request for job: {}", uuid);
         try {
-            return cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid);
+            return DocumentCaptureData.flatten(cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid));
         } catch (Exception e) {
             LOG.error("An error occurred while getting image job!", e);
             throw e;
         }
     }
 
-    /**
-     * Saves an image job
-     * @param authentication authentication object
-     * @param imageJob image job to save
-     * @throws IOException
-     */
-    @PostMapping(value = "/sec/api/saveJob", consumes= { "application/json" })
-    public @ResponseBody void saveJob(Authentication authentication,  @RequestBody ImageJob imageJob) throws IOException {
-        var user = LCToolUtils.getUserFromAuthentication(authentication);
-        LOG.info("Received request to save job.");
-        try {
-            cloudCaptureDocumentService.saveCloudCaptureDocument(user.getFirebaseIdentifier(), imageJob);
-        } catch (Exception e) {
-            LOG.error("An error occurred while saving image job!", e);
-            throw e;
-        }
-    }
-
     @PostMapping(value = "/sec/api/saveDoc", consumes= { "application/json" })
-    public @ResponseBody void saveDoc(Authentication authentication,  @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
+    public LCToolResponse saveDoc(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
+        return new LCToolResponse(false, "Saved!");
     }
-
 }
