@@ -253,7 +253,6 @@ function captureCanvasInit (predictionEngine) {
                 } else if (modifier && code === "KeyL") {
                     setCaptureMode(CaptureModes.LETTER);
                 } else {
-                    state.clean();
                     if (state.captureMode === CaptureModes.LETTER && state.characterCaptureRectangleQueue.length > 0
                         && !state.drawing && !modifier) {
                         // correct the most recent label
@@ -489,6 +488,10 @@ function captureCanvasInit (predictionEngine) {
         transparency = true;
         predictionAutofill = predictionEngine !== undefined;
         textFieldEdit = false;
+        await waitForFirebaseAuthState();
+        let token = await getBearerTokenWithPrompt();
+        await state.connectState(jobId, token);
+        state.drawCallback = draw;
         await loadJob(jobId, state);
         background = await loadImage(jobId);
         $('#notes')[0].value = state.notes;

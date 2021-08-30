@@ -1,4 +1,4 @@
-import { Rectangle, Line } from './geometry.js';
+import { Rectangle, Line} from './geometry.js';
 
 function loadJob(jobId, state) {
     return new Promise((resolve, reject) => {
@@ -10,37 +10,29 @@ function loadJob(jobId, state) {
                 // todo is this already set?
                 state.documentUuid = response.uuid;
                 state.document = response;
-                let deletedUuids = new Set();
-                [... response.characterCaptureDataList, ...response.lineCaptureDataList, ...response.wordCaptureDataList].forEach(data => {
-                    if (data.captureDataRecordType === "DELETE") {
-                        deletedUuids.add(data.uuid);
-                    }
-                })
 
                 // TODO: rectify deleted records, ie, object might want to contain deleted records?
-                response.characterCaptureDataList.forEach(data => {
-                    if (!deletedUuids.has(data.uuid)) {
-                        let rect = new Rectangle();
-                        Object.assign(rect, data)
-                        state.renderableCharacterRectangles.set(data.uuid, rect);
-                    }
-                });
+                for (const key in response.characterCaptureDataMap) {
+                    let rect = new Rectangle();
+                    let data = response.characterCaptureDataMap[key][0];
+                    Object.assign(rect, data);
+                    state.renderableCharacterRectangles.set(data.uuid, rect);
+                }
 
-                response.wordCaptureDataList.forEach(data => {
-                    if (!deletedUuids.has(data.uuid)) {
-                        let line = new Line();
-                        Object.assign(line, data);
-                        state.renderableWordLines.set(data.uuid, line);
-                    }
-                });
+                for (const key in response.wordCaptureDataMap) {
+                    let line = new Line();
+                    let data = response.wordCaptureDataMap[key][0];
+                    Object.assign(line, data);
+                    state.renderableWordLines.set(data.uuid, line);
+                }
 
-                response.lineCaptureDataList.forEach(data => {
-                    if (!deletedUuids.has(data.uuid)) {
-                        let line = new Line();
-                        Object.assign(line, data);
-                        state.renderableLineLines.set(data.uuid, line);
-                    }
-                });
+                for (const key in response.lineCaptureDataMap) {
+                    let line = new Line();
+                    let data = response.lineCaptureDataMap[key][0];
+                    Object.assign(line, data);
+                    state.renderableLineLines.set(data.uuid, line);
+                }
+
 
                 // if (jobInfo.characterRectangles !== null) {
                 //     state.characterRectangles = Rectangle.convertFromArrayOfPoints(jobInfo.characterRectangles);

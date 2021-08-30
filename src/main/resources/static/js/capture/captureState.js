@@ -8,12 +8,31 @@ const CaptureModes = {
     DISABLED: 'Disabled'
 }
 
+const DataType = {
+    LETTER: 'Letter',
+    WORD: 'Word',
+    LINE: 'Line'
+}
+
+class CaptureDataPayload {
+    originator;
+    characterCaptureData;
+    lineCaptureData;
+    wordCaptureData;
+
+    constructor() {
+    }
+}
+
 class CaptureState {
+
     document;
+    drawCallback;
+    publishEnabled;
+
     constructor() {
         this.drawing = false;
-
-        this.deletedUuids = new Set();
+        this.session = UUID.genV4().hexString;
 
         this.renderableCharacterRectangles = new Map();
         this.deletedCharacterRectangles = new Map();
@@ -27,32 +46,118 @@ class CaptureState {
         this.wordLinesRedoQueue = [];
         this.wordLinesErasedQueue = [];
 
-
         this.renderableLineLines = new Map();
         this.deletedLineLines = new Map();
         this.lineLinesQueue = [];
         this.lineLinesRedoQueue = [];
         this.lineLinesErasedQueue = [];
 
-        this.characterRectangles = [];
-        this.characterLabels = [];
-
-        this.wordLines = [];
-        this.redoQueueWordLines = [];
-
-        this.lineLines = [];
-        this.redoQueueLineLines = [];
-
-        this.erasedCharacterRectangles = [];
-        this.erasedWordLines = [];
-        this.erasedLineLines = [];
-
         this.notes = "";
 
         this.captureMode = CaptureModes.WORD;
         this.previousCaptureMode = undefined;
 
-        this.jobInfo = undefined;
+    }
+
+    publishData(data, dataType) {
+        let payload = new CaptureDataPayload();
+        payload.originator = this.session;
+        if (dataType === DataType.LETTER) {
+            payload.characterCaptureData = data;
+        } else if (dataType === DataType.WORD) {
+            payload.wordCaptureData = data;
+        } else if (dataType === DataType.LINE) {
+            payload.lineCaptureData = data;
+        }
+        this.client.send('/app/document/' + this.document.uuid, {}, JSON.stringify(payload));
+    }
+
+    processPayload(payload) {
+        console.log("rcv payload");
+        if (payload.originator !== undefined && payload.originator !== this.session) {
+            console.log("new data");
+            if (payload.characterCaptureData !== undefined) {
+                let rect = new Rectangle();
+                Object.assign(rect, payload.characterCaptureData);
+                if (payload.characterCaptureData.captureDataRecordType === "CREATE") {
+                    rect.labeledRectangle.label = rect.labeledRectangle.label === null ? undefined : rect.labeledRectangle.label;
+                    if (this.document.characterCaptureDataMap[payload.characterCaptureData.uuid] === undefined) {
+                        this.renderableCharacterRectangles.set(rect.uuid, rect);
+                    }
+                    let createRecord = new Rectangle(rect.asArray);
+                    createRecord.uuid = rect.uuid;
+                    this.safeAddToMap(this.document.characterCaptureDataMap, createRecord);
+                } else {
+                    this.renderableCharacterRectangles.delete(rect.uuid);
+
+                    let deleteRecord = new Rectangle();
+                    deleteRecord.uuid = rect.uuid;
+                    deleteRecord.captureDataRecordType = "DELETE";
+
+                    this.safeAddToMap(this.document.characterCaptureDataMap, deleteRecord);
+                }
+            } else if (payload.wordCaptureData !== undefined) {
+                let line = new Line();
+                Object.assign(line, payload.wordCaptureData);
+                if (payload.wordCaptureData.captureDataRecordType === "CREATE") {
+                    if (this.document.wordCaptureDataMap[payload.wordCaptureData.uuid] === undefined) {
+                        this.renderableWordLines.set(line.uuid, line);
+                    }
+                    let createRecord = new Line(line.asArray);
+                    createRecord.uuid = line.uuid;
+                    this.safeAddToMap(this.document.wordCaptureDataMap, createRecord);
+                } else {
+                    this.renderableWordLines.delete(line.uuid);
+
+                    let deleteLine = new Line();
+                    deleteLine.uuid = line.uuid;
+                    deleteLine.captureDataRecordType = "DELETE";
+
+                    this.safeAddToMap(this.document.wordCaptureDataMap, deleteLine);
+                }
+            } else if (payload.lineCaptureData !== undefined) {
+                let line = new Line();
+                Object.assign(line, payload.lineCaptureData);
+                if (payload.lineCaptureData.captureDataRecordType === "CREATE") {
+                    if (this.document.lineCaptureDataMap[payload.lineCaptureData.uuid] === undefined) {
+                        this.renderableLineLines.set(line.uuid, line);
+                    }
+                    let createRecord = new Line(line.asArray);
+                    createRecord.uuid = line.uuid;
+                    this.safeAddToMap(this.document.lineCaptureDataMap, createRecord);
+                } else {
+                    this.renderableLineLines.delete(line.uuid);
+
+                    let deleteLine = new Line();
+                    deleteLine.uuid = line.uuid;
+                    deleteLine.captureDataRecordType = "DELETE";
+                    this.safeAddToMap(this.document.lineCaptureDataMap, deleteLine);
+                }
+            }
+            this.drawCallback();
+        }
+    }
+
+    connectState(jobId, token) {
+        return new Promise((resolve, reject) => {
+            console.log("init ws")
+            let sock = new SockJS("/stomp");
+            this.client = Stomp.over(sock);
+            this.client.debug = f => f;
+            this.client.connect({'token': token}, () => {
+                this.client.subscribe(('/topic/document/' + jobId), (data) => {
+                    this.processPayload(JSON.parse(data.body));
+                });
+                resolve();
+                this.client.send(('/app/document/' + jobId), {}, '' + Date());
+                // },
+                //     () =>{}, // no error handling for now
+                //     () => {
+                //         console.warn("reconnect")
+                //         setTimeout(() => this.connectState(jobId), 2000);
+                //     });
+            });
+        });
     }
 
     lastIsLabeled() {
@@ -67,8 +172,8 @@ class CaptureState {
 
     clearEraserQueues() {
         this.characterCaptureRectangleErasedQueue = [];
-        this.erasedWordLines = [];
-        this.erasedLineLines = [];
+        this.wordLinesErasedQueue = [];
+        this.lineLinesErasedQueue = [];
     }
 
     undo(callback) {
@@ -83,8 +188,8 @@ class CaptureState {
                 let line = this.renderableWordLines.get(undoneUuid);
                 this.deleteWordLine(line);
                 this.wordLinesRedoQueue.push(undoneUuid);
-            } else if (this.captureMode === CaptureModes.LINE && this.lineLines.length > 0) {
-                let undoneUuid = this.lineLines[this.lineLines.length-1];
+            } else if (this.captureMode === CaptureModes.LINE && this.lineLinesQueue.length > 0) {
+                let undoneUuid = this.lineLinesQueue[this.lineLinesQueue.length-1];
                 let line = this.renderableLineLines.get(undoneUuid);
                 this.deleteLineLine(line);
                 this.lineLinesRedoQueue.push(undoneUuid);
@@ -92,8 +197,12 @@ class CaptureState {
                 this.characterCaptureRectangleErasedQueue.forEach(uuid => {
                     this.reviveRect(uuid);
                 })
-                this.wordLines = this.wordLines.concat(this.erasedWordLines);
-                this.lineLines = this.lineLines.concat(this.erasedLineLines);
+                this.wordLinesErasedQueue.forEach(uuid => {
+                    this.reviveWordLine(uuid);
+                })
+                this.lineLinesErasedQueue.forEach(uuid => {
+                    this.reviveLineLine(uuid);
+                })
                 this.clearEraserQueues();
             }
             callback.call();
@@ -149,30 +258,6 @@ class CaptureState {
         }
     }
 
-    clean() {
-        let removedBadRectangle = false;
-        // for (let i = 0; i < this.characterRectangles.length; i++) {
-        //     let r = this.characterRectangles[i];
-        //     if (Math.abs(r.width) < 10 || Math.abs(r.height) < 10) {
-        //         console.log("Removing bad rectangle");
-        //         this.characterRectangles.splice(i, 1);
-        //         this.characterLabels.splice(i, 1);
-        //         removedBadRectangle = true;
-        //     }
-        // }
-        // consider lines less than 10 px as erroneous
-        for(const lines of Array.of(this.wordLines, this.lineLines)) {
-            for (let j = 0; j < lines.length; j++) {
-                let line = lines[j];
-                if (line.length() < 10) {
-                    console.log("Removing bad line");
-                    lines.splice(j, 1);
-                }
-            }
-        }
-        return removedBadRectangle;
-    }
-    
     startDrawing(eventX, eventY) {
         if (this.captureMode === CaptureModes.LETTER && this.lastIsLabeled()) {
             this.drawing = true;
@@ -197,6 +282,7 @@ class CaptureState {
     stopDrawing() {
         this.drawing = false;
         let wasCommitted = false;
+
         if(this.stagedCharacterRectangle !== undefined) {
             if (Math.abs(this.stagedCharacterRectangle.labeledRectangle.width) > 10
                 && Math.abs(this.stagedCharacterRectangle.labeledRectangle.height) > 10) {
@@ -206,6 +292,7 @@ class CaptureState {
                 console.warn("Not Committing Rectangle because it is too small.");
             }
         }
+
         if(this.stagedWordLine !== undefined) {
             if (this.stagedWordLine.length() > 10) {
                 this.commitWordLine(this.stagedWordLine);
@@ -214,6 +301,7 @@ class CaptureState {
                 console.warn("Not Committing Word Line because it is too small.");
             }
         }
+
         if(this.stagedLineLine !== undefined) {
             if (this.stagedLineLine.length() > 10) {
                 this.commitLineLine(this.stagedLineLine);
@@ -245,9 +333,11 @@ class CaptureState {
         this.characterCaptureRectangleQueue.push(rect.uuid);
 
         let createRecord = new Rectangle(rect.asArray);
+        createRecord.labeledRectangle.label = rect.labeledRectangle.label;
         createRecord.uuid = rect.uuid;
 
-        this.document.characterCaptureDataList.push(createRecord);
+        this.safeAddToMap(this.document.characterCaptureDataMap, createRecord);
+        this.publishData(createRecord, DataType.LETTER);
     }
 
     commitWordLine(line) {
@@ -257,7 +347,8 @@ class CaptureState {
         let createRecord = new Line(line.asArray);
         createRecord.uuid = line.uuid;
 
-        this.document.wordCaptureDataList.push(createRecord);
+        this.safeAddToMap(this.document.wordCaptureDataMap, createRecord);
+        this.publishData(createRecord, DataType.WORD);
     }
 
     commitLineLine(line) {
@@ -267,11 +358,11 @@ class CaptureState {
         let createRecord = new Line(line.asArray);
         createRecord.uuid = line.uuid;
 
-        this.document.lineCaptureDataList.push(createRecord);
+        this.safeAddToMap(this.document.lineCaptureDataMap, createRecord);
+        this.publishData(createRecord, DataType.LINE);
     }
 
     reverseSearchArrayForUuid(array, uuid) {
-        console.log(array, uuid);
         let i;
         for(i = array.length - 1; i>= 0; i--) {
             if(array[i] === uuid) {
@@ -296,7 +387,8 @@ class CaptureState {
         deleteRecord.uuid = rect.uuid;
         deleteRecord.captureDataRecordType = "DELETE";
 
-        this.document.characterCaptureDataList.push(deleteRecord);
+        this.safeAddToMap(this.document.characterCaptureDataMap, deleteRecord);
+        this.publishData(deleteRecord, DataType.LETTER);
     }
 
     eraseRectangle(rect) {
@@ -316,7 +408,8 @@ class CaptureState {
         deleteLine.uuid = line.uuid;
         deleteLine.captureDataRecordType = "DELETE";
 
-        this.document.lineCaptureDataList.push(deleteLine);
+        this.safeAddToMap(this.document.lineCaptureDataMap, deletedLine);
+        this.publishData(deletedLine, DataType.LINE);
     }
 
     eraseWordLine(line) {
@@ -337,7 +430,8 @@ class CaptureState {
         deleteLine.uuid = line.uuid;
         deleteLine.captureDataRecordType = "DELETE";
 
-        this.document.wordCaptureDataList.push(deleteLine);
+        this.safeAddToMap(this.document.wordCaptureDataMap, deletedLine);
+        this.publishData(deletedLine, DataType.WORD)
     }
 
     eraseLineLine(line) {
@@ -357,6 +451,16 @@ class CaptureState {
         let existingRect = this.renderableCharacterRectangles.get(rectangle.uuid);
         return !this.drawing && existingRect !== undefined && existingRect.label === undefined
             && !this.lastIsLabeled();
+    }
+
+    safeAddToMap(map, element) {
+        if (element.uuid === undefined) {
+            throw "Try to add element to map with undefined uuid";
+        }
+        if (map[element.uuid] === undefined) {
+            map[element.uuid] = [];
+        }
+        map[element.uuid].push(element);
     }
 }
 

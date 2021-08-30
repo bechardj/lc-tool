@@ -97,6 +97,12 @@ firebase.auth().onAuthStateChanged(function (user) {
     $('.wait-for-auth').removeClass('hidden-occupy');
 });
 
+function waitForFirebaseAuthState() {
+    return new Promise((resolve, reject) => {
+        firebase.auth().onAuthStateChanged(() => {resolve()});
+    });
+}
+
 firebase.auth();
 
 if(window.location.hostname === 'localhost') {

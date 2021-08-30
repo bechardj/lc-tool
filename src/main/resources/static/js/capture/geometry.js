@@ -130,7 +130,7 @@ class Line {
     }
 
     initFromExisting(line) {
-        this.line = new LineSegment(line.asArray);
+        this.lineSegment = new LineSegment(line.asArray);
         this.captureDataRecordType = "CREATE";
         this.uuid = UUID.genV4().hexString;
     }
