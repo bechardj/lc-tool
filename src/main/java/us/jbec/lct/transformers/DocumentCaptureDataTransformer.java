@@ -2,10 +2,7 @@ package us.jbec.lct.transformers;
 
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFields;
-import us.jbec.lct.models.capture.CharacterCaptureData;
 import us.jbec.lct.models.capture.DocumentCaptureData;
-import us.jbec.lct.models.capture.LineCaptureData;
-import us.jbec.lct.models.capture.WordCaptureData;
 import us.jbec.lct.models.geometry.LineSegment;
 
 import java.util.HashMap;
@@ -13,7 +10,7 @@ import java.util.Map;
 
 public class DocumentCaptureDataTransformer {
 
-    public ImageJob apply(DocumentCaptureData documentCaptureData) {
+    public static ImageJob apply(DocumentCaptureData documentCaptureData) throws CloneNotSupportedException {
         DocumentCaptureData source = DocumentCaptureData.flatten(documentCaptureData, documentCaptureData.getUuid());
         ImageJob target = new ImageJob();
 
@@ -26,20 +23,20 @@ public class DocumentCaptureDataTransformer {
 
         target.setFields(fields);
 
-        source.getCharacterCaptureDataList().stream()
-                .map(CharacterCaptureData::getLabeledRectangle)
+        source.getCharacterCaptureDataMap().values().stream()
+                .map(entry -> entry.get(0).getLabeledRectangle())
                 .forEach(labeledRectangle -> {
                     target.getCharacterRectangles().add(labeledRectangle.generateCoordinatesAsList());
                     target.getCharacterLabels().add(labeledRectangle.getLabel());
                 });
 
-        target.setWordLines(source.getWordCaptureDataList().stream()
-                .map(WordCaptureData::getLineSegment)
+        target.setWordLines(source.getWordCaptureDataMap().values().stream()
+                .map(entry -> entry.get(0).getLineSegment())
                 .map(LineSegment::getCoordinatesAsList)
                 .toList());
 
-        target.setLineLines(source.getLineCaptureDataList().stream()
-                .map(LineCaptureData::getLineSegment)
+        target.setLineLines(source.getLineCaptureDataMap().values().stream()
+                .map(entry -> entry.get(0).getLineSegment())
                 .map(LineSegment::getCoordinatesAsList)
                 .toList());
 

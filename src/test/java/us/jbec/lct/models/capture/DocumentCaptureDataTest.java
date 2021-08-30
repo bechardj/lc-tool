@@ -6,14 +6,13 @@ import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.LineSegment;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.testng.Assert.*;
 
 public class DocumentCaptureDataTest {
 
     @Test
-    public void testFlattenNoCaptureData() {
+    public void testFlattenNoCaptureData() throws CloneNotSupportedException {
         DocumentCaptureData data = new DocumentCaptureData("1234");
         data.setEdited(true);
         data.setCompleted(false);
@@ -24,13 +23,13 @@ public class DocumentCaptureDataTest {
         assertTrue(result.isEdited());
         assertFalse(result.isCompleted());
         assertEquals(result.getNotes(), "Working on it...");
-        assertTrue(result.getCharacterCaptureDataList().isEmpty());
-        assertTrue(result.getWordCaptureDataList().isEmpty());
-        assertTrue(result.getLineCaptureDataList().isEmpty());
+        assertTrue(result.getCharacterCaptureDataMap().isEmpty());
+        assertTrue(result.getWordCaptureDataMap().isEmpty());
+        assertTrue(result.getLineCaptureDataMap().isEmpty());
     }
 
     @Test
-    public void testFlattenWordCaptureData() {
+    public void testFlattenWordCaptureData() throws CloneNotSupportedException {
 
         var data = new DocumentCaptureData("1234");
 
@@ -48,19 +47,23 @@ public class DocumentCaptureDataTest {
         wordCaptureData3.setCaptureDataRecordType(CaptureDataRecordType.DELETE);
         wordCaptureData3.setUuid("wc1");
 
-        data.setWordCaptureDataList(Arrays.asList(wordCaptureData1, wordCaptureData2, wordCaptureData3));
+        Arrays.asList(wordCaptureData1, wordCaptureData2, wordCaptureData3)
+                .forEach(data::insertWordCaptureData);
 
         var result = DocumentCaptureData.flatten(data, "1234");
 
         assertNotNull(result);
-        assertEquals(result.getWordCaptureDataList().size(), 1);
-        var wordCaptureData2Flattened = result.getWordCaptureDataList().get(0);
+        assertEquals(result.getWordCaptureDataMap().size(), 1);
+        assertNotNull(result.getWordCaptureDataMap().get(wordCaptureData2.getUuid()));
+        assertEquals(result.getWordCaptureDataMap().get(wordCaptureData2.getUuid()).size(), 1);
+        var wordCaptureData2Flattened = result.getWordCaptureDataMap()
+                .get(wordCaptureData2.getUuid()).get(0);
         assertEquals(wordCaptureData2Flattened.getUuid(), "wc2");
         assertEquals(wordCaptureData2Flattened.getLineSegment(), new LineSegment(2,3,3,4));
     }
 
     @Test
-    public void testFlattenLineCaptureData() {
+    public void testFlattenLineCaptureData() throws CloneNotSupportedException {
 
         var data = new DocumentCaptureData("1234");
 
@@ -78,19 +81,23 @@ public class DocumentCaptureDataTest {
         lineCaptureData3.setCaptureDataRecordType(CaptureDataRecordType.DELETE);
         lineCaptureData3.setUuid("lc2");
 
-        data.setLineCaptureDataList(Arrays.asList(lineCaptureData1, lineCaptureData2, lineCaptureData3));
+        Arrays.asList(lineCaptureData1, lineCaptureData2, lineCaptureData3)
+                .forEach(data::insertLineCaptureData);
 
         var result = DocumentCaptureData.flatten(data, "1234");
 
         assertNotNull(result);
-        assertEquals(result.getLineCaptureDataList().size(), 1);
-        var lineCaptureData1Flattened = result.getLineCaptureDataList().get(0);
+        assertEquals(result.getLineCaptureDataMap().size(), 1);
+        assertNotNull(result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()));
+        assertEquals(result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()).size(), 1);
+
+        var lineCaptureData1Flattened = result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()).get(0);
         assertEquals(lineCaptureData1Flattened.getUuid(), "lc1");
         assertEquals(lineCaptureData1Flattened.getLineSegment(), new LineSegment(1,2,3,4));
     }
 
     @Test
-    public void testFlattenCharacterCaptureData() {
+    public void testFlattenCharacterCaptureData() throws CloneNotSupportedException {
 
         var data = new DocumentCaptureData("1234");
 
@@ -108,19 +115,23 @@ public class DocumentCaptureDataTest {
         characterCaptureData3.setUuid("cc1");
         characterCaptureData3.setCaptureDataRecordType(CaptureDataRecordType.DELETE);
 
-        data.setCharacterCaptureDataList(Arrays.asList(characterCaptureData3, characterCaptureData2, characterCaptureData1, characterCaptureData3, characterCaptureData1));
+        Arrays.asList(characterCaptureData3, characterCaptureData2, characterCaptureData1, characterCaptureData3, characterCaptureData1)
+                .forEach(data::insertCharacterCaptureData);
 
         var result = DocumentCaptureData.flatten(data, "1234");
 
         assertNotNull(result);
-        assertEquals(result.getCharacterCaptureDataList().size(), 1);
-        var characterCaptureData2Flattened = result.getCharacterCaptureDataList().get(0);
+        assertEquals(result.getCharacterCaptureDataMap().size(), 1);
+        assertNotNull(result.getCharacterCaptureDataMap().get(characterCaptureData2.getUuid()));
+        assertEquals(result.getCharacterCaptureDataMap().get(characterCaptureData2.getUuid()).size(), 1);
+
+        var characterCaptureData2Flattened = result.getCharacterCaptureDataMap().get(characterCaptureData2.getUuid()).get(0);
         assertEquals(characterCaptureData2Flattened.getUuid(), "cc2");
         assertEquals(characterCaptureData2Flattened.getLabeledRectangle(), new LabeledRectangle(Arrays.asList(1.0,2.1,3.1,4.1), "B"));
     }
 
     @Test
-    public void testManipulateAfterFlatten() {
+    public void testManipulateAfterFlatten() throws CloneNotSupportedException {
 
         var data = new DocumentCaptureData("1234");
 
@@ -139,20 +150,29 @@ public class DocumentCaptureDataTest {
         characterCaptureData1.setLabeledRectangle(new LabeledRectangle(Arrays.asList(1.0,2.0,3.0,4.0), "a"));
         characterCaptureData1.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
 
-        data.setWordCaptureDataList(Collections.singletonList(wordCaptureData1));
-        data.setLineCaptureDataList(Collections.singletonList(lineCaptureData1));
-        data.setCharacterCaptureDataList(Collections.singletonList(characterCaptureData1));
+        data.insertWordCaptureData(wordCaptureData1);
+        data.insertLineCaptureData(lineCaptureData1);
+        data.insertCharacterCaptureData(characterCaptureData1);
 
         var result = DocumentCaptureData.flatten(data, "1234");
 
         assertNotNull(result);
-        assertEquals(result.getWordCaptureDataList().size(), 1);
-        assertEquals(result.getLineCaptureDataList().size(), 1);
-        assertEquals(result.getCharacterCaptureDataList().size(), 1);
 
-        var wordCaptureData1Flattened = result.getWordCaptureDataList().get(0);
-        var lineCaptureData1Flattened = result.getLineCaptureDataList().get(0);
-        var characterCaptureData1Flattened = result.getCharacterCaptureDataList().get(0);
+        assertEquals(result.getWordCaptureDataMap().size(), 1);
+        assertNotNull(result.getWordCaptureDataMap().get(wordCaptureData1.getUuid()));
+        assertEquals(result.getWordCaptureDataMap().get(wordCaptureData1.getUuid()).size(), 1);
+
+        assertEquals(result.getLineCaptureDataMap().size(), 1);
+        assertNotNull(result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()));
+        assertEquals(result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()).size(), 1);
+
+        assertEquals(result.getCharacterCaptureDataMap().size(), 1);
+        assertNotNull(result.getCharacterCaptureDataMap().get(characterCaptureData1.getUuid()));
+        assertEquals(result.getCharacterCaptureDataMap().get(characterCaptureData1.getUuid()).size(), 1);
+
+        var wordCaptureData1Flattened = result.getWordCaptureDataMap().get(wordCaptureData1.getUuid()).get(0);
+        var lineCaptureData1Flattened = result.getLineCaptureDataMap().get(lineCaptureData1.getUuid()).get(0);
+        var characterCaptureData1Flattened = result.getCharacterCaptureDataMap().get(characterCaptureData1.getUuid()).get(0);
 
         wordCaptureData1Flattened.setUuid("9");
         wordCaptureData1Flattened.setCaptureDataRecordType(CaptureDataRecordType.DELETE);

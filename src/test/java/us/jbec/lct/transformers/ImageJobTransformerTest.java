@@ -5,10 +5,6 @@ import org.springframework.util.ResourceUtils;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import us.jbec.lct.models.ImageJob;
-import us.jbec.lct.models.capture.CaptureData;
-import us.jbec.lct.models.capture.CharacterCaptureData;
-import us.jbec.lct.models.capture.LineCaptureData;
-import us.jbec.lct.models.capture.WordCaptureData;
 import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.LineSegment;
 
@@ -19,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.testng.Assert.*;
 
@@ -27,7 +22,6 @@ public class ImageJobTransformerTest {
 
     List<ImageJob> imageJobs;
 
-    private final ImageJobTransformer testee = new ImageJobTransformer();
     private final DocumentCaptureDataTransformer documentCaptureDataTransformer = new DocumentCaptureDataTransformer();
 
     @BeforeSuite
@@ -51,7 +45,7 @@ public class ImageJobTransformerTest {
         fields.put("NOTES", "note");
         imageJob.setFields(fields);
 
-        var result = testee.apply(imageJob);
+        var result = ImageJobTransformer.apply(imageJob);
 
         assertNotNull(result);
         assertEquals(result.getUuid(), "id");
@@ -59,9 +53,9 @@ public class ImageJobTransformerTest {
         assertTrue(result.isEdited());
         assertEquals(result.getNotes(), "note");
 
-        assertTrue(result.getCharacterCaptureDataList().isEmpty());
-        assertTrue(result.getLineCaptureDataList().isEmpty());
-        assertTrue(result.getWordCaptureDataList().isEmpty());
+        assertTrue(result.getCharacterCaptureDataMap().isEmpty());
+        assertTrue(result.getLineCaptureDataMap().isEmpty());
+        assertTrue(result.getWordCaptureDataMap().isEmpty());
     }
 
     @Test
@@ -80,14 +74,15 @@ public class ImageJobTransformerTest {
         imageJob.setCharacterRectangles(captureRectangles);
         imageJob.setCharacterLabels(labels);
 
-        var result = testee.apply(imageJob);
+        var result = ImageJobTransformer.apply(imageJob);
         assertNotNull(result);
 
-        assertEquals(result.getCharacterCaptureDataList().size(), 3);
-        Set<String> uuids = result.getCharacterCaptureDataList().stream().map(CaptureData::getUuid).collect(Collectors.toSet());
+        assertEquals(result.getCharacterCaptureDataMap().size(), 3);
+        Set<String> uuids = result.getCharacterCaptureDataMap().keySet();
         assertEquals(uuids.size(), 3);
 
-        result.getCharacterCaptureDataList().stream().map(CharacterCaptureData::getLabeledRectangle)
+        result.getCharacterCaptureDataMap().values().stream()
+                .map(entryList -> entryList.get(0).getLabeledRectangle())
                 .forEach(labeledRectangle -> {
                     assertTrue(imageJob.getLabeledRectangles().contains(labeledRectangle));
                 });
@@ -107,14 +102,15 @@ public class ImageJobTransformerTest {
 
         imageJob.setWordLines(wordLines);
 
-        var result = testee.apply(imageJob);
+        var result = ImageJobTransformer.apply(imageJob);
         assertNotNull(result);
 
-        assertEquals(result.getWordCaptureDataList().size(), 3);
-        Set<String> uuids = result.getWordCaptureDataList().stream().map(CaptureData::getUuid).collect(Collectors.toSet());
+        assertEquals(result.getWordCaptureDataMap().size(), 3);
+        Set<String> uuids = result.getWordCaptureDataMap().keySet();
         assertEquals(uuids.size(), 3);
 
-        result.getWordCaptureDataList().stream().map(WordCaptureData::getLineSegment)
+        result.getWordCaptureDataMap().values().stream()
+                .map(entryList -> entryList.get(0).getLineSegment())
                 .forEach(lineSegment -> {
                     assertTrue(imageJob.getWordLineSegments().contains(lineSegment));
                 });
@@ -134,14 +130,16 @@ public class ImageJobTransformerTest {
 
         imageJob.setLineLines(lineLines);
 
-        var result = testee.apply(imageJob);
+        var result = ImageJobTransformer.apply(imageJob);
         assertNotNull(result);
 
-        assertEquals(result.getLineCaptureDataList().size(), 3);
-        Set<String> uuids = result.getLineCaptureDataList().stream().map(CaptureData::getUuid).collect(Collectors.toSet());
+        assertEquals(result.getLineCaptureDataMap().size(), 3);
+        Set<String> uuids = result.getLineCaptureDataMap().keySet();
         assertEquals(uuids.size(), 3);
 
-        result.getLineCaptureDataList().stream().map(LineCaptureData::getLineSegment)
+        result.getLineCaptureDataMap().values()
+                .stream()
+                .map(entryList -> entryList.get(0).getLineSegment())
                 .forEach(lineSegment -> {
                     assertTrue(imageJob.getLineLineSegments().contains(lineSegment));
                 });
@@ -149,11 +147,11 @@ public class ImageJobTransformerTest {
 
 
     @Test
-    public void testRoundTrip() {
+    public void testRoundTrip() throws CloneNotSupportedException {
         assertEquals(imageJobs.size(), 10);
         for(ImageJob imageJob : imageJobs) {
 
-            var documentCaptureData = testee.apply(imageJob);
+            var documentCaptureData = ImageJobTransformer.apply(imageJob);
             var convertedBack = documentCaptureDataTransformer.apply(documentCaptureData);
 
             assertEquals(imageJob.getId(), convertedBack.getId());

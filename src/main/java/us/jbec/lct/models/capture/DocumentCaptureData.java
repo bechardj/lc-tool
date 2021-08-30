@@ -6,11 +6,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Map;
 
 
 public class DocumentCaptureData {
@@ -19,42 +17,33 @@ public class DocumentCaptureData {
     private boolean completed;
     private boolean edited;
 
-    private List<CharacterCaptureData> characterCaptureDataList;
-    private List<WordCaptureData> wordCaptureDataList;
-    private List<LineCaptureData> lineCaptureDataList;
+    private Map<String, List<CharacterCaptureData>> characterCaptureDataMap;
+    private Map<String, List<WordCaptureData>> wordCaptureDataMap;
+    private Map<String, List<LineCaptureData>> lineCaptureDataMap;
 
     public DocumentCaptureData(@JsonProperty("uuid") String uuid) {
         this.uuid = uuid;
         completed = false;
         edited = false;
         notes = "";
-        characterCaptureDataList = new ArrayList<>();
-        wordCaptureDataList = new ArrayList<>();
-        lineCaptureDataList = new ArrayList<>();
+        characterCaptureDataMap = new HashMap<>();
+        wordCaptureDataMap = new HashMap<>();
+        lineCaptureDataMap = new HashMap<>();
     }
 
-    public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) {
+    public static DocumentCaptureData flatten(DocumentCaptureData source) throws CloneNotSupportedException {
+        return DocumentCaptureData.flatten(source, source.getUuid());
+    }
+
+    public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) throws CloneNotSupportedException {
         DocumentCaptureData target = new DocumentCaptureData(uuid);
         target.setCompleted(source.isCompleted());
         target.setEdited(source.isEdited());
         target.setNotes(source.getNotes());
 
-        Set<String> deletedUuids = Stream.of(source.getCharacterCaptureDataList(),
-                        source.getLineCaptureDataList(),
-                        source.getWordCaptureDataList())
-                .flatMap(Collection::stream)
-                .filter(captureData -> CaptureDataRecordType.DELETE.equals(captureData.getCaptureDataRecordType()))
-                .map(CaptureData::getUuid)
-                .collect(Collectors.toSet());
-
-        target.setCharacterCaptureDataList(source.getCharacterCaptureDataList()
-                .stream().filter(data -> !deletedUuids.contains(data.getUuid())).map(CharacterCaptureData::new).toList());
-
-        target.setWordCaptureDataList(source.getWordCaptureDataList()
-                .stream().filter(data -> !deletedUuids.contains(data.getUuid())).map(WordCaptureData::new).toList());
-
-        target.setLineCaptureDataList(source.getLineCaptureDataList()
-                .stream().filter(data -> !deletedUuids.contains(data.getUuid())).map(LineCaptureData::new).toList());
+        target.setCharacterCaptureDataMap(flattenDataMap(source.getCharacterCaptureDataMap()));
+        target.setWordCaptureDataMap(flattenDataMap(source.getWordCaptureDataMap()));
+        target.setLineCaptureDataMap(flattenDataMap(source.getLineCaptureDataMap()));
 
         return target;
     }
@@ -91,36 +80,64 @@ public class DocumentCaptureData {
         this.edited = edited;
     }
 
-    public List<CharacterCaptureData> getCharacterCaptureDataList() {
-        if (characterCaptureDataList == null) {
-            characterCaptureDataList = new ArrayList<>();
+    public Map<String, List<CharacterCaptureData>> getCharacterCaptureDataMap() {
+        return characterCaptureDataMap;
+    }
+
+    public void setCharacterCaptureDataMap(Map<String, List<CharacterCaptureData>> characterCaptureDataMap) {
+        this.characterCaptureDataMap = characterCaptureDataMap;
+    }
+
+    public Map<String, List<WordCaptureData>> getWordCaptureDataMap() {
+        return wordCaptureDataMap;
+    }
+
+    public void setWordCaptureDataMap(Map<String, List<WordCaptureData>> wordCaptureDataMap) {
+        this.wordCaptureDataMap = wordCaptureDataMap;
+    }
+
+    public Map<String, List<LineCaptureData>> getLineCaptureDataMap() {
+        return lineCaptureDataMap;
+    }
+
+    public void setLineCaptureDataMap(Map<String, List<LineCaptureData>> lineCaptureDataMap) {
+        this.lineCaptureDataMap = lineCaptureDataMap;
+    }
+
+    public void insertCharacterCaptureData(CharacterCaptureData data) {
+        if (!characterCaptureDataMap.containsKey(data.getUuid())) {
+            characterCaptureDataMap.put(data.getUuid(), new ArrayList<>());
         }
-        return characterCaptureDataList;
+        characterCaptureDataMap.get(data.getUuid()).add(data);
     }
 
-    public void setCharacterCaptureDataList(List<CharacterCaptureData> characterCaptureDataList) {
-        this.characterCaptureDataList = characterCaptureDataList;
-    }
-
-    public List<WordCaptureData> getWordCaptureDataList() {
-        if (wordCaptureDataList == null) {
-            wordCaptureDataList = new ArrayList<>();
+    public void insertWordCaptureData(WordCaptureData data) {
+        if (!wordCaptureDataMap.containsKey(data.getUuid())) {
+            wordCaptureDataMap.put(data.getUuid(), new ArrayList<>());
         }
-        return wordCaptureDataList;
+        wordCaptureDataMap.get(data.getUuid()).add(data);
     }
 
-    public void setWordCaptureDataList(List<WordCaptureData> wordCaptureDataList) {
-        this.wordCaptureDataList = wordCaptureDataList;
-    }
-
-    public List<LineCaptureData> getLineCaptureDataList() {
-        if (lineCaptureDataList == null) {
-            lineCaptureDataList = new ArrayList<>();
+    public void insertLineCaptureData(LineCaptureData data) {
+        if (!lineCaptureDataMap.containsKey(data.getUuid())) {
+            lineCaptureDataMap.put(data.getUuid(), new ArrayList<>());
         }
-        return lineCaptureDataList;
+        lineCaptureDataMap.get(data.getUuid()).add(data);
     }
 
-    public void setLineCaptureDataList(List<LineCaptureData> lineCaptureDataList) {
-        this.lineCaptureDataList = lineCaptureDataList;
+    private static <T extends CaptureData> Map<String, List<T>> flattenDataMap(Map<String, List<T>> mapToFlatten) throws CloneNotSupportedException {
+        var resultMap = new HashMap<String, List<T>>();
+        for(var entry : mapToFlatten.entrySet()) {
+            if (entry.getValue() == null || entry.getValue().isEmpty()) {
+                continue;
+            }
+            var containsDeleteRecord = entry.getValue().stream()
+                    .anyMatch(record -> record.getCaptureDataRecordType() == CaptureDataRecordType.DELETE);
+            if (!containsDeleteRecord) {
+                var recordToKeep = entry.getValue().get(0);
+                resultMap.put(entry.getKey(), List.of((T) recordToKeep.clone()));
+            }
+        }
+        return resultMap;
     }
 }

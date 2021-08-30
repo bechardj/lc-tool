@@ -4,23 +4,33 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
+import us.jbec.lct.models.capture.CaptureData;
+import us.jbec.lct.models.capture.CaptureDataPayload;
+import us.jbec.lct.models.capture.CaptureDataRecordType;
 import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.models.database.ArchivedJobData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.ArchivedJobDataRepository;
 import us.jbec.lct.repositories.CloudCaptureDocumentRepository;
+import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
 import us.jbec.lct.transformers.ImageJobTransformer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for interacting with cloud capture documents
@@ -85,9 +95,16 @@ public class CloudCaptureDocumentService {
      */
     @Transactional
     public void saveCloudCaptureDocument(String userToken, MultipartFile imageJobAsFile, String uuid) throws IOException {
-        ImageJob imageJob = objectMapper.readValue(imageJobAsFile.getBytes(), ImageJob.class);
-        imageJob.setId(uuid);
-        saveCloudCaptureDocument(userToken, imageJob);
+        DocumentCaptureData documentCaptureData = objectMapper.readValue(imageJobAsFile.getBytes(), DocumentCaptureData.class);
+
+        if (documentCaptureData.getUuid() == null) {
+            LOG.warn("User updated what is suspected to be legacy file. Will transform format.");
+            ImageJob imageJob = objectMapper.readValue(imageJobAsFile.getBytes(), ImageJob.class);
+            documentCaptureData = ImageJobTransformer.apply(imageJob);
+        }
+
+        documentCaptureData.setUuid(uuid);
+        saveCloudCaptureDocument(userToken, documentCaptureData);
     }
 
     /**
@@ -97,13 +114,14 @@ public class CloudCaptureDocumentService {
      * @throws JsonProcessingException
      */
     @Transactional
-    public void saveCloudCaptureDocument(String userToken, ImageJob imageJob) throws JsonProcessingException {
-        var optionalDocument = cloudCaptureDocumentRepository.findById(imageJob.getId());
+    public void saveCloudCaptureDocument(String userToken, DocumentCaptureData documentCaptureData) throws JsonProcessingException {
+        var optionalDocument = cloudCaptureDocumentRepository.findById(documentCaptureData.getUuid());
         if (optionalDocument.isPresent()) {
             var document = optionalDocument.get();
             if (!userOwnsDocument(userToken, document)) {
                 throw new LCToolException("User not authorized to save job!");
             }
+            // todo: set status from object instead of edited
             document.setDocumentStatus(DocumentStatus.EDITED);
             if (document.getArchivedJobDataList().isEmpty()) {
                 document.setArchivedJobDataList(new ArrayList<>());
@@ -112,7 +130,7 @@ public class CloudCaptureDocumentService {
             archivedData.setJobData(document.getJobData());
             archivedData.setSourceDocumentUuid(document);
             document.getArchivedJobDataList().add(archivedData);
-            document.setJobData(objectMapper.writeValueAsString(imageJob));
+            document.setJobData(objectMapper.writeValueAsString(documentCaptureData));
             archivedJobDataRepository.save(archivedData);
             cloudCaptureDocumentRepository.save(document);
         } else {
@@ -220,7 +238,69 @@ public class CloudCaptureDocumentService {
      * @throws JsonProcessingException
      */
     public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
-        return objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
+        var imageJob = objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
+        if (imageJob.getId() == null) {
+            try {
+                imageJob = DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class));
+            } catch (CloneNotSupportedException e) {
+                throw new LCToolException("Image job conversion failed!");
+            }
+        }
+        return imageJob;
+    }
+
+    @Transactional
+    @Async
+    public void integrateChangesIntoDocument(CaptureDataPayload payload, String uuid) throws JsonProcessingException {
+        long start = System.currentTimeMillis();
+        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(uuid);
+        var documentCaptureData = getDocumentCaptureDataFromDocument(cloudCaptureDocument);
+
+        if (payload.getCharacterCaptureData() != null) {
+            var characterCaptureData = payload.getCharacterCaptureData();
+            var targetList = documentCaptureData.getCharacterCaptureDataMap().get(characterCaptureData.getUuid());
+            if (shouldIntegrateCaptureData(targetList, characterCaptureData)) {
+                documentCaptureData.insertCharacterCaptureData(characterCaptureData);
+            } else {
+                LOG.error("Try to integrate data twice");
+            }
+        }
+        if (payload.getWordCaptureData() != null) {
+            var wordCaptureData = payload.getWordCaptureData();
+            var targetList = documentCaptureData.getWordCaptureDataMap().get(wordCaptureData.getUuid());
+            if (shouldIntegrateCaptureData(targetList, wordCaptureData)) {
+                documentCaptureData.insertWordCaptureData(wordCaptureData);
+            } else {
+                LOG.error("Try to integrate data twice");
+            }
+        }
+        if (payload.getLineCaptureData() != null) {
+            var lineCaptureData = payload.getLineCaptureData();
+            var targetList = documentCaptureData.getLineCaptureDataMap().get(lineCaptureData.getUuid());
+            if (shouldIntegrateCaptureData(targetList, lineCaptureData)) {
+                documentCaptureData.insertLineCaptureData(lineCaptureData);
+            } else {
+                LOG.error("Try to integrate data twice");
+            }
+        }
+
+        // todo proper authenticated save
+        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(documentCaptureData));
+        cloudCaptureDocumentRepository.save(cloudCaptureDocument);
+        long end = System.currentTimeMillis();
+        LOG.info("Processing took {}", end-start);
+    }
+
+    private <T extends CaptureData> boolean shouldIntegrateCaptureData(List<T> targetList, T dataToIntegrate) {
+        if (targetList == null || targetList.isEmpty()) {
+            return true;
+        }
+        if (targetList.size() == 1
+                && targetList.get(0).getCaptureDataRecordType() == CaptureDataRecordType.CREATE
+                && dataToIntegrate.getCaptureDataRecordType() != CaptureDataRecordType.DELETE) {
+            return false;
+        }
+        return targetList.size() <= 1;
     }
 
     public DocumentCaptureData getDocumentCaptureDataFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {

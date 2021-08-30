@@ -18,7 +18,7 @@ public class DocumentCaptureDataTransformerTest {
     private DocumentCaptureDataTransformer testee = new DocumentCaptureDataTransformer();
 
     @Test
-    public void testTransformSimpleFields() {
+    public void testTransformSimpleFields() throws CloneNotSupportedException {
         DocumentCaptureData data = new DocumentCaptureData("1234");
         data.setEdited(true);
         data.setCompleted(true);
@@ -39,7 +39,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformCharacterRectangles() {
+    public void testTransformCharacterRectangles() throws CloneNotSupportedException {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         CharacterCaptureData characterCaptureData1 = new CharacterCaptureData();
@@ -61,7 +61,9 @@ public class DocumentCaptureDataTransformerTest {
         characterCaptureData4.setLabeledRectangle(new LabeledRectangle(Arrays.asList(1.4,2.5,3.9,4.2), "X"));
         characterCaptureData4.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
 
-        data.setCharacterCaptureDataList(Arrays.asList(characterCaptureData1, characterCaptureData2, characterCaptureData3, characterCaptureData4));
+        Arrays.asList(characterCaptureData1, characterCaptureData2, characterCaptureData3, characterCaptureData4)
+                .forEach(data::insertCharacterCaptureData);
+
         var result = testee.apply(data);
 
         assertNotNull(result);
@@ -71,7 +73,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformLineLines() {
+    public void testTransformLineLines() throws CloneNotSupportedException {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         LineCaptureData lineCaptureData1 = new LineCaptureData();
@@ -93,7 +95,9 @@ public class DocumentCaptureDataTransformerTest {
         lineCaptureData4.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
         lineCaptureData4.setUuid("lc4");
 
-        data.setLineCaptureDataList(Arrays.asList(lineCaptureData1, lineCaptureData2, lineCaptureData3, lineCaptureData4));
+        Arrays.asList(lineCaptureData1, lineCaptureData2, lineCaptureData3, lineCaptureData4)
+                .forEach(data::insertLineCaptureData);
+
         var result = testee.apply(data);
 
         assertNotNull(result);
@@ -103,7 +107,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformWordLines() {
+    public void testTransformWordLines() throws CloneNotSupportedException {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         WordCaptureData wordCaptureData1 = new WordCaptureData();
@@ -125,7 +129,8 @@ public class DocumentCaptureDataTransformerTest {
         wordCaptureData4.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
         wordCaptureData4.setUuid("wc4");
 
-        data.setWordCaptureDataList(Arrays.asList(wordCaptureData1, wordCaptureData2, wordCaptureData3, wordCaptureData4));
+        Arrays.asList(wordCaptureData1, wordCaptureData2, wordCaptureData3, wordCaptureData4)
+                .forEach(data::insertWordCaptureData);
         var result = testee.apply(data);
 
         assertNotNull(result);

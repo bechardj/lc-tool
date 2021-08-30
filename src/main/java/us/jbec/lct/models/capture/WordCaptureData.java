@@ -22,4 +22,10 @@ public class WordCaptureData extends CaptureData {
     public void setLineSegment(LineSegment lineSegment) {
         this.lineSegment = lineSegment;
     }
+
+    public WordCaptureData clone() throws CloneNotSupportedException {
+        WordCaptureData clone = (WordCaptureData) super.clone();
+        clone.setLineSegment(new LineSegment(this.getLineSegment()));
+        return clone;
+    }
 }

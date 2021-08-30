@@ -8,8 +8,9 @@ import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.models.capture.LineCaptureData;
 import us.jbec.lct.models.capture.WordCaptureData;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ImageJobTransformer {
@@ -23,36 +24,36 @@ public class ImageJobTransformer {
         documentCaptureData.setCompleted(imageJob.isCompleted());
         String notes = imageJob.getFields().get(ImageJobFields.NOTES.name());
 
-        List<CharacterCaptureData> characterCaptureDataList = new ArrayList<>();
+        Map<String, List<CharacterCaptureData>> characterCaptureDataMap = new HashMap<>();
         for (var labeledRectangle : imageJob.getLabeledRectangles()) {
             var characterCaptureData = new CharacterCaptureData();
             characterCaptureData.setUuid(UUID.randomUUID().toString());
             characterCaptureData.setLabeledRectangle(labeledRectangle);
             characterCaptureData.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
-            characterCaptureDataList.add(characterCaptureData);
+            characterCaptureDataMap.put(characterCaptureData.getUuid(), List.of(characterCaptureData));
         }
-        documentCaptureData.setCharacterCaptureDataList(characterCaptureDataList);
+        documentCaptureData.setCharacterCaptureDataMap(characterCaptureDataMap);
 
-        List<WordCaptureData> wordCaptureDataList = new ArrayList<>();
+        Map<String, List<WordCaptureData>> wordCaptureDataMap = new HashMap<>();
         for (var wordLineSegment : imageJob.getWordLineSegments()) {
             var wordCaptureData = new WordCaptureData();
             wordCaptureData.setUuid(UUID.randomUUID().toString());
             wordCaptureData.setLineSegment(wordLineSegment);
             wordCaptureData.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
-            wordCaptureDataList.add(wordCaptureData);
+            wordCaptureDataMap.put(wordCaptureData.getUuid(), List.of(wordCaptureData));
         }
-        documentCaptureData.setWordCaptureDataList(wordCaptureDataList);
+        documentCaptureData.setWordCaptureDataMap(wordCaptureDataMap);
 
-        List<LineCaptureData> lineCaptureDataList = new ArrayList<>();
+        Map<String, List<LineCaptureData>> lineCaptureDataMap = new HashMap<>();
         for (var lineLineSegment : imageJob.getLineLineSegments()) {
             var lineCaptureData = new LineCaptureData();
             lineCaptureData.setUuid(UUID.randomUUID().toString());
             lineCaptureData.setLineSegment(lineLineSegment);
             lineCaptureData.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
-            lineCaptureDataList.add(lineCaptureData);
+            lineCaptureDataMap.put(lineCaptureData.getUuid(), List.of(lineCaptureData));
         }
 
-        documentCaptureData.setLineCaptureDataList(lineCaptureDataList);
+        documentCaptureData.setLineCaptureDataMap(lineCaptureDataMap);
 
         if (notes != null) {
             documentCaptureData.setNotes(notes);
