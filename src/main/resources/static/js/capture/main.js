@@ -457,7 +457,7 @@ function captureCanvasInit (predictionEngine) {
         if (!state.lastIsLabeled()) {
             notify("You must label all letters before saving!", 3000);
         } else {
-            getBearerTokenWithPrompt().then(token => {
+            firebaseModal().then(token => {
             $.ajax({
                 type: "POST",
                 beforeSend: function (xhr) {

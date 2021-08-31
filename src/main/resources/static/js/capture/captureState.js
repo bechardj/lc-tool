@@ -57,6 +57,7 @@ class CaptureState {
         this.captureMode = CaptureModes.WORD;
         this.previousCaptureMode = undefined;
 
+        this.connected = false;
     }
 
     publishData(data, dataType) {
@@ -138,25 +139,52 @@ class CaptureState {
         }
     }
 
+    reconnectState() {
+        if (this.connected !== true)
+        {
+            this.reconnectStateDelegate().then(() => {
+                setTimeout(() => {
+                    console.warn("reconnecting...");
+                    this.reconnectState();
+                    }, 1000);
+            });
+        }
+    }
+
+    async reconnectStateDelegate () {
+        if (this.client !== undefined) {
+            this.client.disconnect();
+        }
+        let token = await firebaseModal();
+        await this.connectState(this.document.uuid, token);
+    }
+
     connectState(jobId, token) {
         return new Promise((resolve, reject) => {
             console.log("init ws")
             let sock = new SockJS("/stomp");
             this.client = Stomp.over(sock);
             this.client.debug = f => f;
-            this.client.connect({'token': token}, () => {
-                this.client.subscribe(('/topic/document/' + jobId), (data) => {
-                    this.processPayload(JSON.parse(data.body));
-                });
+            const headers = {'token': token};
+            const callback = () => {
+                this.client.subscribe(('/topic/document/' + jobId),
+                    (data) => {
+                        this.processPayload(JSON.parse(data.body));
+                    });
+                this.connected = true;
+                $("#connection-status-container").hide();
+                this.client.ws.onclose = () => {
+                    $("#connection-status-container").show();
+                    this.connected = false;
+                    this.reconnectState();
+                };
                 resolve();
-                this.client.send(('/app/document/' + jobId), {}, '' + Date());
-                // },
-                //     () =>{}, // no error handling for now
-                //     () => {
-                //         console.warn("reconnect")
-                //         setTimeout(() => this.connectState(jobId), 2000);
-                //     });
-            });
+            }
+            this.client.connect(
+                headers,
+                callback,
+                () => {this.reconnectState()}
+            );
         });
     }
 

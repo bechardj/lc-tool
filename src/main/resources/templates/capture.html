@@ -16,6 +16,7 @@
 
 </head>
 <body>
+    <div th:insert="fragments/modal-overlay.html :: div"></div>
     <div th:insert="fragments/full-screen-load.html :: div"></div>
     <div th:insert="fragments/notifications.html :: div"></div>
 
@@ -23,6 +24,10 @@
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <div id="connection-status-container" class="text-danger font-weight-bold hidden">
+            DISCONNECTED...
+        </div>
 
         <!-- Navbar links -->
         <div class="collapse navbar-collapse" id="collapsibleNavbar">
@@ -139,18 +144,14 @@
         </form>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+    <div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
     <script src="/webjars/github-com-jaywcjlove-hotkeys/hotkeys.min.js"></script>
     <script src="/webjars/github-com-HarryStevens-geometric/geometric.js"></script>
-    <script src="/webjars/jquery/jquery.min.js"></script>
-    <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uuidjs@4.2.8/src/uuid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.js" integrity="sha512-lyIq9fRcCeSCXhp41XC/250UBmypAHV8KW+AhLcSEIksWHBfhzub6XXwDe67wTpOG8zrO2NAU/TYmEaCW+aQSg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g==" crossorigin="anonymous"></script>
-    <script src="/js/common.js"></script>
     <script type="module" src="/js/capture/main.js"></script>
     </div>
 </body>

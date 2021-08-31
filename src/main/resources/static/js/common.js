@@ -2,6 +2,9 @@ let firebaseLoggedIn;
 
 var primaryColor = getComputedStyle(document.documentElement).getPropertyValue("--primary-color").trim();
 
+$(".dropdown-menu").mouseleave(function(){
+    $(this).removeClass("show");
+});
 
 $('.nav-link').filter((i, item) => item.href === window.location.href)
     .attr("href", "#");
@@ -86,7 +89,6 @@ function initLogin(id) {
 
 async function getBearerTokenWithPrompt() {
     if (!firebaseLoggedIn) {
-        notify("Login required - If you don't see a prompt, make sure pop-ups are enabled)", 5000);
         await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
     }
     return firebase.auth().currentUser.getIdToken();
