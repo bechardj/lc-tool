@@ -1,6 +1,7 @@
 package us.jbec.lct.models.capture;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.validators.CaptureDataPayloadConstraint;
 
 import javax.validation.constraints.NotBlank;
@@ -14,6 +15,23 @@ public class CaptureDataPayload {
     private CharacterCaptureData characterCaptureData;
     private LineCaptureData lineCaptureData;
     private WordCaptureData wordCaptureData;
+
+    public CaptureDataPayload () {
+
+    }
+
+    public CaptureDataPayload (CaptureData captureData, String originator) {
+        this.originator = originator;
+        if (captureData instanceof CharacterCaptureData) {
+            this.characterCaptureData = new CharacterCaptureData((CharacterCaptureData) captureData);
+        } else if (captureData instanceof LineCaptureData) {
+            this.lineCaptureData = new LineCaptureData((LineCaptureData) captureData);
+        } else if (captureData instanceof WordCaptureData) {
+            this.wordCaptureData = new WordCaptureData((WordCaptureData) captureData);
+        } else {
+            throw new LCToolException("Invalid Argument!");
+        }
+    }
 
     public String getOriginator() {
         return originator;

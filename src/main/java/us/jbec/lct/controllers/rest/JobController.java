@@ -11,11 +11,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lct.models.LCToolResponse;
+import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.services.CloudCaptureDocumentService;
 import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Controller for interacting with image jobs
@@ -56,6 +58,14 @@ public class JobController {
     @PostMapping(value = "/sec/api/saveDoc", consumes= { "application/json" })
     public LCToolResponse saveDoc(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
+        cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
         return new LCToolResponse(false, "Saved!");
+    }
+
+    @GetMapping(value="/sec/api/captureData/sync")
+    public List<CaptureDataPayload> syncAfterDisconnect(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws JsonProcessingException {
+        var user = LCToolUtils.getUserFromAuthentication(authentication);
+        cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
+        return cloudCaptureDocumentService.buildPayloadsToSyncClient(documentCaptureData);
     }
 }

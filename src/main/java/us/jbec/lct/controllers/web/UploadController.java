@@ -63,7 +63,7 @@ public class UploadController {
     @PostMapping("/secure/job/upload")
     public String jobUpload(Model model, Authentication authentication, @RequestParam("file") MultipartFile file, @RequestParam String uuid) throws IOException {
         User user = LCToolUtils.getUserFromAuthentication(authentication);
-        cloudCaptureDocumentService.saveCloudCaptureDocument(user.getFirebaseIdentifier(), file, uuid);
+        cloudCaptureDocumentService.saveUploadedCaptureData(user.getFirebaseIdentifier(), file, uuid);
         var owns = cloudCaptureDocumentService.userOwnsDocument(user.getFirebaseIdentifier(), uuid);
         LOG.info("Opening document with id: {}", uuid);
         model.addAttribute("imageId", uuid);

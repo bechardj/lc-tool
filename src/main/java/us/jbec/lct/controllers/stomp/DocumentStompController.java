@@ -25,7 +25,7 @@ public class DocumentStompController {
     public CaptureDataPayload getMessages(Message<?> message,
                                           @DestinationVariable String uuid,
                                           @Valid CaptureDataPayload captureDataPayload) throws JsonProcessingException {
-        cloudCaptureDocumentService.integrateChangesIntoDocument(captureDataPayload, uuid);
+        cloudCaptureDocumentService.saveCaptureData(captureDataPayload, uuid);
         return captureDataPayload;
     }
 

@@ -69,7 +69,7 @@ public class IngestService {
         var checksum = DigestUtils.sha256Hex((FileUtils.readFileToByteArray(imageFile)));
         cloudCaptureDocument.setFileChecksum(checksum);
         cloudCaptureDocument.setFilePath(imageFile.getAbsolutePath());
-        cloudCaptureDocumentService.saveCloudCaptureDocument(cloudCaptureDocument);
+        cloudCaptureDocumentService.directlySaveCloudCaptureDocument(cloudCaptureDocument);
     }
 
 }
