@@ -18,7 +18,7 @@ public class DocumentCaptureDataTransformerTest {
     private DocumentCaptureDataTransformer testee = new DocumentCaptureDataTransformer();
 
     @Test
-    public void testTransformSimpleFields() throws CloneNotSupportedException {
+    public void testTransformSimpleFields() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
         data.setEdited(true);
         data.setCompleted(true);
@@ -39,7 +39,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformCharacterRectangles() throws CloneNotSupportedException {
+    public void testTransformCharacterRectangles() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         CharacterCaptureData characterCaptureData1 = new CharacterCaptureData();
@@ -73,7 +73,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformLineLines() throws CloneNotSupportedException {
+    public void testTransformLineLines() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         LineCaptureData lineCaptureData1 = new LineCaptureData();
@@ -107,7 +107,7 @@ public class DocumentCaptureDataTransformerTest {
     }
 
     @Test
-    public void testTransformWordLines() throws CloneNotSupportedException {
+    public void testTransformWordLines() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
 
         WordCaptureData wordCaptureData1 = new WordCaptureData();

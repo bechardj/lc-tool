@@ -2,7 +2,7 @@ package us.jbec.lct.models.capture;
 
 import us.jbec.lct.models.geometry.LabeledRectangle;
 
-public class CharacterCaptureData extends CaptureData implements Cloneable {
+public class CharacterCaptureData extends CaptureData {
 
     private LabeledRectangle labeledRectangle;
 
@@ -23,9 +23,4 @@ public class CharacterCaptureData extends CaptureData implements Cloneable {
         this.labeledRectangle = labeledRectangle;
     }
 
-    public CharacterCaptureData clone() throws CloneNotSupportedException {
-        CharacterCaptureData clone = (CharacterCaptureData) super.clone();
-        clone.setLabeledRectangle(new LabeledRectangle(this.getLabeledRectangle()));
-        return clone;
-    }
 }

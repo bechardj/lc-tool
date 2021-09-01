@@ -147,7 +147,7 @@ public class ImageJobTransformerTest {
 
 
     @Test
-    public void testRoundTrip() throws CloneNotSupportedException {
+    public void testRoundTrip() {
         assertEquals(imageJobs.size(), 10);
         for(ImageJob imageJob : imageJobs) {
 

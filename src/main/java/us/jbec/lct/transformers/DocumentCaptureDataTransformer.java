@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class DocumentCaptureDataTransformer {
 
-    public static ImageJob apply(DocumentCaptureData documentCaptureData) throws CloneNotSupportedException {
+    public static ImageJob apply(DocumentCaptureData documentCaptureData) {
         DocumentCaptureData source = DocumentCaptureData.flatten(documentCaptureData, documentCaptureData.getUuid());
         ImageJob target = new ImageJob();
 

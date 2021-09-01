@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Service for interacting with cloud capture documents
@@ -240,11 +241,7 @@ public class CloudCaptureDocumentService {
     public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
         var imageJob = objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class);
         if (imageJob.getId() == null) {
-            try {
-                imageJob = DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class));
-            } catch (CloneNotSupportedException e) {
-                throw new LCToolException("Image job conversion failed!");
-            }
+            imageJob = DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class));
         }
         return imageJob;
     }
@@ -289,6 +286,33 @@ public class CloudCaptureDocumentService {
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
         long end = System.currentTimeMillis();
         LOG.info("Processing took {}", end-start);
+    }
+
+    private <T extends CaptureData> void insertForSave(Map<String, List<T>> existingDataMap, Map<String, List<T>> newDataMap, Consumer<T> insert) {
+        if (newDataMap != null) {
+            for (var entry : newDataMap.entrySet()) {
+                for(var dataRecord : entry.getValue()) {
+                    var targetList = existingDataMap.get(entry.getKey());
+                    if (shouldIntegrateCaptureData(targetList, dataRecord)) {
+                        insert.accept(dataRecord);
+                    }
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void integrateChangesIntoDocument(DocumentCaptureData newData, String uuid) throws JsonProcessingException {
+        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(uuid);
+        var existingData = getDocumentCaptureDataFromDocument(cloudCaptureDocument);
+
+        insertForSave(newData.getCharacterCaptureDataMap(), existingData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
+        insertForSave(newData.getLineCaptureDataMap(), existingData.getLineCaptureDataMap(), existingData::insertLineCaptureData);
+        insertForSave(newData.getWordCaptureDataMap(), existingData.getWordCaptureDataMap(), existingData::insertWordCaptureData);
+
+        // todo proper authenticated save
+        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(existingData));
+        cloudCaptureDocumentRepository.save(cloudCaptureDocument);
     }
 
     private <T extends CaptureData> boolean shouldIntegrateCaptureData(List<T> targetList, T dataToIntegrate) {

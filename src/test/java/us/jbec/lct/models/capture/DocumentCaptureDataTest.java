@@ -12,7 +12,7 @@ import static org.testng.Assert.*;
 public class DocumentCaptureDataTest {
 
     @Test
-    public void testFlattenNoCaptureData() throws CloneNotSupportedException {
+    public void testFlattenNoCaptureData() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
         data.setEdited(true);
         data.setCompleted(false);
@@ -29,7 +29,7 @@ public class DocumentCaptureDataTest {
     }
 
     @Test
-    public void testFlattenWordCaptureData() throws CloneNotSupportedException {
+    public void testFlattenWordCaptureData() {
 
         var data = new DocumentCaptureData("1234");
 
@@ -63,7 +63,7 @@ public class DocumentCaptureDataTest {
     }
 
     @Test
-    public void testFlattenLineCaptureData() throws CloneNotSupportedException {
+    public void testFlattenLineCaptureData() {
 
         var data = new DocumentCaptureData("1234");
 
@@ -97,7 +97,7 @@ public class DocumentCaptureDataTest {
     }
 
     @Test
-    public void testFlattenCharacterCaptureData() throws CloneNotSupportedException {
+    public void testFlattenCharacterCaptureData() {
 
         var data = new DocumentCaptureData("1234");
 
@@ -131,7 +131,7 @@ public class DocumentCaptureDataTest {
     }
 
     @Test
-    public void testManipulateAfterFlatten() throws CloneNotSupportedException {
+    public void testManipulateAfterFlatten() {
 
         var data = new DocumentCaptureData("1234");
 

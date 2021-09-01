@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 
 public class DocumentCaptureData {
@@ -31,19 +32,19 @@ public class DocumentCaptureData {
         lineCaptureDataMap = new HashMap<>();
     }
 
-    public static DocumentCaptureData flatten(DocumentCaptureData source) throws CloneNotSupportedException {
+    public static DocumentCaptureData flatten(DocumentCaptureData source) {
         return DocumentCaptureData.flatten(source, source.getUuid());
     }
 
-    public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) throws CloneNotSupportedException {
+    public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) {
         DocumentCaptureData target = new DocumentCaptureData(uuid);
         target.setCompleted(source.isCompleted());
         target.setEdited(source.isEdited());
         target.setNotes(source.getNotes());
 
-        target.setCharacterCaptureDataMap(flattenDataMap(source.getCharacterCaptureDataMap()));
-        target.setWordCaptureDataMap(flattenDataMap(source.getWordCaptureDataMap()));
-        target.setLineCaptureDataMap(flattenDataMap(source.getLineCaptureDataMap()));
+        target.setCharacterCaptureDataMap(flattenDataMap(source.getCharacterCaptureDataMap(), CharacterCaptureData::new));
+        target.setWordCaptureDataMap(flattenDataMap(source.getWordCaptureDataMap(), WordCaptureData::new));
+        target.setLineCaptureDataMap(flattenDataMap(source.getLineCaptureDataMap(), LineCaptureData::new));
 
         return target;
     }
@@ -125,7 +126,7 @@ public class DocumentCaptureData {
         lineCaptureDataMap.get(data.getUuid()).add(data);
     }
 
-    private static <T extends CaptureData> Map<String, List<T>> flattenDataMap(Map<String, List<T>> mapToFlatten) throws CloneNotSupportedException {
+    private static <T extends CaptureData> Map<String, List<T>> flattenDataMap(Map<String, List<T>> mapToFlatten, Function<T, T> cloner) {
         var resultMap = new HashMap<String, List<T>>();
         for(var entry : mapToFlatten.entrySet()) {
             if (entry.getValue() == null || entry.getValue().isEmpty()) {
@@ -135,7 +136,7 @@ public class DocumentCaptureData {
                     .anyMatch(record -> record.getCaptureDataRecordType() == CaptureDataRecordType.DELETE);
             if (!containsDeleteRecord) {
                 var recordToKeep = entry.getValue().get(0);
-                resultMap.put(entry.getKey(), List.of((T) recordToKeep.clone()));
+                resultMap.put(entry.getKey(), List.of(cloner.apply(recordToKeep)));
             }
         }
         return resultMap;
