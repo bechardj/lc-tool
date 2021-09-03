@@ -62,7 +62,7 @@ public class IngestService {
         cloudCaptureDocument.setOwner(user);
         cloudCaptureDocument.setDocumentStatus(DocumentStatus.INGESTED);
         cloudCaptureDocument.setMigrated(false);
-        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(imageJobProcessingService.initializeImageJob(uuid)));
+        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(imageJobProcessingService.initializeImageJob(uuid)));
         cloudCaptureDocument.setProject(projectService.getDefaultProject());
         cloudCaptureDocument.setMigrated(false);
         var imageFile = primaryImageIO.persistImage(uploadedFile, uuid);

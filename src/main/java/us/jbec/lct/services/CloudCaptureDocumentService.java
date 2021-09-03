@@ -113,7 +113,7 @@ public class CloudCaptureDocumentService {
             cloudCaptureDocument.setArchivedJobDataList(new ArrayList<>());
         }
         var archivedData = new ArchivedJobData();
-        archivedData.setJobData(cloudCaptureDocument.getJobData());
+        archivedData.setJobData(cloudCaptureDocument.getDocumentCaptureData());
         archivedData.setSourceDocumentUuid(cloudCaptureDocument);
         cloudCaptureDocument.getArchivedJobDataList().add(archivedData);
         archivedJobDataRepository.save(archivedData);
@@ -137,7 +137,7 @@ public class CloudCaptureDocumentService {
         captureDataMergeService.mergeCaptureData(existingData, newData);
 
         assignOverallStatus(cloudCaptureDocument, newData);
-        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(existingData));
+        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(existingData));
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
     }
 
@@ -227,7 +227,7 @@ public class CloudCaptureDocumentService {
      * @throws JsonProcessingException
      */
     public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
-        return DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class));
+        return DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), DocumentCaptureData.class));
     }
 
     @Transactional
@@ -240,7 +240,7 @@ public class CloudCaptureDocumentService {
         captureDataMergeService.mergePayloadIntoDocument(payload, documentCaptureData);
 
         // todo proper authenticated save
-        cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(documentCaptureData));
+        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(documentCaptureData));
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
         long end = System.currentTimeMillis();
         LOG.info("Processing took {}", end-start);
@@ -269,11 +269,11 @@ public class CloudCaptureDocumentService {
 
     public DocumentCaptureData getDocumentCaptureDataFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
         DocumentCaptureData data;
-        data = objectMapper.readValue(cloudCaptureDocument.getJobData(), DocumentCaptureData.class);
+        data = objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), DocumentCaptureData.class);
         if (data.getUuid() == null) {
             LOG.info("performing upgrade...");
-            var convertedData = ImageJobTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getJobData(), ImageJob.class));
-            cloudCaptureDocument.setJobData(objectMapper.writeValueAsString(convertedData));
+            var convertedData = ImageJobTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), ImageJob.class));
+            cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(convertedData));
             cloudCaptureDocumentRepository.save(cloudCaptureDocument);
             return convertedData;
         }

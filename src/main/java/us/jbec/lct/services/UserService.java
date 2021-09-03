@@ -15,13 +15,13 @@ import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.UserInvitation;
 import us.jbec.lct.models.UserPrefs;
 import us.jbec.lct.models.database.InvitationRecord;
-import us.jbec.lct.repositories.InvitationRepository;
-import us.jbec.lct.security.UserRoles;
 import us.jbec.lct.models.database.Role;
 import us.jbec.lct.models.database.User;
+import us.jbec.lct.repositories.InvitationRepository;
 import us.jbec.lct.repositories.RoleRepository;
 import us.jbec.lct.repositories.UserRepository;
 import us.jbec.lct.security.AuthorizedUser;
+import us.jbec.lct.security.UserRoles;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -43,6 +43,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProjectService projectService;
     private final FirebaseAuth firebaseAuth;
     private final InvitationRepository invitationRepository;
     private final ObjectMapper objectMapper;
@@ -55,10 +56,11 @@ public class UserService {
      * @param invitationRepository autowired parameter
      * @param objectMapper autowired parameter
      */
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, ProjectService projectService,
                        FirebaseAuth firebaseAuth, InvitationRepository invitationRepository, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.projectService = projectService;
         this.firebaseAuth = firebaseAuth;
         this.invitationRepository = invitationRepository;
         this.objectMapper = objectMapper;
@@ -108,6 +110,7 @@ public class UserService {
                     }
                 }
                 user.setRoles(defaultRoles());
+                user.setProject(new HashSet<>(Set.of(projectService.getDefaultProject())));
                 LOG.info("First login for user {}, generating DB rows.", user.getFirebaseEmail());
                 userRepository.save(user);
             }

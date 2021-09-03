@@ -4,6 +4,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import us.jbec.lct.models.DocumentStatus;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -67,7 +68,8 @@ public class CloudCaptureDocument implements Serializable {
      * ImageJob data serialized and stored in a Lob
      */
     @Lob
-    private String jobData;
+    @Column(name = "job_data")
+    private String documentCaptureData;
 
     /**
      * File path to associated image
@@ -146,12 +148,12 @@ public class CloudCaptureDocument implements Serializable {
         this.updateTime = updateTime;
     }
 
-    public String getJobData() {
-        return jobData;
+    public String getDocumentCaptureData() {
+        return documentCaptureData;
     }
 
-    public void setJobData(String jobData) {
-        this.jobData = jobData;
+    public void setDocumentCaptureData(String jobData) {
+        this.documentCaptureData = jobData;
     }
 
     public String getFilePath() {

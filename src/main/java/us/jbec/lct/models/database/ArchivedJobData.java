@@ -1,6 +1,7 @@
 package us.jbec.lct.models.database;
 
 import org.hibernate.annotations.CreationTimestamp;
+import us.jbec.lct.models.VersionForUpgrade;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,6 +34,8 @@ public class ArchivedJobData {
     @Lob
     private String jobData;
 
+    private VersionForUpgrade versionForUpgrade;
+
     /**
      * When was this archive created
      */
@@ -61,6 +64,14 @@ public class ArchivedJobData {
 
     public void setJobData(String jobData) {
         this.jobData = jobData;
+    }
+
+    public VersionForUpgrade getVersionForUpgrade() {
+        return versionForUpgrade;
+    }
+
+    public void setVersionForUpgrade(VersionForUpgrade versionForUpgrade) {
+        this.versionForUpgrade = versionForUpgrade;
     }
 
     public LocalDateTime getCreateTime() {
