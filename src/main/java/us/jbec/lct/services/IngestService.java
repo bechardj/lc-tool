@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.io.PrimaryImageIO;
 import us.jbec.lct.models.DocumentStatus;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 
@@ -62,7 +63,7 @@ public class IngestService {
         cloudCaptureDocument.setOwner(user);
         cloudCaptureDocument.setDocumentStatus(DocumentStatus.INGESTED);
         cloudCaptureDocument.setMigrated(false);
-        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(imageJobProcessingService.initializeImageJob(uuid)));
+        cloudCaptureDocument.setDocumentCaptureData(new DocumentCaptureData(uuid));
         cloudCaptureDocument.setProject(projectService.getDefaultProject());
         cloudCaptureDocument.setMigrated(false);
         var imageFile = primaryImageIO.persistImage(uploadedFile, uuid);

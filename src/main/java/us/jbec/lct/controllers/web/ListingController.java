@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobListing;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.services.CloudCaptureDocumentService;
@@ -17,7 +16,6 @@ import us.jbec.lct.util.LCToolUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Controller for handling the listing of documents
@@ -53,8 +51,7 @@ public class ListingController {
         try {
             var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
             maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
-            var cloudCaptureDocuments = cloudCaptureDocumentService
-                    .getActiveCloudCaptureDocuments();
+            var cloudCaptureDocuments = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsData();
             var imageJobListings = buildImageJobListings(cloudCaptureDocuments);
             model.addAttribute("imageJobListings", imageJobListings);
             model.addAttribute("listingAll", true);
@@ -92,16 +89,14 @@ public class ListingController {
         }
     }
 
-    private List<ImageJobListing> buildImageJobListings(Map<CloudCaptureDocument, ImageJob> cloudCaptureDocuments) {
+    private List<ImageJobListing> buildImageJobListings(List<CloudCaptureDocument> cloudCaptureDocuments) {
         List<ImageJobListing> imageJobListings = new ArrayList<>();
-        for (var entry : cloudCaptureDocuments.entrySet()) {
-            var cloudCaptureDocument = entry.getKey();
-            var imageJob = entry.getValue();
+        for (var doc : cloudCaptureDocuments) {
             try {
-                ImageJobListing imageJobListing = new ImageJobListing(cloudCaptureDocument, imageJob);
+                ImageJobListing imageJobListing = new ImageJobListing(doc);
                 imageJobListings.add(imageJobListing);
             } catch (IOException e) {
-                LOG.error("Error creating image job listing for job file {}", cloudCaptureDocument.getUuid());
+                LOG.error("Error creating image job listing for job file {}", doc.getUuid());
             }
         }
         return imageJobListings;

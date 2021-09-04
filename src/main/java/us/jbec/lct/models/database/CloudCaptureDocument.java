@@ -2,9 +2,12 @@ package us.jbec.lct.models.database;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import us.jbec.lct.converters.DocumentCaptureDataConverter;
 import us.jbec.lct.models.DocumentStatus;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -69,7 +72,8 @@ public class CloudCaptureDocument implements Serializable {
      */
     @Lob
     @Column(name = "job_data")
-    private String documentCaptureData;
+    @Convert(converter = DocumentCaptureDataConverter.class)
+    private DocumentCaptureData documentCaptureData;
 
     /**
      * File path to associated image
@@ -91,6 +95,7 @@ public class CloudCaptureDocument implements Serializable {
      */
     private boolean migrated;
 
+    private String notesPreview;
 
     public String getUuid() {
         return uuid;
@@ -148,11 +153,11 @@ public class CloudCaptureDocument implements Serializable {
         this.updateTime = updateTime;
     }
 
-    public String getDocumentCaptureData() {
+    public DocumentCaptureData getDocumentCaptureData() {
         return documentCaptureData;
     }
 
-    public void setDocumentCaptureData(String jobData) {
+    public void setDocumentCaptureData(DocumentCaptureData jobData) {
         this.documentCaptureData = jobData;
     }
 
@@ -186,5 +191,13 @@ public class CloudCaptureDocument implements Serializable {
 
     public void setFileChecksum(String fileChecksum) {
         this.fileChecksum = fileChecksum;
+    }
+
+    public String getNotesPreview() {
+        return notesPreview;
+    }
+
+    public void setNotesPreview(String notesPreview) {
+        this.notesPreview = notesPreview;
     }
 }

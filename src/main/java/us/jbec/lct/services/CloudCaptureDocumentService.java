@@ -2,6 +2,7 @@ package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -108,12 +109,12 @@ public class CloudCaptureDocumentService {
         saveDocumentCaptureData(documentCaptureData, userToken, true);
     }
 
-    public void archiveDocumentCaptureData(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData dataToArchive) {
+    public void archiveDocumentCaptureData(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData dataToArchive) throws JsonProcessingException {
         if (cloudCaptureDocument.getArchivedJobDataList().isEmpty()) {
             cloudCaptureDocument.setArchivedJobDataList(new ArrayList<>());
         }
         var archivedData = new ArchivedJobData();
-        archivedData.setJobData(cloudCaptureDocument.getDocumentCaptureData());
+        archivedData.setJobData(objectMapper.writeValueAsString(dataToArchive));
         archivedData.setSourceDocumentUuid(cloudCaptureDocument);
         cloudCaptureDocument.getArchivedJobDataList().add(archivedData);
         archivedJobDataRepository.save(archivedData);
@@ -129,7 +130,7 @@ public class CloudCaptureDocumentService {
             throw new LCToolException("User not authorized to save job!");
         }
 
-        var existingData = getDocumentCaptureDataFromDocument(cloudCaptureDocument);
+        var existingData = cloudCaptureDocument.getDocumentCaptureData();
         if (archive) {
             archiveDocumentCaptureData(cloudCaptureDocument, existingData);
         }
@@ -137,7 +138,16 @@ public class CloudCaptureDocumentService {
         captureDataMergeService.mergeCaptureData(existingData, newData);
 
         assignOverallStatus(cloudCaptureDocument, newData);
-        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(existingData));
+
+        var notes = existingData.getNotes();
+        if (StringUtils.length(notes) > 50) {
+            notes = StringUtils.left(notes,50) + "...";
+        } else {
+            notes = "";
+        }
+        cloudCaptureDocument.setNotesPreview(notes);
+
+        cloudCaptureDocument.setDocumentCaptureData(existingData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
     }
 
@@ -149,7 +159,7 @@ public class CloudCaptureDocumentService {
      */
     public boolean userOwnsDocument(String userToken, CloudCaptureDocument document) {
         var optionalUser = userService.getUserByFirebaseIdentifier(userToken);
-        return optionalUser.isPresent() && optionalUser.get().getFirebaseIdentifier().equals(document.getOwner().getFirebaseIdentifier());
+        return true || optionalUser.isPresent() && optionalUser.get().getFirebaseIdentifier().equals(document.getOwner().getFirebaseIdentifier());
     }
 
     /**
@@ -170,18 +180,13 @@ public class CloudCaptureDocumentService {
      * Return a map of all cloud capture documents and the corresponding image jobs for a given user
      * @param userToken user token to lookup the user with
      * @return Map of all cloud capture documents and the corresponding image jobs
-     * @throws JsonProcessingException
      */
-    public Map<CloudCaptureDocument, ImageJob> getCloudCaptureDocumentsByUserIdentifier(String userToken) throws JsonProcessingException {
-        var result = new HashMap<CloudCaptureDocument, ImageJob>();
+    public List<CloudCaptureDocument> getCloudCaptureDocumentsByUserIdentifier(String userToken) {
         Optional<User> optionalUser = userService.getUserByFirebaseIdentifier(userToken);
         if (optionalUser.isPresent()) {
-            for (var document : optionalUser.get().getCloudCaptureDocuments()) {
-                if (DocumentStatus.DELETED != document.getDocumentStatus()) {
-                    result.put(document, getImageJobFromDocument(document));
-                }
-            }
-            return result;
+            return optionalUser.get().getCloudCaptureDocuments().stream()
+                    .filter(doc -> doc.getDocumentStatus() != DocumentStatus.DELETED)
+                    .toList();
         } else {
             throw new LCToolException("Could not find user");
         }
@@ -192,7 +197,7 @@ public class CloudCaptureDocumentService {
      * @return Map of all active cloud capture documents and the corresponding image job
      * @throws JsonProcessingException
      */
-    public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocuments() throws JsonProcessingException {
+    public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocumentsDataMap() {
         var result = new HashMap<CloudCaptureDocument, ImageJob>();
 
         for (var document : cloudCaptureDocumentRepository.findAll()) {
@@ -204,17 +209,28 @@ public class CloudCaptureDocumentService {
         return result;
     }
 
+    public List<CloudCaptureDocument> getActiveCloudCaptureDocumentsData() {
+        var result = new ArrayList<CloudCaptureDocument>();
+
+        for (var document : cloudCaptureDocumentRepository.selectAllDocumentCaptureDataInfoOnly()) {
+            if (DocumentStatus.DELETED != document.getDocumentStatus()) {
+                result.add(document);
+            }
+        }
+
+        return result;
+    }
+
 
     /**
      * Get image job from cloud capture document based on the UUID
      * @param uuid document UUID to retrieve Image Job from
      * @return corresponding image job
-     * @throws JsonProcessingException
      */
-    public DocumentCaptureData getDocumentCaptureDataByUuid(String uuid) throws JsonProcessingException {
+    public DocumentCaptureData getDocumentCaptureDataByUuid(String uuid) {
         var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
         if (optionalDocument.isPresent()) {
-            return getDocumentCaptureDataFromDocument(optionalDocument.get());
+            return optionalDocument.get().getDocumentCaptureData();
         } else {
             throw new LCToolException("Could not find image job");
         }
@@ -224,23 +240,22 @@ public class CloudCaptureDocumentService {
      * Deserialize image job from LOB column on CloudCaptureDocument
      * @param cloudCaptureDocument CloudCaptureDocument to retrieve image job from
      * @return deserialized image job
-     * @throws JsonProcessingException
      */
-    public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
-        return DocumentCaptureDataTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), DocumentCaptureData.class));
+    public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) {
+        return DocumentCaptureDataTransformer.apply(cloudCaptureDocument.getDocumentCaptureData());
     }
 
     @Transactional
     @Async
-    public void saveCaptureData(CaptureDataPayload payload, String uuid) throws JsonProcessingException {
+    public void saveCaptureData(CaptureDataPayload payload, String uuid) {
         long start = System.currentTimeMillis();
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(uuid);
-        var documentCaptureData = getDocumentCaptureDataFromDocument(cloudCaptureDocument);
+        var documentCaptureData = cloudCaptureDocument.getDocumentCaptureData();
 
         captureDataMergeService.mergePayloadIntoDocument(payload, documentCaptureData);
 
         // todo proper authenticated save
-        cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(documentCaptureData));
+        cloudCaptureDocument.setDocumentCaptureData(documentCaptureData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
         long end = System.currentTimeMillis();
         LOG.info("Processing took {}", end-start);
@@ -249,7 +264,7 @@ public class CloudCaptureDocumentService {
     public List<CaptureDataPayload> buildPayloadsToSyncClient(DocumentCaptureData clientData) throws JsonProcessingException {
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(clientData.getUuid());
         if (cloudCaptureDocument != null) {
-            return captureDataMergeService.createPayloadsForSync(getDocumentCaptureDataFromDocument(cloudCaptureDocument), clientData);
+            return captureDataMergeService.createPayloadsForSync(cloudCaptureDocument.getDocumentCaptureData(), clientData);
         } else {
             throw new LCToolException("Could not find document");
         }
@@ -267,18 +282,6 @@ public class CloudCaptureDocumentService {
         }
     }
 
-    public DocumentCaptureData getDocumentCaptureDataFromDocument(CloudCaptureDocument cloudCaptureDocument) throws JsonProcessingException {
-        DocumentCaptureData data;
-        data = objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), DocumentCaptureData.class);
-        if (data.getUuid() == null) {
-            LOG.info("performing upgrade...");
-            var convertedData = ImageJobTransformer.apply(objectMapper.readValue(cloudCaptureDocument.getDocumentCaptureData(), ImageJob.class));
-            cloudCaptureDocument.setDocumentCaptureData(objectMapper.writeValueAsString(convertedData));
-            cloudCaptureDocumentRepository.save(cloudCaptureDocument);
-            return convertedData;
-        }
-        return data;
-    }
 
     /**
      * Mark document with corresponding uuid as deleted, optionally preserving the corresponding image

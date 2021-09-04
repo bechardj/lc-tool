@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 
 import java.io.IOException;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -23,18 +22,16 @@ public class ImageJobListing {
     private String deleteUrl;
 
     static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' hh:mm a");
-    static ZoneId easternZoneId = ZoneId.of("America/New_York");
 
-    public ImageJobListing(CloudCaptureDocument cloudCaptureDocument, ImageJob imageJob) throws IOException {
+    public ImageJobListing(CloudCaptureDocument cloudCaptureDocument) throws IOException {
         this.fileName = cloudCaptureDocument.getName();
         this.owner = cloudCaptureDocument.getOwner().getFirebaseEmail();
         if (cloudCaptureDocument.getUpdateTime() != null) {
-            var zonedTime = cloudCaptureDocument.getUpdateTime().atZone(easternZoneId);
-//            this.dateAdded = fmt.format(cloudCaptureDocument.getUpdateTime());
+            this.dateAdded = fmt.format(cloudCaptureDocument.getUpdateTime());
         } else {
             this.dateAdded = "Unknown";
         }
-        this.notes =  StringUtils.defaultString( imageJob.getFields().get(ImageJobFields.NOTES.name()));
+        this.notes = cloudCaptureDocument.getNotesPreview();
         if (StringUtils.length(this.notes) > MAX_LEN) {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }

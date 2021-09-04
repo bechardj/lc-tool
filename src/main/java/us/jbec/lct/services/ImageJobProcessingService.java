@@ -25,8 +25,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -73,23 +71,6 @@ public class ImageJobProcessingService {
         this.geometricCollectionUtils = geometricCollectionUtils;
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
         this.zipOutputService = zipOutputService;
-    }
-
-    /**
-     * Initialize a new image job with the provided UUID corresponding to the CloudCaptureDocument
-     * @param uuid UUID of the corresponding CloudCaptureDocument
-     * @return initialized ImageJob
-     */
-    public ImageJob initializeImageJob(String uuid) {
-        ImageJob imageJob = new ImageJob();
-        imageJob.setId(uuid);
-        imageJob.setVersion("0.5");
-        imageJob.setCompleted(false);
-        imageJob.setEdited(false);
-        imageJob.setStatus("Ingested");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-        imageJob.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-        return imageJob;
     }
 
     /**
@@ -202,7 +183,7 @@ public class ImageJobProcessingService {
      * @throws JsonProcessingException
      */
     private List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
-        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocuments();
+        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsDataMap();
         HashMap<String, File> images = new HashMap<>();
         primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));
         List<ImageJobFile> imageJobFiles = new ArrayList<>();
