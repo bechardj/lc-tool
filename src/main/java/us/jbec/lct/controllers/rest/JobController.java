@@ -1,6 +1,9 @@
 package us.jbec.lct.controllers.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LCToolResponse;
 import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.DocumentCaptureData;
@@ -17,7 +21,10 @@ import us.jbec.lct.services.CloudCaptureDocumentService;
 import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Controller for interacting with image jobs
@@ -28,6 +35,7 @@ public class JobController {
     Logger LOG = LoggerFactory.getLogger(JobController.class);
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     /**
      * Controller for interacting with image jobs
@@ -35,6 +43,12 @@ public class JobController {
      */
     public JobController(CloudCaptureDocumentService cloudCaptureDocumentService) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
+    }
+
+    private Bucket syncAfterDisconnectBucket() {
+        return Bucket4j.builder()
+                .addLimit(Bandwidth.simple(10, Duration.ofSeconds(30)))
+                .build();
     }
 
     /**
@@ -62,10 +76,24 @@ public class JobController {
         return new LCToolResponse(false, "Saved!");
     }
 
-    @GetMapping(value="/sec/api/captureData/sync")
-    public List<CaptureDataPayload> syncAfterDisconnect(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws JsonProcessingException {
+    @PostMapping(value="/sec/api/captureData/sync")
+    public List<CaptureDataPayload> syncAfterDisconnect(Authentication authentication,
+                                                        @RequestBody DocumentCaptureData documentCaptureData,
+                                                        @RequestParam String originSession) throws JsonProcessingException {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
-        cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
-        return cloudCaptureDocumentService.buildPayloadsToSyncClient(documentCaptureData);
+        Bucket userBucket = this.buckets.computeIfAbsent(user.getFirebaseIdentifier(), (uuid) -> syncAfterDisconnectBucket());
+        if (userBucket.tryConsume(1)) {
+            int mergeCount = cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
+            var payloads = cloudCaptureDocumentService.buildPayloadsToSyncClient(documentCaptureData);
+            if (mergeCount > 0) {
+                // TODO: ultimately, we should do this re-sync using payloads probably. This method at least guarantees eventual consistency
+                //  at the risk of out running the rate limiter.
+                LOG.info("Client changes were merged in. Requesting all clients sync.");
+                cloudCaptureDocumentService.requestClientSync(documentCaptureData.getUuid(), originSession);
+            }
+            return payloads;
+        } else {
+            throw new LCToolException("Rate limit exceeded!");
+        }
     }
 }

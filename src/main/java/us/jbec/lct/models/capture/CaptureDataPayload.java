@@ -15,6 +15,7 @@ public class CaptureDataPayload {
     private CharacterCaptureData characterCaptureData;
     private LineCaptureData lineCaptureData;
     private WordCaptureData wordCaptureData;
+    private Boolean requestCompleteSync;
 
     public CaptureDataPayload () {
 
@@ -63,5 +64,13 @@ public class CaptureDataPayload {
 
     public void setWordCaptureData(WordCaptureData wordCaptureData) {
         this.wordCaptureData = wordCaptureData;
+    }
+
+    public Boolean getRequestCompleteSync() {
+        return requestCompleteSync;
+    }
+
+    public void setRequestCompleteSync(Boolean requestCompleteSync) {
+        this.requestCompleteSync = requestCompleteSync;
     }
 }

@@ -97,6 +97,8 @@ public class CloudCaptureDocument implements Serializable {
 
     private String notesPreview;
 
+    private Boolean projectLevelEditing;
+
     public String getUuid() {
         return uuid;
     }
@@ -199,5 +201,13 @@ public class CloudCaptureDocument implements Serializable {
 
     public void setNotesPreview(String notesPreview) {
         this.notesPreview = notesPreview;
+    }
+
+    public Boolean getProjectLevelEditing() {
+        return projectLevelEditing;
+    }
+
+    public void setProjectLevelEditing(Boolean projectLevelEditing) {
+        this.projectLevelEditing = projectLevelEditing;
     }
 }

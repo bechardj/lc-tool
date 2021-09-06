@@ -21,6 +21,12 @@ public class CaptureDataPayloadValidator implements ConstraintValidator<CaptureD
 
     @Override
     public boolean isValid(CaptureDataPayload payload, ConstraintValidatorContext context) {
+
+        // Clients may not request complete sync directly
+        if (payload.getRequestCompleteSync() != null && payload.getRequestCompleteSync()) {
+            return false;
+        }
+
         var populatedFieldCount = Stream.of(payload.getCharacterCaptureData(), payload.getLineCaptureData(), payload.getWordCaptureData())
                 .filter(Objects::nonNull)
                 .count();

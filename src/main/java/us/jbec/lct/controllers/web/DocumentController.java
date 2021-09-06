@@ -39,10 +39,10 @@ public class DocumentController {
     @GetMapping("/secure/open/document")
     public String openDocument(Authentication authentication, Model model, @RequestParam String uuid) {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
-        var owns = cloudCaptureDocumentService.userOwnsDocument(user.getFirebaseIdentifier(), uuid);
-        LOG.info("User {} opening document with id: {} - owned by user: [{}]", user.getFirebaseEmail(), uuid, owns);
+        var editable = cloudCaptureDocumentService.userCanSaveDocument(user.getFirebaseIdentifier(), uuid);
+        LOG.info("User {} opening document with id: {} - editable by user: [{}]", user.getFirebaseEmail(), uuid, editable);
         model.addAttribute("imageId", uuid);
-        model.addAttribute("editable", owns);
+        model.addAttribute("editable", editable);
         model.addAttribute("email", user.getFirebaseEmail());
         return "capture";
     }

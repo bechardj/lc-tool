@@ -58,19 +58,24 @@ class CaptureState {
         this.previousCaptureMode = undefined;
 
         this.connected = false;
+
+        // this is setup in the capture.html. If not editable, don't bother sending changes to the backend
+        this.sync = backendInfo.editable;
     }
 
     publishData(data, dataType) {
-        let payload = new CaptureDataPayload();
-        payload.originator = this.session;
-        if (dataType === DataType.LETTER) {
-            payload.characterCaptureData = data;
-        } else if (dataType === DataType.WORD) {
-            payload.wordCaptureData = data;
-        } else if (dataType === DataType.LINE) {
-            payload.lineCaptureData = data;
+        if (this.sync) {
+            let payload = new CaptureDataPayload();
+            payload.originator = this.session;
+            if (dataType === DataType.LETTER) {
+                payload.characterCaptureData = data;
+            } else if (dataType === DataType.WORD) {
+                payload.wordCaptureData = data;
+            } else if (dataType === DataType.LINE) {
+                payload.lineCaptureData = data;
+            }
+            this.client.send('/app/document/' + this.document.uuid, {}, JSON.stringify(payload));
         }
-        this.client.send('/app/document/' + this.document.uuid, {}, JSON.stringify(payload));
     }
 
     processPayload(payload) {
@@ -80,7 +85,7 @@ class CaptureState {
             if (payload.characterCaptureData !== undefined) {
                 let rect = new Rectangle();
                 Object.assign(rect, payload.characterCaptureData);
-                if (payload.characterCaptureData.captureDataRecordType === "CREATE") {
+                if (payload.characterCaptureData.captureDataRecordType === "CREATE" && !this.renderableWordLines.has(payload.characterCaptureData.uuid)) {
                     rect.labeledRectangle.label = rect.labeledRectangle.label === null ? undefined : rect.labeledRectangle.label;
                     if (this.document.characterCaptureDataMap[payload.characterCaptureData.uuid] === undefined) {
                         this.renderableCharacterRectangles.set(rect.uuid, rect);
@@ -100,7 +105,7 @@ class CaptureState {
             } else if (payload.wordCaptureData !== undefined) {
                 let line = new Line();
                 Object.assign(line, payload.wordCaptureData);
-                if (payload.wordCaptureData.captureDataRecordType === "CREATE") {
+                if (payload.wordCaptureData.captureDataRecordType === "CREATE" && !this.renderableWordLines.has(payload.wordCaptureData.uuid)) {
                     if (this.document.wordCaptureDataMap[payload.wordCaptureData.uuid] === undefined) {
                         this.renderableWordLines.set(line.uuid, line);
                     }
@@ -119,7 +124,7 @@ class CaptureState {
             } else if (payload.lineCaptureData !== undefined) {
                 let line = new Line();
                 Object.assign(line, payload.lineCaptureData);
-                if (payload.lineCaptureData.captureDataRecordType === "CREATE") {
+                if (payload.lineCaptureData.captureDataRecordType === "CREATE" && !this.renderableLineLines.has(payload.lineCaptureData.uuid)) {
                     if (this.document.lineCaptureDataMap[payload.lineCaptureData.uuid] === undefined) {
                         this.renderableLineLines.set(line.uuid, line);
                     }
@@ -134,6 +139,9 @@ class CaptureState {
                     deleteLine.captureDataRecordType = "DELETE";
                     this.safeAddToMap(this.document.lineCaptureDataMap, deleteLine);
                 }
+            } else if (payload.requestCompleteSync) {
+                console.log("Doing complete sync");
+                this.doCompleteSync();
             }
             this.drawCallback();
         }
@@ -142,21 +150,45 @@ class CaptureState {
     reconnectState() {
         if (this.connected !== true)
         {
-            this.reconnectStateDelegate().then(() => {
-                setTimeout(() => {
-                    console.warn("reconnecting...");
-                    this.reconnectState();
-                    }, 1000);
-            });
+            setTimeout(() => {
+                this.reconnectStateDelegate();
+            }, 1000)
+            // this.reconnectStateDelegate().then(() => {
+            //     setTimeout(() => {
+            //         console.warn("reconnecting...");
+            //         this.reconnectState();
+            //         }, 1000);
+            // });
         }
     }
 
-    async reconnectStateDelegate () {
+    doCompleteSync() {
+        firebaseModal().then((token) => {
+            fetch('/sec/api/captureData/sync?originSession=' + this.session, {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(this.document)
+            }).then(response => response.json())
+                .then(payloads => {
+                    payloads.forEach(payload => this.processPayload(payload));
+                });
+        });
+    }
+
+    async reconnectStateDelegate() {
+        console.error("enter reconnect state delegate");
         if (this.client !== undefined) {
+            console.error("disconnect existing client");
             this.client.disconnect();
         }
         let token = await firebaseModal();
+        console.error("call connect state")
         await this.connectState(this.document.uuid, token);
+        this.doCompleteSync();
     }
 
     connectState(jobId, token) {
@@ -174,6 +206,7 @@ class CaptureState {
                 this.connected = true;
                 $("#connection-status-container").hide();
                 this.client.ws.onclose = () => {
+                    console.warn('on close called');
                     $("#connection-status-container").show();
                     this.connected = false;
                     this.reconnectState();
@@ -183,7 +216,7 @@ class CaptureState {
             this.client.connect(
                 headers,
                 callback,
-                () => {this.reconnectState()}
+                () => {console.error("call from connect!!!"); this.reconnectState();}
             );
         });
     }

@@ -31,24 +31,28 @@ public class CaptureDataMergeService {
         return targetList.size() <= 1;
     }
 
-    private <T extends CaptureData> void insertForSave(Map<String, List<T>> existingDataMap, Map<String, List<T>> newDataMap, Consumer<T> insert) {
+    private <T extends CaptureData> int insertForSave(Map<String, List<T>> existingDataMap, Map<String, List<T>> newDataMap, Consumer<T> insert) {
+        int insertCount = 0;
         if (newDataMap != null) {
             for (var entry : newDataMap.entrySet()) {
                 for(var dataRecord : entry.getValue()) {
                     var targetList = existingDataMap.get(entry.getKey());
                     if (shouldIntegrateCaptureData(targetList, dataRecord)) {
+                        insertCount++;
                         insert.accept(dataRecord);
                     }
                 }
             }
         }
+        return insertCount;
     }
 
-    protected void mergeCaptureData(DocumentCaptureData existingData, DocumentCaptureData newData) {
-        insertForSave(existingData.getCharacterCaptureDataMap(), newData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
-        insertForSave(existingData.getLineCaptureDataMap(), newData.getLineCaptureDataMap(), existingData::insertLineCaptureData);
-        insertForSave(existingData.getWordCaptureDataMap(), newData.getWordCaptureDataMap(), existingData::insertWordCaptureData);
-
+    protected int mergeCaptureData(DocumentCaptureData existingData, DocumentCaptureData newData) {
+        int mergeCount = 0;
+        mergeCount += insertForSave(existingData.getCharacterCaptureDataMap(), newData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
+        mergeCount += insertForSave(existingData.getLineCaptureDataMap(), newData.getLineCaptureDataMap(), existingData::insertLineCaptureData);
+        mergeCount += insertForSave(existingData.getWordCaptureDataMap(), newData.getWordCaptureDataMap(), existingData::insertWordCaptureData);
+        return mergeCount;
     }
 
     protected void mergePayloadIntoDocument(CaptureDataPayload payload, DocumentCaptureData documentCaptureData) {

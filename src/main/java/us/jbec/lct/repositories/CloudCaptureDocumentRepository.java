@@ -24,4 +24,8 @@ public interface CloudCaptureDocumentRepository extends CrudRepository<CloudCapt
             nativeQuery = true)
     List<CloudCaptureDocument> selectAllDocumentCaptureDataInfoOnly();
 
+    @Query(value = "CALL CAN_SAVE_CAP_DOC(:user_uuid, :doc_uuid)",
+            nativeQuery = true)
+    int canSaveCloudCaptureDocument(@Param("user_uuid") String userUuid, @Param("doc_uuid") String docUuid);
+
 }

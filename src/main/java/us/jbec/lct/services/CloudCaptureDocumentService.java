@@ -2,9 +2,11 @@ package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,7 @@ public class CloudCaptureDocumentService {
     private final CaptureDataMergeService captureDataMergeService;
     private final ObjectMapper objectMapper;
     private final UserService userService;
+    private SimpMessagingTemplate template;
 
     /**
      * Service for interacting with cloud capture documents
@@ -56,14 +59,14 @@ public class CloudCaptureDocumentService {
      */
     public CloudCaptureDocumentService(CloudCaptureDocumentRepository cloudCaptureDocumentRepository,
                                        ArchivedJobDataRepository archivedJobDataRepository,
-                                       CaptureDataMergeService captureDataMergeService,
-                                       ObjectMapper objectMapper,
-                                       UserService userService) {
+                                       CaptureDataMergeService captureDataMergeService, ObjectMapper objectMapper,
+                                       UserService userService, SimpMessagingTemplate template) {
         this.cloudCaptureDocumentRepository = cloudCaptureDocumentRepository;
         this.archivedJobDataRepository = archivedJobDataRepository;
         this.captureDataMergeService = captureDataMergeService;
         this.objectMapper = objectMapper;
         this.userService = userService;
+        this.template = template;
     }
 
     /**
@@ -121,12 +124,12 @@ public class CloudCaptureDocumentService {
     }
 
     @Transactional
-    public void saveDocumentCaptureData(DocumentCaptureData newData, String userToken, boolean archive) throws JsonProcessingException {
+    public int saveDocumentCaptureData(DocumentCaptureData newData, String userToken, boolean archive) throws JsonProcessingException {
 
         // check permissions
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(newData.getUuid());
 
-        if (!userOwnsDocument(userToken, cloudCaptureDocument)) {
+        if (!userCanSaveDocument(userToken, cloudCaptureDocument.getUuid())) {
             throw new LCToolException("User not authorized to save job!");
         }
 
@@ -135,7 +138,7 @@ public class CloudCaptureDocumentService {
             archiveDocumentCaptureData(cloudCaptureDocument, existingData);
         }
 
-        captureDataMergeService.mergeCaptureData(existingData, newData);
+        int mergeCount = captureDataMergeService.mergeCaptureData(existingData, newData);
 
         assignOverallStatus(cloudCaptureDocument, newData);
 
@@ -149,6 +152,8 @@ public class CloudCaptureDocumentService {
 
         cloudCaptureDocument.setDocumentCaptureData(existingData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
+
+        return mergeCount;
     }
 
     /**
@@ -159,7 +164,7 @@ public class CloudCaptureDocumentService {
      */
     public boolean userOwnsDocument(String userToken, CloudCaptureDocument document) {
         var optionalUser = userService.getUserByFirebaseIdentifier(userToken);
-        return true || optionalUser.isPresent() && optionalUser.get().getFirebaseIdentifier().equals(document.getOwner().getFirebaseIdentifier());
+        return optionalUser.isPresent() && optionalUser.get().getFirebaseIdentifier().equals(document.getOwner().getFirebaseIdentifier());
     }
 
     /**
@@ -171,9 +176,12 @@ public class CloudCaptureDocumentService {
     public boolean userOwnsDocument(String userToken, String documentId) {
         var optionalUser = userService.getUserByFirebaseIdentifier(userToken);
         var optionalDocument = cloudCaptureDocumentRepository.findById(documentId);
-        // todo remove
-        return true || optionalUser.isPresent() && optionalDocument.isPresent()
+        return optionalUser.isPresent() && optionalDocument.isPresent()
                 && optionalUser.get().getFirebaseIdentifier().equals(optionalDocument.get().getOwner().getFirebaseIdentifier());
+    }
+
+    public boolean userCanSaveDocument(String userUuid, String documentId) {
+        return BooleanUtils.toBoolean(cloudCaptureDocumentRepository.canSaveCloudCaptureDocument(userUuid, documentId));
     }
 
     /**
@@ -195,7 +203,6 @@ public class CloudCaptureDocumentService {
     /**
      * Return a map of all active cloud capture documents and the corresponding image job
      * @return Map of all active cloud capture documents and the corresponding image job
-     * @throws JsonProcessingException
      */
     public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocumentsDataMap() {
         var result = new HashMap<CloudCaptureDocument, ImageJob>();
@@ -217,7 +224,6 @@ public class CloudCaptureDocumentService {
                 result.add(document);
             }
         }
-
         return result;
     }
 
@@ -247,14 +253,13 @@ public class CloudCaptureDocumentService {
 
     @Transactional
     @Async
-    public void saveCaptureData(CaptureDataPayload payload, String uuid) {
+    public void saveCaptureData(CaptureDataPayload payload, String docUuid) {
         long start = System.currentTimeMillis();
-        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(uuid);
+        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(docUuid);
         var documentCaptureData = cloudCaptureDocument.getDocumentCaptureData();
 
         captureDataMergeService.mergePayloadIntoDocument(payload, documentCaptureData);
 
-        // todo proper authenticated save
         cloudCaptureDocument.setDocumentCaptureData(documentCaptureData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
         long end = System.currentTimeMillis();
@@ -268,6 +273,13 @@ public class CloudCaptureDocumentService {
         } else {
             throw new LCToolException("Could not find document");
         }
+    }
+
+    public void requestClientSync(String docUuid, String originator) {
+        var payload = new CaptureDataPayload();
+        payload.setOriginator(originator);
+        payload.setRequestCompleteSync(true);
+        template.convertAndSend("/topic/document/" + docUuid, payload);
     }
 
     private void assignOverallStatus(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData documentCaptureData) {
