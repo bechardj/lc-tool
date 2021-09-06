@@ -45,9 +45,9 @@ public class CaptureDataMergeService {
     }
 
     protected void mergeCaptureData(DocumentCaptureData existingData, DocumentCaptureData newData) {
-        insertForSave(newData.getCharacterCaptureDataMap(), existingData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
-        insertForSave(newData.getLineCaptureDataMap(), existingData.getLineCaptureDataMap(), existingData::insertLineCaptureData);
-        insertForSave(newData.getWordCaptureDataMap(), existingData.getWordCaptureDataMap(), existingData::insertWordCaptureData);
+        insertForSave(existingData.getCharacterCaptureDataMap(), newData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
+        insertForSave(existingData.getLineCaptureDataMap(), newData.getLineCaptureDataMap(), existingData::insertLineCaptureData);
+        insertForSave(existingData.getWordCaptureDataMap(), newData.getWordCaptureDataMap(), existingData::insertWordCaptureData);
 
     }
 
