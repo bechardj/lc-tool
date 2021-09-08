@@ -58,6 +58,9 @@ public class DocumentCaptureData {
     }
 
     public String getNotes() {
+        if (notes == null) {
+            notes = "";
+        }
         return Jsoup.clean(notes, Safelist.basic());
     }
 

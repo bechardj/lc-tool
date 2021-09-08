@@ -51,10 +51,36 @@ public class ListingController {
         try {
             var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
             maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
-            var cloudCaptureDocuments = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsData();
+            var cloudCaptureDocuments = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsMetadata();
             var imageJobListings = buildImageJobListings(cloudCaptureDocuments);
             model.addAttribute("imageJobListings", imageJobListings);
             model.addAttribute("listingAll", true);
+            model.addAttribute("listingShared", false);
+            return "listing";
+        }
+        catch (Exception e) {
+            LOG.error("An error occurred generating listing!", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Endpoint for listing all documents
+     * @param authentication authentication object
+     * @param model view model
+     * @return listing view
+     */
+    @GetMapping("/secure/listing/shared")
+    public String listingShared(Authentication authentication, Model model) {
+        try {
+            var user =  LCToolUtils.getUserFromAuthentication(authentication);
+            var maintenance = dynamicTextService.retrieveDynamicText("maintenance");
+            maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
+            var cloudCaptureDocuments = cloudCaptureDocumentService.getEditableByUserIdentifier(user.getFirebaseIdentifier());
+            var imageJobListings = buildImageJobListings(cloudCaptureDocuments);
+            model.addAttribute("imageJobListings", imageJobListings);
+            model.addAttribute("listingShared", true);
+            model.addAttribute("listingAll", false);
             return "listing";
         }
         catch (Exception e) {
@@ -80,6 +106,7 @@ public class ListingController {
                     .getCloudCaptureDocumentsByUserIdentifier(user.getFirebaseIdentifier());
             List<ImageJobListing> imageJobListings = buildImageJobListings(cloudCaptureDocuments);
             model.addAttribute("listingAll", false);
+            model.addAttribute("listingShared", false);
             model.addAttribute("imageJobListings", imageJobListings);
             return "listing";
         }

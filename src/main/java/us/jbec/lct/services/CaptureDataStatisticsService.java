@@ -36,7 +36,7 @@ public class CaptureDataStatisticsService {
      */
     @Cacheable("statistics")
     public CaptureDataStatistics calculateAllStatistics() {
-        return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocumentsData());
+        return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocumentsMetadata());
     }
 
     /**

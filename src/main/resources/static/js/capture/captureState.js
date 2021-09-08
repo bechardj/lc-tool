@@ -28,7 +28,6 @@ class CaptureState {
 
     document;
     drawCallback;
-    publishEnabled;
 
     constructor() {
         this.drawing = false;
@@ -52,15 +51,23 @@ class CaptureState {
         this.lineLinesRedoQueue = [];
         this.lineLinesErasedQueue = [];
 
-        this.notes = "";
-
         this.captureMode = CaptureModes.WORD;
         this.previousCaptureMode = undefined;
 
         this.connected = false;
 
         // this is setup in the capture.html. If not editable, don't bother sending changes to the backend
-        this.sync = backendInfo.editable;
+        this.sync = backendInfo.editable && backendInfo.syncOptIn;
+    }
+
+    getNotes() {
+        return this.document.notes;
+    }
+
+    setNotes(notes) {
+        if (notes !== undefined) {
+            this.document.notes = notes;
+        }
     }
 
     publishData(data, dataType) {
@@ -79,9 +86,7 @@ class CaptureState {
     }
 
     processPayload(payload) {
-        console.log("rcv payload");
         if (payload.originator !== undefined && payload.originator !== this.session) {
-            console.log("new data");
             if (payload.characterCaptureData !== undefined) {
                 let rect = new Rectangle();
                 Object.assign(rect, payload.characterCaptureData);
@@ -153,12 +158,6 @@ class CaptureState {
             setTimeout(() => {
                 this.reconnectStateDelegate();
             }, 1000)
-            // this.reconnectStateDelegate().then(() => {
-            //     setTimeout(() => {
-            //         console.warn("reconnecting...");
-            //         this.reconnectState();
-            //         }, 1000);
-            // });
         }
     }
 
@@ -180,20 +179,21 @@ class CaptureState {
     }
 
     async reconnectStateDelegate() {
-        console.error("enter reconnect state delegate");
         if (this.client !== undefined) {
-            console.error("disconnect existing client");
             this.client.disconnect();
         }
         let token = await firebaseModal();
-        console.error("call connect state")
         await this.connectState(this.document.uuid, token);
         this.doCompleteSync();
     }
 
     connectState(jobId, token) {
         return new Promise((resolve, reject) => {
-            console.log("init ws")
+            if (!backendInfo.syncOptIn) {
+                console.log("Synchronized Editing Disabled.")
+                resolve();
+                return;
+            }
             let sock = new SockJS("/stomp");
             this.client = Stomp.over(sock);
             this.client.debug = f => f;
@@ -216,7 +216,7 @@ class CaptureState {
             this.client.connect(
                 headers,
                 callback,
-                () => {console.error("call from connect!!!"); this.reconnectState();}
+                () => {console.error("Error opening websocket"); this.reconnectState();}
             );
         });
     }

@@ -1,6 +1,5 @@
 package us.jbec.lct.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -180,9 +179,8 @@ public class ImageJobProcessingService {
     /**
      * Build ImageJobFile objects from active cloud capture documents
      * @return List of ImageJobFiles
-     * @throws JsonProcessingException
      */
-    private List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
+    private List<ImageJobFile> buildImageJobFiles() {
         var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsDataMap();
         HashMap<String, File> images = new HashMap<>();
         primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));

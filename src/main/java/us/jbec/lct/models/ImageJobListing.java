@@ -1,5 +1,6 @@
 package us.jbec.lct.models;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 
@@ -20,6 +21,8 @@ public class ImageJobListing {
     private String notes;
     private String openUrl;
     private String deleteUrl;
+    private boolean projectLevelEditing;
+    private String projectLevelEditingToggleUrl;
 
     static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' hh:mm a");
 
@@ -35,9 +38,12 @@ public class ImageJobListing {
         if (StringUtils.length(this.notes) > MAX_LEN) {
             this.notes = StringUtils.left(this.notes, MAX_LEN) + "...";
         }
+        this.projectLevelEditing = BooleanUtils.isTrue(cloudCaptureDocument.getProjectLevelEditing());
         this.status = cloudCaptureDocument.getDocumentStatus().getDescription();
         this.openUrl = "/secure/open/document?uuid=" + cloudCaptureDocument.getUuid();
         this.deleteUrl = "/secure/delete/document?uuid=" + cloudCaptureDocument.getUuid();
+        var baseProjectLevelEditingUrl = "/secure/editToggle/document?uuid=" + cloudCaptureDocument.getUuid();
+        this.projectLevelEditingToggleUrl = baseProjectLevelEditingUrl + "&enable="  + (projectLevelEditing ? "false" : "true");
     }
 
     public String getFileName() {
@@ -94,5 +100,21 @@ public class ImageJobListing {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public boolean isProjectLevelEditing() {
+        return projectLevelEditing;
+    }
+
+    public void setProjectLevelEditing(boolean projectLevelEditing) {
+        this.projectLevelEditing = projectLevelEditing;
+    }
+
+    public String getProjectLevelEditingToggleUrl() {
+        return projectLevelEditingToggleUrl;
+    }
+
+    public void setProjectLevelEditingToggleUrl(String projectLevelEditingToggleUrl) {
+        this.projectLevelEditingToggleUrl = projectLevelEditingToggleUrl;
     }
 }

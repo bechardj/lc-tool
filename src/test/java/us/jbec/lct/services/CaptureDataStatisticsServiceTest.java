@@ -65,13 +65,13 @@ public class CaptureDataStatisticsServiceTest {
 
         input.add(doc2);
 
-        Mockito.when(documentService.getActiveCloudCaptureDocumentsData()).thenReturn(input);
+        Mockito.when(documentService.getActiveCloudCaptureDocumentsMetadata()).thenReturn(input);
         Mockito.when(documentService.getDocumentCaptureDataByUuid("1")).thenReturn(data1);
         Mockito.when(documentService.getDocumentCaptureDataByUuid("2")).thenReturn(data2);
 
         var result = testee.calculateAllStatistics();
 
-        Mockito.verify(documentService, Mockito.times(1)).getActiveCloudCaptureDocumentsData();
+        Mockito.verify(documentService, Mockito.times(1)).getActiveCloudCaptureDocumentsMetadata();
         Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("1");
         Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("2");
 

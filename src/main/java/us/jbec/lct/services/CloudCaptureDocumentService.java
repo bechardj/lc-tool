@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import us.jbec.lct.models.DocumentStatus;
@@ -16,7 +17,6 @@ import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.DocumentCaptureData;
-import us.jbec.lct.models.database.ArchivedJobData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.repositories.ArchivedJobDataRepository;
@@ -48,7 +48,7 @@ public class CloudCaptureDocumentService {
     private final CaptureDataMergeService captureDataMergeService;
     private final ObjectMapper objectMapper;
     private final UserService userService;
-    private SimpMessagingTemplate template;
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * Service for interacting with cloud capture documents
@@ -60,13 +60,13 @@ public class CloudCaptureDocumentService {
     public CloudCaptureDocumentService(CloudCaptureDocumentRepository cloudCaptureDocumentRepository,
                                        ArchivedJobDataRepository archivedJobDataRepository,
                                        CaptureDataMergeService captureDataMergeService, ObjectMapper objectMapper,
-                                       UserService userService, SimpMessagingTemplate template) {
+                                       UserService userService, SimpMessagingTemplate messagingTemplate) {
         this.cloudCaptureDocumentRepository = cloudCaptureDocumentRepository;
         this.archivedJobDataRepository = archivedJobDataRepository;
         this.captureDataMergeService = captureDataMergeService;
         this.objectMapper = objectMapper;
         this.userService = userService;
-        this.template = template;
+        this.messagingTemplate = messagingTemplate;
     }
 
     /**
@@ -112,17 +112,6 @@ public class CloudCaptureDocumentService {
         saveDocumentCaptureData(documentCaptureData, userToken, true);
     }
 
-    public void archiveDocumentCaptureData(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData dataToArchive) throws JsonProcessingException {
-        if (cloudCaptureDocument.getArchivedJobDataList().isEmpty()) {
-            cloudCaptureDocument.setArchivedJobDataList(new ArrayList<>());
-        }
-        var archivedData = new ArchivedJobData();
-        archivedData.setJobData(objectMapper.writeValueAsString(dataToArchive));
-        archivedData.setSourceDocumentUuid(cloudCaptureDocument);
-        cloudCaptureDocument.getArchivedJobDataList().add(archivedData);
-        archivedJobDataRepository.save(archivedData);
-    }
-
     @Transactional
     public int saveDocumentCaptureData(DocumentCaptureData newData, String userToken, boolean archive) throws JsonProcessingException {
 
@@ -135,36 +124,26 @@ public class CloudCaptureDocumentService {
 
         var existingData = cloudCaptureDocument.getDocumentCaptureData();
         if (archive) {
-            archiveDocumentCaptureData(cloudCaptureDocument, existingData);
+            archivedJobDataRepository.createCaptureDataArchive(cloudCaptureDocument.getUuid());
         }
 
         int mergeCount = captureDataMergeService.mergeCaptureData(existingData, newData);
 
         assignOverallStatus(cloudCaptureDocument, newData);
 
-        var notes = existingData.getNotes();
-        if (StringUtils.length(notes) > 50) {
-            notes = StringUtils.left(notes,50) + "...";
-        } else {
-            notes = "";
+        existingData.setNotes(newData.getNotes());
+
+        var notesPreview = newData.getNotes();
+        if (StringUtils.length(notesPreview) > 50) {
+            notesPreview = StringUtils.left(notesPreview,50) + "...";
         }
-        cloudCaptureDocument.setNotesPreview(notes);
+
+        cloudCaptureDocument.setNotesPreview(notesPreview);
 
         cloudCaptureDocument.setDocumentCaptureData(existingData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
 
         return mergeCount;
-    }
-
-    /**
-     * Given a user token, determine if a document is owned by the user
-     * @param userToken user token to use for ownership check
-     * @param document document to verify ownership of
-     * @return whether or not the user owns the document
-     */
-    public boolean userOwnsDocument(String userToken, CloudCaptureDocument document) {
-        var optionalUser = userService.getUserByFirebaseIdentifier(userToken);
-        return optionalUser.isPresent() && optionalUser.get().getFirebaseIdentifier().equals(document.getOwner().getFirebaseIdentifier());
     }
 
     /**
@@ -189,10 +168,26 @@ public class CloudCaptureDocumentService {
      * @param userToken user token to lookup the user with
      * @return Map of all cloud capture documents and the corresponding image jobs
      */
+    @Transactional(propagation = Propagation.NEVER)
     public List<CloudCaptureDocument> getCloudCaptureDocumentsByUserIdentifier(String userToken) {
         Optional<User> optionalUser = userService.getUserByFirebaseIdentifier(userToken);
         if (optionalUser.isPresent()) {
-            return optionalUser.get().getCloudCaptureDocuments().stream()
+            var uuid = optionalUser.get().getFirebaseIdentifier();
+            return cloudCaptureDocumentRepository.selectUserDocumentCaptureDataInfoOnly(uuid).stream()
+                    .filter(doc -> doc.getDocumentStatus() != DocumentStatus.DELETED)
+                    .toList();
+        } else {
+            throw new LCToolException("Could not find user");
+        }
+    }
+
+
+    @Transactional(propagation = Propagation.NEVER)
+    public List<CloudCaptureDocument> getEditableByUserIdentifier(String userToken) {
+        Optional<User> optionalUser = userService.getUserByFirebaseIdentifier(userToken);
+        if (optionalUser.isPresent()) {
+            var uuid = optionalUser.get().getFirebaseIdentifier();
+            return cloudCaptureDocumentRepository.selectUserEditableDocumentCaptureDataInfoOnly(uuid).stream()
                     .filter(doc -> doc.getDocumentStatus() != DocumentStatus.DELETED)
                     .toList();
         } else {
@@ -204,6 +199,7 @@ public class CloudCaptureDocumentService {
      * Return a map of all active cloud capture documents and the corresponding image job
      * @return Map of all active cloud capture documents and the corresponding image job
      */
+    @Transactional(propagation = Propagation.NEVER)
     public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocumentsDataMap() {
         var result = new HashMap<CloudCaptureDocument, ImageJob>();
 
@@ -216,7 +212,8 @@ public class CloudCaptureDocumentService {
         return result;
     }
 
-    public List<CloudCaptureDocument> getActiveCloudCaptureDocumentsData() {
+    @Transactional(propagation = Propagation.NEVER)
+    public List<CloudCaptureDocument> getActiveCloudCaptureDocumentsMetadata() {
         var result = new ArrayList<CloudCaptureDocument>();
 
         for (var document : cloudCaptureDocumentRepository.selectAllDocumentCaptureDataInfoOnly()) {
@@ -247,6 +244,7 @@ public class CloudCaptureDocumentService {
      * @param cloudCaptureDocument CloudCaptureDocument to retrieve image job from
      * @return deserialized image job
      */
+    @Deprecated
     public ImageJob getImageJobFromDocument(CloudCaptureDocument cloudCaptureDocument) {
         return DocumentCaptureDataTransformer.apply(cloudCaptureDocument.getDocumentCaptureData());
     }
@@ -266,7 +264,7 @@ public class CloudCaptureDocumentService {
         LOG.info("Processing took {}", end-start);
     }
 
-    public List<CaptureDataPayload> buildPayloadsToSyncClient(DocumentCaptureData clientData) throws JsonProcessingException {
+    public List<CaptureDataPayload> buildPayloadsToSyncClient(DocumentCaptureData clientData) {
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(clientData.getUuid());
         if (cloudCaptureDocument != null) {
             return captureDataMergeService.createPayloadsForSync(cloudCaptureDocument.getDocumentCaptureData(), clientData);
@@ -279,7 +277,7 @@ public class CloudCaptureDocumentService {
         var payload = new CaptureDataPayload();
         payload.setOriginator(originator);
         payload.setRequestCompleteSync(true);
-        template.convertAndSend("/topic/document/" + docUuid, payload);
+        messagingTemplate.convertAndSend("/topic/document/" + docUuid, payload);
     }
 
     private void assignOverallStatus(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData documentCaptureData) {
@@ -316,5 +314,16 @@ public class CloudCaptureDocumentService {
             return true;
         }
         return false;
+    }
+
+    @Transactional
+    public void toggleProjectLevelEditing(String uuid, boolean toggle) {
+        var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
+        if (optionalDocument.isPresent()) {
+            var doc = optionalDocument.get();
+            doc.setProjectLevelEditing(toggle);
+        } else {
+            throw new LCToolException("Document not found when attempting to toggle project level editability/");
+        }
     }
 }

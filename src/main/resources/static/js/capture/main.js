@@ -176,7 +176,7 @@ function captureCanvasInit (predictionEngine) {
                 color = Colors.GREEN;
             }
             rectangle.draw(mainCtx, color, 2, transparency, Colors.WHITE);
-            rectangle.drawLabel(mainCtx, Colors.PRIMARY, 1, Colors.WHITE, "Exo", fontSize);
+            rectangle.drawLabel(mainCtx, Colors.PRIMARY, 1, Colors.WHITE, "Verdana", fontSize);
         })
 
         if (captureMode === CaptureModes.WORD
@@ -398,13 +398,12 @@ function captureCanvasInit (predictionEngine) {
 
         $('#jobUploadSubmit').click(function(e) {
             e.preventDefault();
-            let agree = confirm("Doing this will replace existing the existing capture data with capture data from the file you uploaded. Consider making a backup copy using the Download Job Info button.")
+            let agree = confirm("Doing this will merge the existing capture data with capture data from the file you uploaded. Consider making a backup copy using the Download Job Info button.")
             if (agree) {
                 window.onbeforeunload = null;
                 $('#jobUpload').submit();
             }
         });
-
 
         $('#undo').click(undo);
         $('#redo').click(redo);
@@ -457,6 +456,7 @@ function captureCanvasInit (predictionEngine) {
         if (!state.lastIsLabeled()) {
             notify("You must label all letters before saving!", 3000);
         } else {
+            state.setNotes($('#notes')[0].value);
             firebaseModal().then(token => {
             $.ajax({
                 type: "POST",
@@ -494,7 +494,7 @@ function captureCanvasInit (predictionEngine) {
         state.drawCallback = draw;
         await loadJob(jobId, state);
         background = await loadImage(jobId);
-        $('#notes')[0].value = state.notes;
+        $('#notes')[0].value = state.getNotes();
         // Add event listeners
         initEventHandlersAndListeners();
 
@@ -511,7 +511,7 @@ function captureCanvasInit (predictionEngine) {
         mainCtx.drawImage(background, 0, 0);
 
         if (document.fonts) {
-            document.fonts.load(fontSize + "px Exo");
+            document.fonts.load(fontSize + "px Verdana");
             document.fonts.ready.then(() => {
                 draw();
             })
