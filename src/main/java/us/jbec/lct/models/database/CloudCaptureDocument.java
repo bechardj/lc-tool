@@ -68,7 +68,8 @@ public class CloudCaptureDocument implements Serializable {
     private LocalDateTime updateTime;
 
     /**
-     * ImageJob data serialized and stored in a Lob
+     * DocumentCaptureData data serialized and stored in a Lob.
+     * Column name specified for legacy support
      */
     @Lob
     @Column(name = "job_data")

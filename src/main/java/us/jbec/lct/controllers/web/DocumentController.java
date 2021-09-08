@@ -72,6 +72,14 @@ public class DocumentController {
         return redirectView;
     }
 
+    /**
+     * Controller for changing whether project-level editing is enabled for a document
+     * @param authentication authentication object
+     * @param model view model
+     * @param uuid uuid of document to change project-level editing setting for
+     * @param enable whether project-level editing should be enabled
+     * @return Redirect back to listing
+     */
     @GetMapping("/secure/editToggle/document")
     public RedirectView toggleProjectLevelEditing(Authentication authentication,
                                                   Model model,

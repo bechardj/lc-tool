@@ -6,15 +6,26 @@ import us.jbec.lct.validators.CaptureDataPayloadConstraint;
 
 import javax.validation.constraints.NotBlank;
 
+/**
+ * Payload for individual capture data changes or overall state change requests
+ * Used for communication between backend and clients via WebSocket
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @CaptureDataPayloadConstraint
 public class CaptureDataPayload {
 
+    /**
+     * Origin session ID (prevent sender from consuming its own payload)
+     */
     @NotBlank
     private String originator;
+
     private CharacterCaptureData characterCaptureData;
     private LineCaptureData lineCaptureData;
     private WordCaptureData wordCaptureData;
+    /**
+     * Should the recipient request a complete sync on receipt of this payload
+     */
     private Boolean requestCompleteSync;
 
     public CaptureDataPayload () {

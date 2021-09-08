@@ -2,7 +2,7 @@ import { Rectangle, Line} from './geometry.js';
 
 function loadJob(jobId, state) {
     return new Promise((resolve, reject) => {
-        $.getJSON("/getJob",
+        $.getJSON("/getDoc",
             {
                 uuid: jobId
             },
@@ -33,23 +33,6 @@ function loadJob(jobId, state) {
                     state.renderableLineLines.set(data.uuid, line);
                 }
 
-
-                // if (jobInfo.characterRectangles !== null) {
-                //     state.characterRectangles = Rectangle.convertFromArrayOfPoints(jobInfo.characterRectangles);
-                // }
-                // if (jobInfo.characterLabels !== null) {
-                //     state.characterLabels = jobInfo.characterLabels;
-                // }
-                // if (jobInfo.wordLines !== null) {
-                //     state.wordLines = Line.convertFromArrayOfPoints(jobInfo.wordLines);
-                // }
-                // if (jobInfo.lineLines !== null) {
-                //     state.lineLines = Line.convertFromArrayOfPoints(jobInfo.lineLines);
-                // }
-                // if (jobInfo.fields.NOTES !== null && jobInfo.fields.NOTES !== undefined) {
-                //     state.notes = jobInfo.fields.NOTES;
-                // }
-                // state.jobInfo = jobInfo;
                 resolve();
             });
     });

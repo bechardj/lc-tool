@@ -3,6 +3,9 @@ package us.jbec.lct.models.capture;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Abstract class for all variants of CaptureData
+ */
 public abstract class CaptureData {
 
     @NotBlank

@@ -29,11 +29,14 @@ public class ArchivedJobData {
     private CloudCaptureDocument sourceDocumentUuid;
 
     /**
-     * Archived serialized ImageJob data
+     * Archived serialized ImageJob/DocumentCaptureData data
      */
     @Lob
     private String jobData;
 
+    /**
+     * If this archive corresponds to an upgrade, which version did this data belong to?
+     */
     private VersionForUpgrade versionForUpgrade;
 
     /**

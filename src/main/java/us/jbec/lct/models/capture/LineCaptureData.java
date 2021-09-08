@@ -2,6 +2,9 @@ package us.jbec.lct.models.capture;
 
 import us.jbec.lct.models.geometry.LineSegment;
 
+/**
+ * CaptureData implementation for line capture data
+ */
 public class LineCaptureData extends CaptureData {
     private LineSegment lineSegment;
 

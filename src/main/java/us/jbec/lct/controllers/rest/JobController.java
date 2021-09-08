@@ -52,14 +52,12 @@ public class JobController {
     }
 
     /**
-     * Retrieves an image job by uuid
-     * @param uuid uuid of image job to retrieve
-     * @return retrieved image job
-     * @throws JsonProcessingException
+     * Retrieves DocumentCaptureData by uuid
+     * @param uuid uuid of DocumentCaptureData to retrieve
+     * @return retrieved DocumentCaptureData
      */
-    @GetMapping(value = "/getJob")
-    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) throws JsonProcessingException,
-            CloneNotSupportedException {
+    @GetMapping(value = "/getDoc")
+    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) {
         LOG.info("Received request for job: {}", uuid);
         try {
             return DocumentCaptureData.flatten(cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid));
@@ -69,6 +67,13 @@ public class JobController {
         }
     }
 
+    /**
+     * Saves DocumentCaptureData
+     * @param authentication auth object
+     * @param documentCaptureData DocumentCaptureData to save
+     * @return LCToolResponse object
+     * @throws IOException
+     */
     @PostMapping(value = "/sec/api/saveDoc", consumes= { "application/json" })
     public LCToolResponse saveDoc(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
@@ -76,6 +81,15 @@ public class JobController {
         return new LCToolResponse(false, "Saved!");
     }
 
+    /**
+     * Syncs DocumentCaptureData state between backend and client, broadcasting newly integrated changes
+     * to other users when present. Rate-limited by user to 10 sync requests per 30 seconds
+     * @param authentication authentication object
+     * @param documentCaptureData DocumentCaptureData from client to sync
+     * @param originSession client session-id (used to prevent client from trying to re-sync again)
+     * @return List of CaptureDataPayloads containing CaptureData the client should integrate to be in sync
+     * @throws JsonProcessingException
+     */
     @PostMapping(value="/sec/api/captureData/sync")
     public List<CaptureDataPayload> syncAfterDisconnect(Authentication authentication,
                                                         @RequestBody DocumentCaptureData documentCaptureData,

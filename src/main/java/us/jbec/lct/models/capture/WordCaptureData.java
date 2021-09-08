@@ -2,6 +2,9 @@ package us.jbec.lct.models.capture;
 
 import us.jbec.lct.models.geometry.LineSegment;
 
+/**
+ * CaptureData implementation for word capture data
+ */
 public class WordCaptureData extends CaptureData {
 
     public WordCaptureData() {

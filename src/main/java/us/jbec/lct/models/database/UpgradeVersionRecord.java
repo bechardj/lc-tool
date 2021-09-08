@@ -5,6 +5,10 @@ import us.jbec.lct.models.VersionForUpgrade;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+/**
+ * Database entity for keeping track of the database version, so that the
+ * appropriate upgraders can be run on initialization.
+ */
 @Entity
 public class UpgradeVersionRecord {
 

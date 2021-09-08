@@ -2,6 +2,9 @@ package us.jbec.lct.models.capture;
 
 import us.jbec.lct.models.geometry.LabeledRectangle;
 
+/**
+ * CaptureData implementation for character data
+ */
 public class CharacterCaptureData extends CaptureData {
 
     private LabeledRectangle labeledRectangle;

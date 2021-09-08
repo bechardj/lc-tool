@@ -14,17 +14,27 @@ import us.jbec.lct.util.LCToolUtils;
 
 import javax.validation.Valid;
 
+/**
+ * Controller for handling STOMP websockets for client-side sync state
+ */
 @Controller
 public class DocumentStompController {
 
     private static final Logger LOG = LoggerFactory.getLogger(DocumentStompController.class);
 
-    private CloudCaptureDocumentService cloudCaptureDocumentService;
+    private final CloudCaptureDocumentService cloudCaptureDocumentService;
 
     public DocumentStompController(CloudCaptureDocumentService cloudCaptureDocumentService) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
     }
 
+    /**
+     * Consumes new CaptureDataPayloads from clients and broadcasts to other client sessions
+     * @param message message containing auth info
+     * @param docUuid uuid of document for which the payload is directed
+     * @param captureDataPayload payload data to integrate
+     * @return Payload to broadcast to clients
+     */
     @MessageMapping("/document/{docUuid}")
     @SendTo("/topic/document/{docUuid}")
     public CaptureDataPayload getMessages(Message<?> message,

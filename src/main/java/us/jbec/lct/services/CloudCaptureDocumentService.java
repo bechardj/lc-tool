@@ -256,7 +256,7 @@ public class CloudCaptureDocumentService {
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(docUuid);
         var documentCaptureData = cloudCaptureDocument.getDocumentCaptureData();
 
-        captureDataMergeService.mergePayloadIntoDocument(payload, documentCaptureData);
+        captureDataMergeService.mergePayloadIntoDocument(documentCaptureData, payload);
 
         cloudCaptureDocument.setDocumentCaptureData(documentCaptureData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);

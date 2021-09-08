@@ -1,5 +1,8 @@
 package us.jbec.lct.models;
 
+/**
+ * Database Version for Upgrades
+ */
 public enum VersionForUpgrade {
     PRE_2_0_0("Pre-2.0.0"),
     VERSION_2_0_0("2.0.0");

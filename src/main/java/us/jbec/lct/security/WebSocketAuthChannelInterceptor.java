@@ -10,9 +10,12 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+/**
+ * Authenticates WebSocket before allowing connection to be made.
+ */
+@Component
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private String BEARER_TOKEN = "token";
@@ -27,21 +30,16 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        // Instantiate an object for retrieving the STOMP headers
         final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        // Check that the object is not null
         assert accessor != null;
-        // If the frame is a CONNECT frame
         if(accessor.getCommand() == StompCommand.CONNECT) {
-            LOG.debug("authenticate WS connect");
             final String token = accessor.getFirstNativeHeader(BEARER_TOKEN);
-            LOG.debug("Token: {}", token);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("", token);
             Authentication authentication = authenticationFilter.attemptAuthentication(authenticationToken);
             AuthorizedUser user = ((AuthorizedUser) authentication.getPrincipal());
+            LOG.info("User {} established WebSocket", user.getUser().getFirebaseEmail());
             accessor.setUser(user);
         }
-
         return message;
 
     }

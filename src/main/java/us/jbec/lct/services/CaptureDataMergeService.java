@@ -3,6 +3,8 @@ package us.jbec.lct.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import us.jbec.lct.models.capture.CaptureData;
 import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.CaptureDataRecordType;
@@ -14,11 +16,24 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Merges CaptureData into existing DocumentCaptureData
+ */
 @Service
 public class CaptureDataMergeService {
 
     Logger LOG = LoggerFactory.getLogger(CaptureDataMergeService.class);
 
+    /**
+     * Determine whether or not CaptureData should be added to a list of CaptureData.
+     * Currently checks that the list is either null or empty, or that the change to integrate
+     * is a delete record and the existing data is a create record
+     *
+     * @param targetList list to check if CaptureData should be integrated into
+     * @param dataToIntegrate data to integrate
+     * @param <T> CaptureData type
+     * @return should the capture data be integrated
+     */
     private <T extends CaptureData> boolean shouldIntegrateCaptureData(List<T> targetList, T dataToIntegrate) {
         if (targetList == null || targetList.isEmpty()) {
             return true;
@@ -31,6 +46,15 @@ public class CaptureDataMergeService {
         return targetList.size() <= 1;
     }
 
+    /**
+     * For a given CaptureData type, insert records from the CaptureData map corresponding to incoming CaptureData
+     * when the data should be integrated.
+     * @param existingDataMap existing CaptureData Map
+     * @param newDataMap new CaptureData Map with potential changes we need to merge into the existing CaptureData
+     * @param insert consumer that accepts the CaptureData we are inserting
+     * @param <T> CaptureData type
+     * @return count of CaptureData inserted
+     */
     private <T extends CaptureData> int insertForSave(Map<String, List<T>> existingDataMap, Map<String, List<T>> newDataMap, Consumer<T> insert) {
         int insertCount = 0;
         if (newDataMap != null) {
@@ -47,6 +71,13 @@ public class CaptureDataMergeService {
         return insertCount;
     }
 
+    /**
+     * Merge incoming capture data into existing capture data
+     * @param existingData existing backend capture data
+     * @param newData incoming capture data to merge into existing capture data
+     * @return count of CaptureData changes merged in
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
     protected int mergeCaptureData(DocumentCaptureData existingData, DocumentCaptureData newData) {
         int mergeCount = 0;
         mergeCount += insertForSave(existingData.getCharacterCaptureDataMap(), newData.getCharacterCaptureDataMap(), existingData::insertCharacterCaptureData);
@@ -55,30 +86,36 @@ public class CaptureDataMergeService {
         return mergeCount;
     }
 
-    protected void mergePayloadIntoDocument(CaptureDataPayload payload, DocumentCaptureData documentCaptureData) {
+    /**
+     * Merge a single payload into existing backend CaptureData if it should be merged
+     * @param existingData existing CaptureData
+     * @param payload payload to merge
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    protected void mergePayloadIntoDocument(DocumentCaptureData existingData, CaptureDataPayload payload) {
         if (payload.getCharacterCaptureData() != null) {
             var characterCaptureData = payload.getCharacterCaptureData();
-            var targetList = documentCaptureData.getCharacterCaptureDataMap().get(characterCaptureData.getUuid());
+            var targetList = existingData.getCharacterCaptureDataMap().get(characterCaptureData.getUuid());
             if (shouldIntegrateCaptureData(targetList, characterCaptureData)) {
-                documentCaptureData.insertCharacterCaptureData(characterCaptureData);
+                existingData.insertCharacterCaptureData(characterCaptureData);
             } else {
                 LOG.error("Try to integrate data twice");
             }
         }
         if (payload.getWordCaptureData() != null) {
             var wordCaptureData = payload.getWordCaptureData();
-            var targetList = documentCaptureData.getWordCaptureDataMap().get(wordCaptureData.getUuid());
+            var targetList = existingData.getWordCaptureDataMap().get(wordCaptureData.getUuid());
             if (shouldIntegrateCaptureData(targetList, wordCaptureData)) {
-                documentCaptureData.insertWordCaptureData(wordCaptureData);
+                existingData.insertWordCaptureData(wordCaptureData);
             } else {
                 LOG.error("Try to integrate data twice");
             }
         }
         if (payload.getLineCaptureData() != null) {
             var lineCaptureData = payload.getLineCaptureData();
-            var targetList = documentCaptureData.getLineCaptureDataMap().get(lineCaptureData.getUuid());
+            var targetList = existingData.getLineCaptureDataMap().get(lineCaptureData.getUuid());
             if (shouldIntegrateCaptureData(targetList, lineCaptureData)) {
-                documentCaptureData.insertLineCaptureData(lineCaptureData);
+                existingData.insertLineCaptureData(lineCaptureData);
             } else {
                 LOG.error("Try to integrate data twice");
             }
@@ -102,7 +139,6 @@ public class CaptureDataMergeService {
         }
         return captureDataPayloads;
     }
-
     protected <T extends CaptureData> List<CaptureDataPayload> buildDeletionSyncPayloads(DocumentCaptureData serverData,
                                                                                          DocumentCaptureData flattenedServerData,
                                                                                          DocumentCaptureData flattenedClientData,
@@ -123,6 +159,12 @@ public class CaptureDataMergeService {
         return captureDataPayloads;
     }
 
+    /**
+     * Creates list of CaptureDataPayload objects to send to client to synchronize their state with the backend after a disconnect
+     * @param serverData existing server data
+     * @param clientData client data requiring sync
+     * @return list of CaptureDataPayload objects to send to client to synchronize their state
+     */
     public List<CaptureDataPayload> createPayloadsForSync(DocumentCaptureData serverData, DocumentCaptureData clientData) {
         var flattenedServerData = DocumentCaptureData.flatten(serverData);
         var flattenedClientData = DocumentCaptureData.flatten(clientData);

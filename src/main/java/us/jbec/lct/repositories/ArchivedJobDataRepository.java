@@ -11,6 +11,10 @@ import us.jbec.lct.models.database.ArchivedJobData;
  */
 public interface ArchivedJobDataRepository extends CrudRepository<ArchivedJobData, String> {
 
+    /**
+     * Create archive data for capture data. Old records will be purged at the proc-level
+     * @param docUuid
+     */
     @Query(value = "CALL CREATE_ARCHIVE_DATA(:doc_uuid)",
             nativeQuery = true)
     @Modifying

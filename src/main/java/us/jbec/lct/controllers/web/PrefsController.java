@@ -1,8 +1,6 @@
 package us.jbec.lct.controllers.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,12 +16,10 @@ import us.jbec.lct.util.LCToolUtils;
 import javax.validation.Valid;
 
 /**
- * Controller for processing user invitations
+ * Controller for processing user preferences
  */
 @Controller
 public class PrefsController {
-
-    Logger LOG = LoggerFactory.getLogger(PrefsController.class);
 
     private final UserService userService;
 
@@ -32,7 +28,7 @@ public class PrefsController {
     }
 
     /**
-     * Handle invitation view
+     * Handle preferences view
      * @param authentication
      * @param model
      * @return view name
@@ -46,7 +42,7 @@ public class PrefsController {
     }
 
     /**
-     * Process a submitted invite
+     * Process a preferences change
      *
      * @param authentication
      * @param bindingResult

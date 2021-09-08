@@ -65,7 +65,7 @@ public class ListingController {
     }
 
     /**
-     * Endpoint for listing all documents
+     * Endpoint for listing shared documents
      * @param authentication authentication object
      * @param model view model
      * @return listing view

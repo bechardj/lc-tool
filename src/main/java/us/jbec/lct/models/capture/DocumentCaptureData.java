@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-
+/**
+ * Document level capture data collection
+ */
 public class DocumentCaptureData {
     private String uuid;
     private String notes;
@@ -32,10 +34,23 @@ public class DocumentCaptureData {
         lineCaptureDataMap = new HashMap<>();
     }
 
+    /**
+     * Given an existing DocumentCaptureData object, create a new DocumentCaptureData containing
+     * only non-deleted data.
+     * @param source source DocumentCaptureData to flatten
+     * @return flattened DocumentCaptureData
+     */
     public static DocumentCaptureData flatten(DocumentCaptureData source) {
         return DocumentCaptureData.flatten(source, source.getUuid());
     }
 
+    /**
+     * Given an existing DocumentCaptureData object, create a new DocumentCaptureData containing
+     * only non-deleted data.
+     * @param source source DocumentCaptureData to flatten
+     * @param uuid uuid to apply to flattened data
+     * @return flattened DocumentCaptureData
+     */
     public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) {
         DocumentCaptureData target = new DocumentCaptureData(uuid);
         target.setCompleted(source.isCompleted());
