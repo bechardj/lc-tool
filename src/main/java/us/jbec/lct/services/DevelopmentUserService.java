@@ -42,6 +42,9 @@ public class DevelopmentUserService extends UserService {
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
+     * @param projectService autowired parameter
+     * @param invitationRepository autowired parameter
+     * @param objectMapper autowired parameter
      */
     public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository, ProjectService projectService,
                                   InvitationRepository invitationRepository, ObjectMapper objectMapper) {

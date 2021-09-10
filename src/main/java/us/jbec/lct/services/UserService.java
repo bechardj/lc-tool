@@ -52,6 +52,7 @@ public class UserService {
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
+     * @param projectService autowired parameter
      * @param firebaseAuth autowired parameter
      * @param invitationRepository autowired parameter
      * @param objectMapper autowired parameter

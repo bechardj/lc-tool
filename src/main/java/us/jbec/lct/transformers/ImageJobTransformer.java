@@ -13,8 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Convert ImageJob up to DocumentCaptureData
+ */
 public class ImageJobTransformer {
 
+    /**
+     * Convert ImageJob up to DocumentCaptureData
+     * @param imageJob ImageJob to convert
+     * @return converted DocumentCaptureData
+     */
     public static DocumentCaptureData apply(ImageJob imageJob) {
 
         DocumentCaptureData documentCaptureData = new DocumentCaptureData(imageJob.getId());

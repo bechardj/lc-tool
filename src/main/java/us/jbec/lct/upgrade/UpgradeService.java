@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Service for performing Upgrades at the Database Level on ContextRefreshedEvent
+ */
 @Service
 public class UpgradeService implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -32,6 +35,11 @@ public class UpgradeService implements ApplicationListener<ContextRefreshedEvent
         upgradeExecutors.add(upgradeExecutor_2_0_0);
     }
 
+    /**
+     * Transactionally check which upgrades need to be done, and execute them one by one.
+     * After each upgrade, the database version is bumped. If any upgrade fails along the way,
+     * changes should be rolled back
+     */
     @Transactional
     public void upgrade() {
         LOG.info("Checking if any upgrades need to be performed.");
@@ -71,6 +79,11 @@ public class UpgradeService implements ApplicationListener<ContextRefreshedEvent
         }
     }
 
+    /**
+     * Listen for ContextRefreshedEvent. Note that this needs to be done as opposed to executing from a
+     * PostConstruct method to make sure Hibernate Transactions can be done
+     * @param event ContextRefreshedEvent
+     */
     @Transactional
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {

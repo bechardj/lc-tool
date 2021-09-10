@@ -8,6 +8,9 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Objects;
 
+/**
+ * Validate CharacterCaptureData
+ */
 public class CharacterCaptureDataValidator implements ConstraintValidator<CharacterCaptureDataConstraint, CharacterCaptureData> {
     @Override
     public void initialize(CharacterCaptureDataConstraint constraintAnnotation) {

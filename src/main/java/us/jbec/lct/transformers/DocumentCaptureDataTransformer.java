@@ -8,8 +8,16 @@ import us.jbec.lct.models.geometry.LineSegment;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Convert DocumentCaptureData back to an ImageJob
+ */
 public class DocumentCaptureDataTransformer {
 
+    /**
+     * Convert DocumentCaptureData back to an ImageJob
+     * @param documentCaptureData input DocumentCaptureData
+     * @return converted ImageJob
+     */
     public static ImageJob apply(DocumentCaptureData documentCaptureData) {
         DocumentCaptureData source = DocumentCaptureData.flatten(documentCaptureData, documentCaptureData.getUuid());
         ImageJob target = new ImageJob();

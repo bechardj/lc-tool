@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
@@ -20,6 +21,9 @@ import us.jbec.lct.upgrade.Upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Upgrade pre-2.0.0 ImageJob data to DocumentCaptureData. ImageJob data will be archived
+ */
 @Component
 public class ImageJobUpgrader implements Upgrade {
 
@@ -42,7 +46,7 @@ public class ImageJobUpgrader implements Upgrade {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public void execute() throws RuntimeException {
         LOG.info("Start upgrade of ImageJob data from pre-2.0.0");
         Map<String, String> archiveDataMap = new HashMap<>();

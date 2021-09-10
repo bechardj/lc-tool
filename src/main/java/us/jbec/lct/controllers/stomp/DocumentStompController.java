@@ -41,17 +41,11 @@ public class DocumentStompController {
                                           @DestinationVariable String docUuid,
                                           @Valid CaptureDataPayload captureDataPayload) {
         var user = LCToolUtils.getUserFromMessage(message);
-        if (user != null && cloudCaptureDocumentService.userCanSaveDocument(user.getFirebaseIdentifier(), docUuid)) {
-            cloudCaptureDocumentService.saveCaptureData(captureDataPayload, docUuid);
-            return captureDataPayload;
-        } else {
-            if (user == null) {
-                LOG.error("User was null");
-            } else {
-                LOG.error("User {} not authorized to save document {}", user.getFirebaseIdentifier(), docUuid);
-            }
-            throw new LCToolException("Origin User Not Authorized to Submit Changes");
+        if (user == null) {
+            throw new LCToolException("User was null!");
         }
+        cloudCaptureDocumentService.saveCaptureDataPayload(captureDataPayload, docUuid, user.getFirebaseIdentifier());
+        return captureDataPayload;
     }
 
 }

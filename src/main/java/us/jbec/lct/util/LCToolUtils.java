@@ -32,6 +32,11 @@ public class LCToolUtils {
         return (User) session.getAttribute("user");
     }
 
+    /**
+     * Get user from WebSocket Message
+     * @param message message to extract user from
+     * @return extracted user
+     */
     public static User getUserFromMessage(Message<?> message) {
         var authorizedUser = ((AuthorizedUser) message.getHeaders().get("simpUser"));
         if (authorizedUser == null) {

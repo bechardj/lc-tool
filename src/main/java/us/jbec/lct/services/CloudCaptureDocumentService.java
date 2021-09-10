@@ -54,8 +54,10 @@ public class CloudCaptureDocumentService {
      * Service for interacting with cloud capture documents
      * @param cloudCaptureDocumentRepository autowired parameter
      * @param archivedJobDataRepository autowired parameter
+     * @param captureDataMergeService autowired parameter
      * @param objectMapper autowired parameter
      * @param userService autowired parameter
+     * @param messagingTemplate autowired parameter
      */
     public CloudCaptureDocumentService(CloudCaptureDocumentRepository cloudCaptureDocumentRepository,
                                        ArchivedJobDataRepository archivedJobDataRepository,
@@ -92,19 +94,20 @@ public class CloudCaptureDocumentService {
     }
 
     /**
-     * Save a cloud capture document, using an uploaded image job file as the source
+     * Save a cloud capture document, using an uploaded image job or document capture data file as the source.
+     * Will merge in to existing document capture data, and will attempt conversion of ImageJobFile -> DocumentCaptureData
      * @param userToken token of user owning the document
-     * @param imageJobAsFile image job file to save
+     * @param uploadedUserFile uploaded user file to save
      * @param uuid UUID of document to save
      * @throws IOException
      */
     @Transactional
-    public void saveUploadedCaptureData(String userToken, MultipartFile imageJobAsFile, String uuid) throws IOException {
-        DocumentCaptureData documentCaptureData = objectMapper.readValue(imageJobAsFile.getBytes(), DocumentCaptureData.class);
+    public void saveUploadedCaptureData(String userToken, MultipartFile uploadedUserFile, String uuid) throws IOException {
+        DocumentCaptureData documentCaptureData = objectMapper.readValue(uploadedUserFile.getBytes(), DocumentCaptureData.class);
 
         if (documentCaptureData.getUuid() == null) {
             LOG.warn("User updated what is suspected to be legacy file. Will transform format.");
-            ImageJob imageJob = objectMapper.readValue(imageJobAsFile.getBytes(), ImageJob.class);
+            ImageJob imageJob = objectMapper.readValue(uploadedUserFile.getBytes(), ImageJob.class);
             documentCaptureData = ImageJobTransformer.apply(imageJob);
         }
 
@@ -112,10 +115,17 @@ public class CloudCaptureDocumentService {
         saveDocumentCaptureData(documentCaptureData, userToken, true);
     }
 
+    /**
+     * Save client side DocumentCaptureData, merging in changes to server side DocumentCaptureData.
+     * Performs authorization checks before saving data
+     * @param newData new incoming client-side DocumentCaptureData
+     * @param userToken user token associated with user attempting to save
+     * @param archive should we archive existing DocumentCaptureData
+     * @return number of client-side changes merged in
+     */
     @Transactional
-    public int saveDocumentCaptureData(DocumentCaptureData newData, String userToken, boolean archive) throws JsonProcessingException {
+    public int saveDocumentCaptureData(DocumentCaptureData newData, String userToken, boolean archive) {
 
-        // check permissions
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(newData.getUuid());
 
         if (!userCanSaveDocument(userToken, cloudCaptureDocument.getUuid())) {
@@ -159,14 +169,25 @@ public class CloudCaptureDocumentService {
                 && optionalUser.get().getFirebaseIdentifier().equals(optionalDocument.get().getOwner().getFirebaseIdentifier());
     }
 
+    /**
+     * Can the given user save the document. User can save if
+     * <ol>
+     *     <li>They own the document</li>
+     *     <li>Project level editing is enabled, and the user belongs to the project associated with the document</li>
+     * </ol>
+     * @param userUuid UUID of user
+     * @param documentId Document UUID
+     * @return
+     */
     public boolean userCanSaveDocument(String userUuid, String documentId) {
         return BooleanUtils.toBoolean(cloudCaptureDocumentRepository.canSaveCloudCaptureDocument(userUuid, documentId));
     }
 
     /**
-     * Return a map of all cloud capture documents and the corresponding image jobs for a given user
+     * Return a list of CloudCaptureDocuments containing metadata info only belonging to the given user.
+     * Cannot be called from the context of a Transaction
      * @param userToken user token to lookup the user with
-     * @return Map of all cloud capture documents and the corresponding image jobs
+     * @return List of all cloud capture documents owned by user
      */
     @Transactional(propagation = Propagation.NEVER)
     public List<CloudCaptureDocument> getCloudCaptureDocumentsByUserIdentifier(String userToken) {
@@ -181,7 +202,12 @@ public class CloudCaptureDocumentService {
         }
     }
 
-
+    /**
+     * Return a list of CloudCaptureDocuments containing metadata info only editable by the given user.
+     * Cannot be called from the context of a Transaction
+     * @param userToken user token to lookup the user with
+     * @return List of all cloud capture documents editable by user
+     */
     @Transactional(propagation = Propagation.NEVER)
     public List<CloudCaptureDocument> getEditableByUserIdentifier(String userToken) {
         Optional<User> optionalUser = userService.getUserByFirebaseIdentifier(userToken);
@@ -196,8 +222,10 @@ public class CloudCaptureDocumentService {
     }
 
     /**
-     * Return a map of all active cloud capture documents and the corresponding image job
-     * @return Map of all active cloud capture documents and the corresponding image job
+     * Return a Map of all active CloudCaptureDocuments as key, with
+     * converted ImageJob data as the value
+     * Cannot be called from the context of a Transaction
+     * @return Map of all cloud capture documents and corresponding converted ImageJob data
      */
     @Transactional(propagation = Propagation.NEVER)
     public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocumentsDataMap() {
@@ -212,6 +240,11 @@ public class CloudCaptureDocumentService {
         return result;
     }
 
+    /**
+     * Return a list of all active CloudCaptureDocuments containing metadata info only.
+     * Cannot be called from the context of a Transaction
+     * @return List of all cloud capture documents
+     */
     @Transactional(propagation = Propagation.NEVER)
     public List<CloudCaptureDocument> getActiveCloudCaptureDocumentsMetadata() {
         var result = new ArrayList<CloudCaptureDocument>();
@@ -226,9 +259,9 @@ public class CloudCaptureDocumentService {
 
 
     /**
-     * Get image job from cloud capture document based on the UUID
-     * @param uuid document UUID to retrieve Image Job from
-     * @return corresponding image job
+     * Get DocumentCaptureData from cloud capture document based on the UUID
+     * @param uuid document UUID to retrieve DocumentCaptureData from
+     * @return corresponding DocumentCaptureData
      */
     public DocumentCaptureData getDocumentCaptureDataByUuid(String uuid) {
         var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
@@ -240,7 +273,7 @@ public class CloudCaptureDocumentService {
     }
 
     /**
-     * Deserialize image job from LOB column on CloudCaptureDocument
+     * Get ImageJob from document by converting DocumentCaptureData -> ImageJob
      * @param cloudCaptureDocument CloudCaptureDocument to retrieve image job from
      * @return deserialized image job
      */
@@ -249,10 +282,19 @@ public class CloudCaptureDocumentService {
         return DocumentCaptureDataTransformer.apply(cloudCaptureDocument.getDocumentCaptureData());
     }
 
+    /**
+     * Merge client-originated CaptureDataPayload into server-side DocumentCaptureData.
+     * Verifies user is authorized to save document.
+     * @param payload client-originated payload to merge in
+     * @param documentId document ID associated with the user
+     */
     @Transactional
-    public void saveCaptureData(CaptureDataPayload payload, String docUuid) {
+    public void saveCaptureDataPayload(CaptureDataPayload payload, String documentId, String userUuid) {
         long start = System.currentTimeMillis();
-        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(docUuid);
+        if (!userCanSaveDocument(userUuid, documentId)) {
+            throw new LCToolException("User not authorized to save CaptureData");
+        }
+        var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(documentId);
         var documentCaptureData = cloudCaptureDocument.getDocumentCaptureData();
 
         captureDataMergeService.mergePayloadIntoDocument(documentCaptureData, payload);
@@ -263,6 +305,11 @@ public class CloudCaptureDocumentService {
         LOG.debug("Processing took {}", end-start);
     }
 
+    /**
+     * Builds CaptureDataPayloads needed to be consumed by a client to achieve the same state as the server
+     * @param clientData client-side DocumentCaptureData
+     * @return list of payloads to be consumed by client for sync
+     */
     public List<CaptureDataPayload> buildPayloadsToSyncClient(DocumentCaptureData clientData) {
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(clientData.getUuid());
         if (cloudCaptureDocument != null) {
@@ -272,13 +319,23 @@ public class CloudCaptureDocumentService {
         }
     }
 
-    public void requestClientSync(String docUuid, String originator) {
+    /**
+     * Request clients to perform a complete sync with the backend. Called after another client synced their data
+     * @param documentId which document id needs to be synced by clients that have it open
+     * @param originator origin session that does not need to re-sync their state
+     */
+    public void requestClientSync(String documentId, String originator) {
         var payload = new CaptureDataPayload();
         payload.setOriginator(originator);
         payload.setRequestCompleteSync(true);
-        messagingTemplate.convertAndSend("/topic/document/" + docUuid, payload);
+        messagingTemplate.convertAndSend("/topic/document/" + documentId, payload);
     }
 
+    /**
+     * Assign overall document status when saving CloudCaptureDocument
+     * @param cloudCaptureDocument CloudCaptureDocument to assign status to
+     * @param documentCaptureData underlying DocumentCaptureData
+     */
     private void assignOverallStatus(CloudCaptureDocument cloudCaptureDocument, DocumentCaptureData documentCaptureData) {
         if (documentCaptureData.isEdited()) {
             cloudCaptureDocument.setDocumentStatus(DocumentStatus.EDITED);
@@ -290,7 +347,6 @@ public class CloudCaptureDocumentService {
             cloudCaptureDocument.setDocumentStatus(DocumentStatus.INGESTED);
         }
     }
-
 
     /**
      * Mark document with corresponding uuid as deleted, optionally preserving the corresponding image
@@ -315,12 +371,17 @@ public class CloudCaptureDocumentService {
         return false;
     }
 
+    /**
+     * Assign project level editing for a document
+     * @param documentId uuid of document to set project level editing for
+     * @param enabled should project level editing be enabled?
+     */
     @Transactional
-    public void toggleProjectLevelEditing(String uuid, boolean toggle) {
-        var optionalDocument = cloudCaptureDocumentRepository.findById(uuid);
+    public void toggleProjectLevelEditing(String documentId, boolean enabled) {
+        var optionalDocument = cloudCaptureDocumentRepository.findById(documentId);
         if (optionalDocument.isPresent()) {
             var doc = optionalDocument.get();
-            doc.setProjectLevelEditing(toggle);
+            doc.setProjectLevelEditing(enabled);
         } else {
             throw new LCToolException("Document not found when attempting to toggle project level editability/");
         }

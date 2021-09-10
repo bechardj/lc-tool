@@ -11,6 +11,9 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Objects;
 
+/**
+ * Validate WordLine & LineLine Capture Data
+ */
 public class GenericLineCaptureDataValidator implements ConstraintValidator<GenericLineCaptureDataConstraint, CaptureData> {
     @Override
     public void initialize(GenericLineCaptureDataConstraint constraintAnnotation) {

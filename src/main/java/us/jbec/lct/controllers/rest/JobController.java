@@ -88,12 +88,11 @@ public class JobController {
      * @param documentCaptureData DocumentCaptureData from client to sync
      * @param originSession client session-id (used to prevent client from trying to re-sync again)
      * @return List of CaptureDataPayloads containing CaptureData the client should integrate to be in sync
-     * @throws JsonProcessingException
      */
     @PostMapping(value="/sec/api/captureData/sync")
     public List<CaptureDataPayload> syncAfterDisconnect(Authentication authentication,
                                                         @RequestBody DocumentCaptureData documentCaptureData,
-                                                        @RequestParam String originSession) throws JsonProcessingException {
+                                                        @RequestParam String originSession) {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
         Bucket userBucket = this.buckets.computeIfAbsent(user.getFirebaseIdentifier(), (uuid) -> syncAfterDisconnectBucket());
         if (userBucket.tryConsume(1)) {
