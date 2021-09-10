@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <title>LC Document Tool</title>
+    <title>LC Capture Tool</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/webjars/datatables/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <div th:insert="fragments/shared-styles.html" th:remove="tag"></div>
 </head>
 <body>
 
@@ -87,6 +83,7 @@
 </div>
 
 <div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
 <script src="/webjars/jquery-file-upload/js/jquery.fileupload.js"></script>
 <script src="/webjars/datatables/js/jquery.dataTables.min.js"></script>
 <script src="/js/listing/main.js"></script>
