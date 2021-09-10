@@ -18,7 +18,7 @@ Video Demo: https://youtu.be/UyPV7N6FHfE
 
 ## Developer Profile
 A Developer profile `dev`  (mentioned above) is included to make local development easier. This profile does the following differently from the `remote` profile used in production:
-- Thymleaf HTML templates and static resources are updated on page reload, so you can make changes to them without restarting the application
+- Thymeleaf HTML templates and static resources are updated on page reload, so you can make changes to them without restarting the application
 - The `DevelopmentUserService` bean is enabled and the regular `UserService` and `FirebaseAuth` beans are disabled. This removes the need to include Firebase Admin secrets by default. You will always be logged in as the user set in `DevelopmentUserService`
 
 You will also likely need to update some parameters in `src/main/resources/application-dev.properties`
