@@ -184,7 +184,6 @@ class CaptureState {
         }
         let token = await firebaseModal();
         await this.connectState(this.document.uuid, token);
-        this.doCompleteSync();
     }
 
     connectState(jobId, token) {
@@ -204,9 +203,10 @@ class CaptureState {
                         this.processPayload(JSON.parse(data.body));
                     });
                 this.connected = true;
+                this.doCompleteSync();
                 $("#connection-status-container").hide();
                 this.client.ws.onclose = () => {
-                    console.warn('on close called');
+                    console.warn('Disconnected from backend.');
                     $("#connection-status-container").show();
                     this.connected = false;
                     this.reconnectState();
@@ -242,18 +242,30 @@ class CaptureState {
             if (this.captureMode === CaptureModes.LETTER && this.characterCaptureRectangleQueue.length > 0) {
                 let undoneUuid = this.characterCaptureRectangleQueue[this.characterCaptureRectangleQueue.length-1];
                 let rect = this.renderableCharacterRectangles.get(undoneUuid);
-                this.deleteRectangle(rect);
-                this.characterCaptureRectangleRedoQueue.push(undoneUuid);
+                if (rect !== undefined) {
+                    this.deleteRectangle(rect);
+                    this.characterCaptureRectangleRedoQueue.push(undoneUuid);
+                } else {
+                    this.reverseSearchArrayForUuid(this.characterCaptureRectangleQueue, undoneUuid);
+                }
             } else if (this.captureMode === CaptureModes.WORD && this.wordLinesQueue.length > 0) {
                 let undoneUuid = this.wordLinesQueue[this.wordLinesQueue.length-1];
                 let line = this.renderableWordLines.get(undoneUuid);
-                this.deleteWordLine(line);
-                this.wordLinesRedoQueue.push(undoneUuid);
+                if (line !== undefined) {
+                    this.deleteWordLine(line);
+                    this.wordLinesRedoQueue.push(undoneUuid);
+                } else {
+                    this.reverseSearchArrayForUuid(this.wordLinesQueue, undoneUuid);
+                }
             } else if (this.captureMode === CaptureModes.LINE && this.lineLinesQueue.length > 0) {
                 let undoneUuid = this.lineLinesQueue[this.lineLinesQueue.length-1];
                 let line = this.renderableLineLines.get(undoneUuid);
-                this.deleteLineLine(line);
-                this.lineLinesRedoQueue.push(undoneUuid);
+                if (line !== undefined) {
+                    this.deleteLineLine(line);
+                    this.lineLinesRedoQueue.push(undoneUuid);
+                } else {
+                    this.reverseSearchArrayForUuid(this.lineLinesQueue, undoneUuid);
+                }
             } else if (this.captureMode === CaptureModes.ERASER) {
                 this.characterCaptureRectangleErasedQueue.forEach(uuid => {
                     this.reviveRect(uuid);

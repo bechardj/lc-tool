@@ -250,7 +250,6 @@ public class CloudCaptureDocumentService {
     }
 
     @Transactional
-    @Async
     public void saveCaptureData(CaptureDataPayload payload, String docUuid) {
         long start = System.currentTimeMillis();
         var cloudCaptureDocument = cloudCaptureDocumentRepository.selectDocumentForUpdate(docUuid);
@@ -261,7 +260,7 @@ public class CloudCaptureDocumentService {
         cloudCaptureDocument.setDocumentCaptureData(documentCaptureData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
         long end = System.currentTimeMillis();
-        LOG.info("Processing took {}", end-start);
+        LOG.debug("Processing took {}", end-start);
     }
 
     public List<CaptureDataPayload> buildPayloadsToSyncClient(DocumentCaptureData clientData) {

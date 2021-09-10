@@ -490,9 +490,9 @@ function captureCanvasInit (predictionEngine) {
         textFieldEdit = false;
         await waitForFirebaseAuthState();
         let token = await getBearerTokenWithPrompt();
-        await state.connectState(jobId, token);
         state.drawCallback = draw;
         await loadJob(jobId, state);
+        await state.connectState(jobId, token);
         background = await loadImage(jobId);
         $('#notes')[0].value = state.getNotes();
         // Add event listeners

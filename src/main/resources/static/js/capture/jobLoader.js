@@ -7,11 +7,9 @@ function loadJob(jobId, state) {
                 uuid: jobId
             },
             function (response) {
-                // todo is this already set?
                 state.documentUuid = response.uuid;
                 state.document = response;
 
-                // TODO: rectify deleted records, ie, object might want to contain deleted records?
                 for (const key in response.characterCaptureDataMap) {
                     let rect = new Rectangle();
                     let data = response.characterCaptureDataMap[key][0];
