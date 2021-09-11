@@ -489,7 +489,7 @@ function captureCanvasInit (predictionEngine) {
         predictionAutofill = predictionEngine !== undefined;
         textFieldEdit = false;
         await waitForFirebaseAuthState();
-        let token = await getBearerTokenWithPrompt();
+        let token = await firebaseModal();
         state.drawCallback = draw;
         await loadJob(jobId, state);
         await state.connectState(jobId, token);
