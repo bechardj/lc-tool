@@ -15,7 +15,7 @@ public class CharacterCaptureData extends CaptureData {
 
     public CharacterCaptureData(CharacterCaptureData source) {
         super(source);
-        labeledRectangle = new LabeledRectangle(source.getLabeledRectangle());
+        labeledRectangle = null == source.getLabeledRectangle() ? null : new LabeledRectangle(source.getLabeledRectangle());
     }
 
     public LabeledRectangle getLabeledRectangle() {

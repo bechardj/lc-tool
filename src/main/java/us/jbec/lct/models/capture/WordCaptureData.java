@@ -13,7 +13,7 @@ public class WordCaptureData extends CaptureData {
 
     public WordCaptureData(WordCaptureData source) {
         super(source);
-        lineSegment = new LineSegment(source.getLineSegment());
+        lineSegment = null == source.getLineSegment() ? null : new LineSegment(source.getLineSegment());
     }
 
     private LineSegment lineSegment;

@@ -14,7 +14,7 @@ public class LineCaptureData extends CaptureData {
 
     public LineCaptureData(LineCaptureData source) {
         super(source);
-        lineSegment = new LineSegment(source.getLineSegment());
+        lineSegment = null == source.getLineSegment() ? null : new LineSegment(source.getLineSegment());
     }
 
     public LineSegment getLineSegment() {

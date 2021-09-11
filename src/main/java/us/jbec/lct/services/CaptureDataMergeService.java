@@ -43,6 +43,11 @@ public class CaptureDataMergeService {
                 && dataToIntegrate.getCaptureDataRecordType() != CaptureDataRecordType.DELETE) {
             return false;
         }
+        if (targetList.size() == 1
+                && targetList.get(0).getCaptureDataRecordType() == CaptureDataRecordType.DELETE
+                && dataToIntegrate.getCaptureDataRecordType() != CaptureDataRecordType.CREATE) {
+            return false;
+        }
         return targetList.size() <= 1;
     }
 
@@ -101,8 +106,7 @@ public class CaptureDataMergeService {
             } else {
                 LOG.error("Try to integrate data twice");
             }
-        }
-        if (payload.getWordCaptureData() != null) {
+        } else if (payload.getWordCaptureData() != null) {
             var wordCaptureData = payload.getWordCaptureData();
             var targetList = existingData.getWordCaptureDataMap().get(wordCaptureData.getUuid());
             if (shouldIntegrateCaptureData(targetList, wordCaptureData)) {
@@ -110,8 +114,7 @@ public class CaptureDataMergeService {
             } else {
                 LOG.error("Try to integrate data twice");
             }
-        }
-        if (payload.getLineCaptureData() != null) {
+        } else if (payload.getLineCaptureData() != null) {
             var lineCaptureData = payload.getLineCaptureData();
             var targetList = existingData.getLineCaptureDataMap().get(lineCaptureData.getUuid());
             if (shouldIntegrateCaptureData(targetList, lineCaptureData)) {
@@ -138,9 +141,9 @@ public class CaptureDataMergeService {
         payloads.addAll(buildCreationSyncPayloads(flattenedServerData, flattenedClientData, DocumentCaptureData::getLineCaptureDataMap));
         payloads.addAll(buildCreationSyncPayloads(flattenedServerData, flattenedClientData, DocumentCaptureData::getWordCaptureDataMap));
 
-        payloads.addAll(buildDeletionSyncPayloads(serverData, flattenedServerData, flattenedClientData, DocumentCaptureData::getCharacterCaptureDataMap));
-        payloads.addAll(buildDeletionSyncPayloads(serverData, flattenedServerData, flattenedClientData, DocumentCaptureData::getLineCaptureDataMap));
-        payloads.addAll(buildDeletionSyncPayloads(serverData, flattenedServerData, flattenedClientData, DocumentCaptureData::getWordCaptureDataMap));
+        payloads.addAll(buildDeletionSyncPayloads(serverData, clientData, flattenedServerData, flattenedClientData, DocumentCaptureData::getCharacterCaptureDataMap));
+        payloads.addAll(buildDeletionSyncPayloads(serverData, clientData, flattenedServerData, flattenedClientData, DocumentCaptureData::getLineCaptureDataMap));
+        payloads.addAll(buildDeletionSyncPayloads(serverData, clientData, flattenedServerData, flattenedClientData, DocumentCaptureData::getWordCaptureDataMap));
 
         return payloads;
     }
@@ -153,7 +156,7 @@ public class CaptureDataMergeService {
      * @param <T> CaptureData Type
      * @return list of CaptureData payloads containing creation records to send to client
      */
-    protected  <T extends CaptureData> List<CaptureDataPayload> buildCreationSyncPayloads(DocumentCaptureData flattenedServerData,
+    private  <T extends CaptureData> List<CaptureDataPayload> buildCreationSyncPayloads(DocumentCaptureData flattenedServerData,
                                                                                           DocumentCaptureData flattenedClientData,
                                                                                           Function<DocumentCaptureData, Map<String, List<T>>> mapExtractor) {
         var flattenedServerMap = mapExtractor.apply(flattenedServerData);
@@ -180,11 +183,13 @@ public class CaptureDataMergeService {
      * @param <T> CaptureData Type
      * @return list of CaptureData payloads containing deletion records to send to client
      */
-    protected <T extends CaptureData> List<CaptureDataPayload> buildDeletionSyncPayloads(DocumentCaptureData serverData,
-                                                                                         DocumentCaptureData flattenedServerData,
-                                                                                         DocumentCaptureData flattenedClientData,
-                                                                                         Function<DocumentCaptureData, Map<String, List<T>>> mapExtractor) {
+    private <T extends CaptureData> List<CaptureDataPayload> buildDeletionSyncPayloads(DocumentCaptureData serverData,
+                                                                                       DocumentCaptureData clientData,
+                                                                                       DocumentCaptureData flattenedServerData,
+                                                                                       DocumentCaptureData flattenedClientData,
+                                                                                       Function<DocumentCaptureData, Map<String, List<T>>> mapExtractor) {
         var serverMap = mapExtractor.apply(serverData);
+        var clientMap = mapExtractor.apply(clientData);
         var flattenedServerMap = mapExtractor.apply(flattenedServerData);
         var flattenedClientMap = mapExtractor.apply(flattenedClientData);
         List<CaptureDataPayload> captureDataPayloads = new ArrayList<>();
@@ -195,6 +200,20 @@ public class CaptureDataMergeService {
                         .map(record -> new CaptureDataPayload(record, "BACKEND"))
                         .findFirst()
                         .ifPresent(captureDataPayloads::add);
+            }
+        }
+
+        for (var uuid : serverMap.keySet()) {
+            if (serverMap.containsKey(uuid) && !flattenedServerMap.containsKey(uuid)) {
+                if (!clientMap.containsKey(uuid)
+                        || (!flattenedClientMap.containsKey(uuid) && clientMap.get(uuid) != null
+                                && clientMap.get(uuid).stream().noneMatch(record -> record.getCaptureDataRecordType() == CaptureDataRecordType.DELETE))) {
+                    serverMap.get(uuid).stream()
+                            .filter(record -> record.getCaptureDataRecordType() == CaptureDataRecordType.DELETE)
+                            .map(record -> new CaptureDataPayload(record, "BACKEND"))
+                            .findFirst()
+                            .ifPresent(captureDataPayloads::add);
+                }
             }
         }
         return captureDataPayloads;
