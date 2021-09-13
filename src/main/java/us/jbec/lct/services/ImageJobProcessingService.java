@@ -1,6 +1,5 @@
 package us.jbec.lct.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +24,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -76,23 +73,6 @@ public class ImageJobProcessingService {
     }
 
     /**
-     * Initialize a new image job with the provided UUID corresponding to the CloudCaptureDocument
-     * @param uuid UUID of the corresponding CloudCaptureDocument
-     * @return initialized ImageJob
-     */
-    public ImageJob initializeImageJob(String uuid) {
-        ImageJob imageJob = new ImageJob();
-        imageJob.setId(uuid);
-        imageJob.setVersion("0.5");
-        imageJob.setCompleted(false);
-        imageJob.setEdited(false);
-        imageJob.setStatus("Ingested");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm");
-        imageJob.getFields().put("timestamp", fmt.format(ZonedDateTime.now()));
-        return imageJob;
-    }
-
-    /**
      * Process all image jobs for all active CloudCaptureDocuments, generating character, line, and word crops
      * @param cropsDestination processed job output destination
      * @throws IOException
@@ -100,9 +80,13 @@ public class ImageJobProcessingService {
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
         var imageJobFiles = buildImageJobFiles();
         for(var imageJobFile : imageJobFiles) {
-            writeCharacterCrops(imageJobFile, cropsDestination);
-            writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
-            writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
+            try {
+                writeCharacterCrops(imageJobFile, cropsDestination);
+                writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
+                writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
+            } catch (Exception e) {
+                LOG.error("Error occurred while processing job: {} - Will attempt to continue with no cleanup", imageJobFile.getImageJob().getId());
+            }
         }
     }
 
@@ -134,7 +118,7 @@ public class ImageJobProcessingService {
                 LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, rectangle.getLabel());
             }
         }
-        LOG.info("Writing all cropped and labeled images...");
+        LOG.debug("Writing all cropped and labeled character images for job {}...", job.getId());
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, CropsType.LETTERS);
     }
 
@@ -192,17 +176,16 @@ public class ImageJobProcessingService {
                 LOG.error("Something went wrong when cropping the image.", e);
             }
         }
-        LOG.info("Writing all cropped and labeled images...");
+        LOG.debug("Writing all cropped and labeled line/word images for job {}...", job.getId());
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
     }
 
     /**
      * Build ImageJobFile objects from active cloud capture documents
      * @return List of ImageJobFiles
-     * @throws JsonProcessingException
      */
-    private List<ImageJobFile> buildImageJobFiles() throws JsonProcessingException {
-        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocuments();
+    private List<ImageJobFile> buildImageJobFiles() {
+        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsDataMap();
         HashMap<String, File> images = new HashMap<>();
         primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));
         List<ImageJobFile> imageJobFiles = new ArrayList<>();
@@ -227,7 +210,7 @@ public class ImageJobProcessingService {
     public void exportCurrentImageJobs() throws IOException {
         if (exportEnabled) {
             File outputDirectory = new File(bulkOutputPath);
-            LOG.info("Clearing bulk output directory.");
+            LOG.info("Starting ZIP Generation, clearing bulk output directory & re-generating.");
             FileUtils.deleteDirectory(outputDirectory);
             var created = outputDirectory.mkdir();
             if (!created) {

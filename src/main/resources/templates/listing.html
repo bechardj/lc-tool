@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <title>LC Document Tool</title>
+    <title>LC Capture Tool</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/webjars/bootstrap-icons/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/webjars/datatables/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <div th:insert="fragments/shared-styles.html" th:remove="tag"></div>
 </head>
 <body>
 
+<div th:insert="fragments/modal-overlay.html :: div"></div>
 <nav th:insert="fragments/navbar.html :: nav"></nav>
 <div th:insert="fragments/full-screen-load.html :: div"></div>
 <div th:insert="fragments/demo-warning.html :: div"></div>
@@ -26,9 +23,9 @@
     </div>
 
     <h1 class = "nbs-title" align="center">LC Capture Tool</h1>
-    <p class = "body" align="center">Select the image you would like to capture data from, and click it's name to open.</p>
+    <p class = "body" align="center">Select the image you would like to capture data from, and click its name to open.</p>
 
-    <div th:if="${!listingAll}">
+    <div th:if="${!listingAll and !listingShared}">
         <p class = "body" align="center">Drag an image on to the window to upload it.</p>
         <form id="imageUpload" method="POST" class="hidden" th:action="@{/secure/image/upload}" enctype="multipart/form-data">
             <div class="nbs-container" align="center">
@@ -45,16 +42,21 @@
         </div>
     </div>
 
+    <div th:if="${listingShared}">
+        <p class = "body" align="center">Showing all documents you own or that were shared with you.</p>
+    </div>
+
     <div class="table pt-3">
         <table class="table table-striped" id="jobListing">
             <thead class="thead-light">
             <tr>
                 <th scope="col">Image Name</th>
-                <th scope="col" th:if="${listingAll}">Owner</th>
+                <th scope="col" th:if="${listingAll or listingShared}">Owner</th>
                 <th scope="col">File Last Modified</th>
                 <th scope="col">Status</th>
                 <th scope="col">Notes</th>
-                <th scope="col" th:if="${!listingAll}"></th>
+                <th scope="col" th:if="${!listingAll and !listingShared}">Share</th>
+                <th scope="col" th:if="${!listingAll and !listingShared}"></th>
             </tr>
             </thead>
             <tbody>
@@ -62,28 +64,28 @@
                 <td> <a th:href="${listing.openUrl}">
                     <div th:text="${listing.fileName}"></div></a>
                 </td>
-                <td th:if="${listingAll}">
+                <td th:if="${listingAll or listingShared}">
                     <div th:text="${listing.owner}"></div>
                 </td>
                 <td th:text="${listing.dateAdded}"></td>
                 <td th:text="${listing.status}"></td>
                 <td th:text="${listing.notes}"></td>
-                <td th:if="${!listingAll}"><a class="confirm-delete" th:href="${listing.deleteUrl}"><i class="bi bi-trash"></i></a></td>
+                <td th:if="${!listingAll and !listingShared}">
+                    <a th:href="${listing.projectLevelEditingToggleUrl}">
+                        <div th:text="${listing.projectLevelEditing ? 'Unshare' : 'Share'}"></div>
+                    </a>
+                </td>
+                <td th:if="${!listingAll and !listingShared}"><a class="confirm-delete" th:href="${listing.deleteUrl}"><i class="bi bi-trash"></i></a></td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<script src="/webjars/jquery/jquery.min.js"></script>
-<script src="/webjars/jquery-ui/jquery-ui.js"></script>
-<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
 <script src="/webjars/jquery-file-upload/js/jquery.fileupload.js"></script>
 <script src="/webjars/datatables/js/jquery.dataTables.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.2.5/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
-<script src="/js/common.js"></script>
 <script src="/js/listing/main.js"></script>
 </body>
 </html>

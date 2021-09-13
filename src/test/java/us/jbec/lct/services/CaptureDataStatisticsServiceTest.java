@@ -5,18 +5,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import us.jbec.lct.models.ImageJob;
+import us.jbec.lct.models.capture.CaptureDataRecordType;
+import us.jbec.lct.models.capture.CharacterCaptureData;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.models.database.User;
+import us.jbec.lct.models.geometry.LabeledRectangle;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 public class CaptureDataStatisticsServiceTest {
 
@@ -31,38 +35,45 @@ public class CaptureDataStatisticsServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @BeforeMethod
+    public void before() {
+        Mockito.reset(documentService);
+    }
+
     @Test
     public void testCalculateAllStatistics() throws JsonProcessingException {
 
-        Map<CloudCaptureDocument, ImageJob> input = new HashMap<>();
-
-        List<ImageJob> imageJobs = new ArrayList<>();
+        List<CloudCaptureDocument> input = new ArrayList<>();
 
         // First User
         User user1 = new User();
         user1.setFirebaseEmail("test@user1.com");
 
         var doc1 = new CloudCaptureDocument();
+        doc1.setUuid("1");
         doc1.setOwner(user1);
-        var job1 = new ImageJob();
-        job1.setEdited(true);
-        job1.setCharacterLabels(List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        data1.setEdited(true);
 
-        input.put(doc1, job1);
+        input.add(doc1);
 
         var doc2 = new CloudCaptureDocument();
+        doc2.setUuid("2");
         doc2.setOwner(user1);
-        var job2 = new ImageJob();
-        job2.setEdited(false);
-        job2.setCharacterLabels(new ArrayList<>());
+        var data2 = buildDocDataFromChars("1", List.of());
+        data2.setEdited(false);
 
-        input.put(doc2, job2);
+        input.add(doc2);
 
-        Mockito.when(documentService.getActiveCloudCaptureDocuments()).thenReturn(input);
+        Mockito.when(documentService.getActiveCloudCaptureDocumentsMetadata()).thenReturn(input);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
 
         var result = testee.calculateAllStatistics();
 
-        Mockito.verify(documentService, Mockito.times(1)).getActiveCloudCaptureDocuments();
+        Mockito.verify(documentService, Mockito.times(1)).getActiveCloudCaptureDocumentsMetadata();
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
 
         assertNotNull(result);
 
@@ -82,11 +93,9 @@ public class CaptureDataStatisticsServiceTest {
     }
 
     @Test
-    public void testCalculateStatistics_singleUser() {
+    public void testCalculateStatistics_singleUser() throws JsonProcessingException {
 
-        Map<CloudCaptureDocument, ImageJob> input = new HashMap<>();
-
-        List<ImageJob> imageJobs = new ArrayList<>();
+        List<CloudCaptureDocument> input = new ArrayList<>();
 
         // First User
         User user1 = new User();
@@ -94,22 +103,28 @@ public class CaptureDataStatisticsServiceTest {
 
         var doc1 = new CloudCaptureDocument();
         doc1.setOwner(user1);
-        var job1 = new ImageJob();
-        job1.setEdited(true);
-        job1.setCharacterLabels(List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        doc1.setUuid("1");
+        var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        data1.setEdited(true);
 
-        input.put(doc1, job1);
+        input.add(doc1);
 
         var doc2 = new CloudCaptureDocument();
         doc2.setOwner(user1);
-        var job2 = new ImageJob();
-        job2.setEdited(false);
-        job2.setCharacterLabels(new ArrayList<>());
+        doc2.setUuid("2");
+        var data2 = buildDocDataFromChars("2", List.of());
+        data2.setEdited(false);
 
-        input.put(doc2, job2);
+        input.add(doc2);
+
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
 
         var result = testee.calculateStatistics(input);
 
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
+
         assertNotNull(result);
 
         assertEquals(result.getLabelFrequency("a"), 2);
@@ -129,11 +144,9 @@ public class CaptureDataStatisticsServiceTest {
     }
 
     @Test
-    public void testCalculateStatistics_multipleUsers() {
+    public void testCalculateStatistics_multipleUsers() throws JsonProcessingException {
 
-        Map<CloudCaptureDocument, ImageJob> input = new HashMap<>();
-
-        List<ImageJob> imageJobs = new ArrayList<>();
+        List<CloudCaptureDocument> input = new ArrayList<>();
 
         // First User
         User user1 = new User();
@@ -141,20 +154,20 @@ public class CaptureDataStatisticsServiceTest {
 
         var doc1 = new CloudCaptureDocument();
         doc1.setOwner(user1);
-        var job1 = new ImageJob();
-        job1.setEdited(true);
-        job1.setCharacterLabels(List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        doc1.setUuid("1");
+        var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
+        data1.setEdited(true);
 
-        input.put(doc1, job1);
+        input.add(doc1);
 
         var doc2 = new CloudCaptureDocument();
         doc2.setOwner(user1);
-        var job2 = new ImageJob();
-        job2.setEdited(true);
-        job2.setCompleted(true);
-        job2.setCharacterLabels(List.of("x", "b", "-", "Z"));
+        doc2.setUuid("2");
+        var data2 = buildDocDataFromChars("2", List.of("x", "b", "-", "Z"));
+        data2.setEdited(true);
+        data2.setCompleted(true);
 
-        input.put(doc2, job2);
+        input.add(doc2);
 
         // Second User
         User user2 = new User();
@@ -162,13 +175,21 @@ public class CaptureDataStatisticsServiceTest {
 
         var doc3 = new CloudCaptureDocument();
         doc3.setOwner(user2);
-        var job3 = new ImageJob();
-        job3.setEdited(true);
-        job3.setCharacterLabels(List.of("l", "m", "n", "O"));
+        doc3.setUuid("3");
+        var data3 = buildDocDataFromChars("3", List.of("l", "m", "n", "O"));
+        data3.setEdited(true);
 
-        input.put(doc3, job3);
+        input.add(doc3);
+
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("3")).thenReturn(data3);
 
         var result = testee.calculateStatistics(input);
+
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("3");
 
         assertNotNull(result);
 
@@ -188,5 +209,19 @@ public class CaptureDataStatisticsServiceTest {
         assertEquals(result.getPagesWithData().intValue(), 3);
         assertEquals(result.getPagesMarkedCompleted().intValue(), 1);
 
+    }
+
+    private DocumentCaptureData buildDocDataFromChars(String uuid, List<String> chars) {
+        var documentCaptureData = new DocumentCaptureData(uuid);
+        for (var c : chars) {
+            var capData = new CharacterCaptureData();
+            capData.setUuid(UUID.randomUUID().toString());
+            capData.setCaptureDataRecordType(CaptureDataRecordType.CREATE);
+            var labeledRectangle = new LabeledRectangle();
+            labeledRectangle.setLabel(c);
+            capData.setLabeledRectangle(labeledRectangle);
+            documentCaptureData.insertCharacterCaptureData(capData);
+        }
+        return documentCaptureData;
     }
 }

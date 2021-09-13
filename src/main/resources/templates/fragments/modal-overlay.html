@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+</head>
+<body>
+<div id="modal-overlay" class="hidden">
+    <div id="modal-overlay-container">
+        <div id="overlay-window">
+            <div class="modal-content" id="firebaseModal">
+                <div class="modal-close">
+                    <button id="firebaseSignInIgnore" type="button" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-heading">
+                    <div>Session Expired</div>
+                </div>
+                <div class="modal-body pb-0">
+                    <p>Please click the sign in button below. If you choose not to sign in, saving and session syncing will stop working.
+                        <br><br>
+                        Additionally, you may consider refreshing the page after successfully re-authenticating.
+                    </p>
+                </div>
+                <div class="modal-buttons pb-5">
+                    <button id="firebaseSignIn" class="nbs-button">Sign In</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

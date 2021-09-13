@@ -250,4 +250,59 @@ a.nbs-button-link:hover {
     visibility: hidden
 }
 
+#modal-overlay {
+    z-index: 99999;
+    background-color: rgba(187, 187, 187, 0.6);
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+#modal-overlay-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+#overlay-window {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    min-width: 20em;
+    min-height: 10em;
+    background-color: #ffffff;
+    border-radius: 1em;
+}
+
+.modal-close {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-right: 0.5em;
+    padding-top: 0.3em;
+}
+
+.modal-heading {
+    font-family: 'Roboto', serif;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.modal-body {
+    font-family: 'Roboto', serif;
+    font-size: 18px;
+    text-align: center;
+}
+
+
+
 

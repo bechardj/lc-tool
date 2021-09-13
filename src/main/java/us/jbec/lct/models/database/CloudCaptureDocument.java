@@ -2,8 +2,12 @@ package us.jbec.lct.models.database;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import us.jbec.lct.converters.DocumentCaptureDataConverter;
 import us.jbec.lct.models.DocumentStatus;
+import us.jbec.lct.models.capture.DocumentCaptureData;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -64,10 +68,13 @@ public class CloudCaptureDocument implements Serializable {
     private LocalDateTime updateTime;
 
     /**
-     * ImageJob data serialized and stored in a Lob
+     * DocumentCaptureData data serialized and stored in a Lob.
+     * Column name specified for legacy support
      */
     @Lob
-    private String jobData;
+    @Column(name = "job_data")
+    @Convert(converter = DocumentCaptureDataConverter.class)
+    private DocumentCaptureData documentCaptureData;
 
     /**
      * File path to associated image
@@ -89,6 +96,9 @@ public class CloudCaptureDocument implements Serializable {
      */
     private boolean migrated;
 
+    private String notesPreview;
+
+    private Boolean projectLevelEditing;
 
     public String getUuid() {
         return uuid;
@@ -146,12 +156,12 @@ public class CloudCaptureDocument implements Serializable {
         this.updateTime = updateTime;
     }
 
-    public String getJobData() {
-        return jobData;
+    public DocumentCaptureData getDocumentCaptureData() {
+        return documentCaptureData;
     }
 
-    public void setJobData(String jobData) {
-        this.jobData = jobData;
+    public void setDocumentCaptureData(DocumentCaptureData jobData) {
+        this.documentCaptureData = jobData;
     }
 
     public String getFilePath() {
@@ -184,5 +194,21 @@ public class CloudCaptureDocument implements Serializable {
 
     public void setFileChecksum(String fileChecksum) {
         this.fileChecksum = fileChecksum;
+    }
+
+    public String getNotesPreview() {
+        return notesPreview;
+    }
+
+    public void setNotesPreview(String notesPreview) {
+        this.notesPreview = notesPreview;
+    }
+
+    public Boolean getProjectLevelEditing() {
+        return projectLevelEditing;
+    }
+
+    public void setProjectLevelEditing(Boolean projectLevelEditing) {
+        this.projectLevelEditing = projectLevelEditing;
     }
 }

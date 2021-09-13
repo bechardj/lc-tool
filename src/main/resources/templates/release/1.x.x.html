@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LC Capture Tool</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div th:insert="fragments/shared-styles.html" th:remove="tag"></div>
+
+</head>
+<body>
+
+<div id="main-content-container" class="container">
+    <h1 class="nbs-title">
+        LC Capture Tool 1.0.0-2.0.0 Cumulative Release Notes
+    </h1>
+    <hr/>
+    <h2>Release 1.1.0</h2>
+    <div>
+        <ul>
+            <li>Desktop-user friendly document panning enabled on capture page. Hold down Ctrl or Shift and drag to pan the page</li>
+            <li>Some resources are now hidden in the navbar until authenticated</li>
+            <li>Document images are now loaded as files instead of as Base64 encoded data</li>
+            <li>Migration Service is now deprecated and will be removed in the next release</li>
+            <li>ImageJob format will be replaced in the next release to accomodate editing another user's document. This is planned to be transparent to the user.</li>
+            <li>Various code cleanup, bugfixes and other enhancements</li>
+        </ul>
+    </div>
+    <hr/>
+    <h2>Release 1.0.1</h2>
+    <div>
+        <ul>
+            <li>When redirected to a log in page when attempting to access a protected resource, try to redirect back to the correct page after login.</li>
+            <li>Users without an @uconn.edu email can be invited to use the application</li>
+        </ul>
+    </div>
+</div>
+
+
+
+<div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
+
+</body>
+</html>

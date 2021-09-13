@@ -16,6 +16,8 @@ public class UserPrefs {
      */
     private Map<DynamicTextType, Integer> acknowledgedDynamicText;
 
+    boolean enableSynchronizedEditing;
+
     public Map<DynamicTextType, Integer> getAcknowledgedDynamicText() {
         if (acknowledgedDynamicText == null) {
             acknowledgedDynamicText = new HashMap<>();
@@ -25,5 +27,13 @@ public class UserPrefs {
 
     public void setAcknowledgedDynamicText(Map<DynamicTextType, Integer> acknowledgedDynamicText) {
         this.acknowledgedDynamicText = acknowledgedDynamicText;
+    }
+
+    public boolean isEnableSynchronizedEditing() {
+        return enableSynchronizedEditing;
+    }
+
+    public void setEnableSynchronizedEditing(boolean enableSynchronizedEditing) {
+        this.enableSynchronizedEditing = enableSynchronizedEditing;
     }
 }

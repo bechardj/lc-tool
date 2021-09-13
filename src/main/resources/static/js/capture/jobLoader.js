@@ -1,29 +1,36 @@
-import { Rectangle, Line } from './geometry.js';
+import { Rectangle, Line} from './geometry.js';
 
 function loadJob(jobId, state) {
     return new Promise((resolve, reject) => {
-        $.getJSON("/getJob",
+        $.getJSON("/getDoc",
             {
                 uuid: jobId
             },
             function (response) {
-                let jobInfo = response;
-                if (jobInfo.characterRectangles !== null) {
-                    state.characterRectangles = Rectangle.convertFromArrayOfPoints(jobInfo.characterRectangles);
+                state.documentUuid = response.uuid;
+                state.document = response;
+
+                for (const key in response.characterCaptureDataMap) {
+                    let rect = new Rectangle();
+                    let data = response.characterCaptureDataMap[key][0];
+                    Object.assign(rect, data);
+                    state.renderableCharacterRectangles.set(data.uuid, rect);
                 }
-                if (jobInfo.characterLabels !== null) {
-                    state.characterLabels = jobInfo.characterLabels;
+
+                for (const key in response.wordCaptureDataMap) {
+                    let line = new Line();
+                    let data = response.wordCaptureDataMap[key][0];
+                    Object.assign(line, data);
+                    state.renderableWordLines.set(data.uuid, line);
                 }
-                if (jobInfo.wordLines !== null) {
-                    state.wordLines = Line.convertFromArrayOfPoints(jobInfo.wordLines);
+
+                for (const key in response.lineCaptureDataMap) {
+                    let line = new Line();
+                    let data = response.lineCaptureDataMap[key][0];
+                    Object.assign(line, data);
+                    state.renderableLineLines.set(data.uuid, line);
                 }
-                if (jobInfo.lineLines !== null) {
-                    state.lineLines = Line.convertFromArrayOfPoints(jobInfo.lineLines);
-                }
-                if (jobInfo.fields.NOTES !== null && jobInfo.fields.NOTES !== undefined) {
-                    state.notes = jobInfo.fields.NOTES;
-                }
-                state.jobInfo = jobInfo;
+
                 resolve();
             });
     });

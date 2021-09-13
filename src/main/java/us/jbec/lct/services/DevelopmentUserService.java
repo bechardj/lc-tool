@@ -34,6 +34,7 @@ public class DevelopmentUserService extends UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProjectService projectService;
     private final InvitationRepository invitationRepository;
     private final ObjectMapper objectMapper;
 
@@ -41,12 +42,16 @@ public class DevelopmentUserService extends UserService {
      * Service for interacting with authenticated users
      * @param userRepository autowired parameter
      * @param roleRepository autowired parameter
+     * @param projectService autowired parameter
+     * @param invitationRepository autowired parameter
+     * @param objectMapper autowired parameter
      */
-    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository,
+    public DevelopmentUserService(UserRepository userRepository, RoleRepository roleRepository, ProjectService projectService,
                                   InvitationRepository invitationRepository, ObjectMapper objectMapper) {
-        super(userRepository, roleRepository, null, invitationRepository, objectMapper);
+        super(userRepository, roleRepository, projectService, null, invitationRepository, objectMapper);
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.projectService = projectService;
         this.invitationRepository = invitationRepository;
         this.objectMapper = objectMapper;
     }
@@ -87,6 +92,7 @@ public class DevelopmentUserService extends UserService {
             user.setFirebaseEmail(DEV_EMAIL);
             user.setFirebaseName(DEV_NAME);
             user.setRoles(defaultRoles());
+            user.setProject(new HashSet<>(Set.of(projectService.getDefaultProject())));
             LOG.info("First login for user {}, generating DB rows.", user.getFirebaseEmail());
             userRepository.save(user);
         }

@@ -18,12 +18,18 @@
             <li class="nav-item" th:classappend="${pageName eq '/secure/listing' ? 'active' : ''}">
                 <a class="nav-link req-auth" href="/secure/listing">My Documents</a>
             </li>
+            <li class="nav-item" th:classappend="${pageName eq '/secure/listing/shared' ? 'active' : ''}">
+                <a class="nav-link req-auth"  href="/secure/listing/shared">Editable Documents</a>
+            </li>
             <li class="nav-item" th:classappend="${pageName eq '/secure/listing/all' ? 'active' : ''}">
                 <a class="nav-link req-auth"  href="/secure/listing/all">All Documents</a>
             </li>
             <div th:if="${session.user}" th:remove="tag">
                 <li class="nav-item" th:classappend="${pageName eq '/secure/invite' ? 'active' : ''}">
                     <a class="nav-link req-auth" href="/secure/invite">Invite User</a>
+                </li>
+                <li class="nav-item" th:classappend="${pageName eq '/secure/prefs' ? 'active' : ''}">
+                    <a class="nav-link req-auth" href="/secure/prefs">Preferences</a>
                 </li>
                 <li class="nav-item" th:classappend="${pageName eq '/logout' ? 'active' : ''}">
                     <a class="nav-link" href="/logout" >Log Out</a>

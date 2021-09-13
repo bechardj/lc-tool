@@ -3,6 +3,9 @@ package us.jbec.lct.models;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
+/**
+ * Represents a User Invitation to the application
+ */
 public class UserInvitation {
 
     Long id;

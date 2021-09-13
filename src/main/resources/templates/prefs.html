@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LC Capture Tool</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div th:insert="fragments/shared-styles.html" th:remove="tag"></div>
+
+</head>
+<body>
+
+<nav th:insert="fragments/navbar.html :: nav"></nav>
+<div th:insert="fragments/full-screen-load.html :: div"></div>
+
+<div id="main-content-container" class="container hidden">
+    <h1 class="nbs-title">
+        User Preferences
+    </h1>
+    <div>
+        <form th:action="@{/secure/prefs}" th:object="${userPrefs}" method="post">
+            <div class="alert alert-success" role="alert" th:if="${success}">Preferences Saved</div></p>
+
+            <h2>Beta Feature Flags</h2>
+            <div class="custom-control custom-switch">
+                <input class="custom-control-input" type="checkbox" id="synchronizedEditing" name="vehicle1" th:field="*{enableSynchronizedEditing}">
+                <label class="custom-control-label" for="synchronizedEditing">Enable Synchronized Editing</label><br>
+            </div>
+
+            <input class="nbs-button" type="submit" value="Save" />
+        </form>
+    </div>
+</div>
+
+
+
+<div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
+<script src="/js/prefs/main.js"></script>
+
+
+</body>
+</html>

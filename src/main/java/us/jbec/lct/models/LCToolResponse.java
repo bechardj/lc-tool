@@ -1,5 +1,8 @@
 package us.jbec.lct.models;
 
+/**
+ * Generic response object for backend calls
+ */
 public class LCToolResponse {
     boolean error;
     String info;

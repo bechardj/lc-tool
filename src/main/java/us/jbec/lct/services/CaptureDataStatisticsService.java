@@ -1,10 +1,11 @@
 package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.CaptureDataStatistics;
-import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.database.CloudCaptureDocument;
+import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import java.util.Objects;
  */
 @Service
 public class CaptureDataStatisticsService {
+
+    // TODO: refactor to not need to convert and/or be more efficient so that we don't need to pull back big lobs from db
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
 
@@ -31,10 +34,10 @@ public class CaptureDataStatisticsService {
     /**
      * Calculate statistics for all active cloud capture documents
      * @return computed capture data statistics
-     * @throws JsonProcessingException
      */
+    @Cacheable("statistics")
     public CaptureDataStatistics calculateAllStatistics() throws JsonProcessingException {
-        return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocuments());
+        return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocumentsMetadata());
     }
 
     /**
@@ -42,13 +45,15 @@ public class CaptureDataStatisticsService {
      * @param cloudCaptureDocuments map containing cloud capture documents and corresponding image job
      * @return computed capture data statistics
      */
-    public CaptureDataStatistics calculateStatistics(Map<CloudCaptureDocument, ImageJob> cloudCaptureDocuments) {
+    public CaptureDataStatistics calculateStatistics(List<CloudCaptureDocument> cloudCaptureDocuments) throws JsonProcessingException {
         var statistics = new CaptureDataStatistics();
-        var imageJobList = cloudCaptureDocuments.values().stream().toList();
 
-        for(var entry : cloudCaptureDocuments.entrySet()) {
-            var doc = entry.getKey();
-            var imageJob = entry.getValue();
+        var completeCount = 0;
+        var editedCount = 0;
+
+        for(var doc : cloudCaptureDocuments) {
+            var documentCaptureData = cloudCaptureDocumentService.getDocumentCaptureDataByUuidRaw(doc.getUuid());
+            var imageJob = DocumentCaptureDataTransformer.apply(documentCaptureData);
             if (imageJob.getCharacterLabels() != null) {
                 imageJob.getCharacterLabels().stream()
                         .filter(Objects::nonNull)
@@ -57,6 +62,8 @@ public class CaptureDataStatisticsService {
                     statistics.addUserCount(doc.getOwner().getFirebaseEmail(), imageJob.getCharacterLabels().size());
                 }
             }
+            if (imageJob.isCompleted()) completeCount++;
+            if (imageJob.isEdited()) editedCount++;
         }
 
         Map<String, Integer> userCounts = new HashMap<>();
@@ -68,17 +75,9 @@ public class CaptureDataStatisticsService {
 
         statistics.setUserCounts(userCounts);
 
-        statistics.setPagesWithData(determineEditedPages(imageJobList));
-        statistics.setPagesMarkedCompleted(determineCompletedPages(imageJobList));
+        statistics.setPagesWithData(editedCount);
+        statistics.setPagesMarkedCompleted(completeCount);
         statistics.setDateGenerated(LocalDateTime.now());
         return statistics;
-    }
-
-    private int determineEditedPages(List<ImageJob> imageJobs) {
-        return (int) imageJobs.stream().filter(ImageJob::isEdited).count();
-    }
-
-    private int determineCompletedPages(List<ImageJob> imageJobs) {
-        return (int) imageJobs.stream().filter(ImageJob::isCompleted).count();
     }
 }

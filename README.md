@@ -1,4 +1,4 @@
-# LC Document Tool
+# LC Capture Tool
 
 Video Demo: https://youtu.be/UyPV7N6FHfE
 
@@ -16,9 +16,9 @@ Video Demo: https://youtu.be/UyPV7N6FHfE
 5. Add `dev` to the Active Profiles section. Override parameters from `src/main/resources/application-dev.properties` in the "Override paramaters" section as needed to match your local setup
 6. Run the application with either the Start or Debug button
 
-## Develpoper Profile
+## Developer Profile
 A Developer profile `dev`  (mentioned above) is included to make local development easier. This profile does the following differently from the `remote` profile used in production:
-- Thymleaf HTML templates and static resources are updated on page reload, so you can make changes to them without restarting the application
+- Thymeleaf HTML templates and static resources are updated on page reload, so you can make changes to them without restarting the application
 - The `DevelopmentUserService` bean is enabled and the regular `UserService` and `FirebaseAuth` beans are disabled. This removes the need to include Firebase Admin secrets by default. You will always be logged in as the user set in `DevelopmentUserService`
 
 You will also likely need to update some parameters in `src/main/resources/application-dev.properties`

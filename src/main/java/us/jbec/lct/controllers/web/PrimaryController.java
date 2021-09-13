@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import us.jbec.lct.models.DynamicTextType;
 import us.jbec.lct.models.database.DynamicText;
 import us.jbec.lct.models.database.User;
@@ -103,5 +104,15 @@ public class PrimaryController {
     @GetMapping("requestInvite")
     public String requestInvite() {
         return "requestInvite";
+    }
+
+
+    /**
+     * Request Invite endpoint
+     * @return Invite Request view
+     */
+    @GetMapping("/release/{version}")
+    public String releaseNotes(@PathVariable String version) {
+        return "/release/" + version;
     }
 }

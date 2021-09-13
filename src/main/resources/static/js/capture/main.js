@@ -59,14 +59,12 @@ function captureCanvasInit (predictionEngine) {
 
     function clickUp(event) {
         if (state.drawing) {
-            let index = state.characterRectangles.length - 1
-            let rectangle = state.characterRectangles[index];
-            state.stopDrawing();
-            let removedBadRectangle = state.clean();
+            let rectangle = state.stagedCharacterRectangle;
+            let rectangleCommitted = state.stopDrawing();
             draw();
-            if (!removedBadRectangle && event.type !== 'mouseout' && index !== -1 && predictionAutofill
+            if (rectangleCommitted && event.type !== 'mouseout' && predictionAutofill
                 && state.captureMode === CaptureModes.LETTER) {
-                generateCropAndPredict(index, rectangle);
+                generateCropAndPredict(rectangle);
             }
         } else if (PanState.panning) {
             PanState.panning = false;
@@ -78,23 +76,18 @@ function captureCanvasInit (predictionEngine) {
             let mouseX = event.pageX - mainCanvas.offsetLeft;
             let mouseY = event.pageY - mainCanvas.offsetTop;
             const captureMode = state.captureMode;
-            if (captureMode === CaptureModes.LETTER && state.characterRectangles.length > 0 && state.drawing) {
-                const lastDrawn = state.characterRectangles.pop();
-                const lastLabel = state.characterLabels.pop();
+            if (captureMode === CaptureModes.LETTER && state.stagedCharacterRectangle !== undefined && state.drawing) {
+                const lastDrawn = state.stagedCharacterRectangle.labeledRectangle;
                 lastDrawn.width = mouseX - lastDrawn.x1;
                 lastDrawn.height = mouseY - lastDrawn.y1;
-                state.characterRectangles.push(lastDrawn);
-                state.characterLabels.push(lastLabel);
-            } else if (captureMode === CaptureModes.WORD && state.wordLines.length > 0) {
-                const lastDrawn = state.wordLines.pop();
+            } else if (captureMode === CaptureModes.WORD && state.stagedWordLine !== undefined && state.drawing) {
+                const lastDrawn = state.stagedWordLine.lineSegment;
                 lastDrawn.x2 = mouseX;
                 lastDrawn.y2 = mouseY;
-                state.wordLines.push(lastDrawn);
-            } else if (captureMode === CaptureModes.LINE && state.lineLines.length > 0) {
-                const lastDrawn = state.lineLines.pop();
+            } else if (captureMode === CaptureModes.LINE && state.stagedLineLine !== undefined && state.drawing) {
+                const lastDrawn = state.stagedLineLine.lineSegment;
                 lastDrawn.x2 = mouseX;
                 lastDrawn.y2 = mouseY;
-                state.lineLines.push(lastDrawn);
             } else if (captureMode === CaptureModes.ERASER) {
                 eraser([mouseX, mouseY]);
             }
@@ -117,27 +110,24 @@ function captureCanvasInit (predictionEngine) {
     function eraser(point) {
         const previousCaptureMode = state.previousCaptureMode;
         if (previousCaptureMode === CaptureModes.LETTER) {
-            for (let i = 0; i < state.characterRectangles.length; i++) {
-                let r = state.characterRectangles[i];
+            state.renderableCharacterRectangles.forEach((r) => {
                 if (r.containsPoint(point)) {
-                    state.erasedCharacterRectangles.push(r);
-                    state.erasedCharacterLabels.push(state.characterLabels[i]);
-                    state.characterRectangles.splice(i, 1);
-                    state.characterLabels.splice(i, 1);
+                    state.eraseRectangle(r);
                     draw();
                 }
-            }
+            });
         }
         if (previousCaptureMode === CaptureModes.WORD || previousCaptureMode === CaptureModes.LINE) {
-            let lines = CaptureModes.WORD === previousCaptureMode ? state.wordLines : state.lineLines;
-            let erasedLines = CaptureModes.WORD === previousCaptureMode ? state.erasedWordLines : state.erasedLineLines;
-
-            for (let j = 0; j < lines.length; j++) {
-                if (lines[j].pointNearLine(point, 1)) {
-                    erasedLines.push(lines[j]);
-                    lines.splice(j, 1);
+            let lines = CaptureModes.WORD === previousCaptureMode ? state.renderableWordLines : state.renderableLineLines;
+            lines.forEach(line => {
+                if (line.pointNearLine(point, 1)) {
+                    if (previousCaptureMode === CaptureModes.WORD) {
+                        state.eraseWordLine(line);
+                    } else {
+                        state.eraseLineLine(line);
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -152,10 +142,17 @@ function captureCanvasInit (predictionEngine) {
         if (state.drawing && captureMode !== CaptureModes.ERASER) {
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             if (captureMode === CaptureModes.LETTER) {
-                let rectangle = state.characterRectangles[state.characterRectangles.length-1];
+                let rectangle = state.stagedCharacterRectangle;
                 rectangle.draw(drawingCtx, Colors.PRIMARY, 2, transparency, Colors.WHITE);
             }
-            if (captureMode === CaptureModes.WORD || captureMode === CaptureModes.LINE) {
+            if (captureMode === CaptureModes.WORD) {
+                let wordLine = state.stagedWordLine;
+                wordLine.draw(drawingCtx, Colors.GREEN, 3);
+                window.requestAnimationFrame(() => drawComplete());
+            }
+            if (captureMode === CaptureModes.LINE) {
+                let wordLine = state.stagedLineLine;
+                wordLine.draw(drawingCtx, Colors.BLUE, 3);
                 window.requestAnimationFrame(() => drawComplete());
             }
             drawingCtx.stroke();
@@ -169,33 +166,30 @@ function captureCanvasInit (predictionEngine) {
         clearMainCanvas();
         const captureMode = state.captureMode;
         const previousCaptureMode = state.previousCaptureMode;
-        for (let i = 0; i < state.characterRectangles.length; i++) {
+        state.renderableCharacterRectangles.forEach(rectangle => {
             let color = Colors.PRIMARY;
-            let rectangle = state.characterRectangles[i];
-            if (captureMode !== CaptureModes.LETTER && captureMode !== CaptureModes.ERASER) {
-                let lines = captureMode === CaptureModes.WORD ? state.wordLines : state.lineLines
-                if (lines !== undefined && lines.length !== 0) {
-                    let line = lines[lines.length - 1];
-                    if (line.intersectsRectangle(rectangle)) {
-                        color = captureMode === CaptureModes.LINE ? Colors.BLUE : Colors.GREEN;
-                    }
-                }
+            if (state.captureMode === CaptureModes.LINE && state.stagedLineLine !== undefined
+                && state.stagedLineLine.intersectsRectangle(rectangle)) {
+                color = Colors.BLUE;
+            } else if (state.captureMode === CaptureModes.WORD && state.stagedWordLine !== undefined
+                && state.stagedWordLine.intersectsRectangle(rectangle)) {
+                color = Colors.GREEN;
             }
             rectangle.draw(mainCtx, color, 2, transparency, Colors.WHITE);
-            rectangle.drawLabel(mainCtx, state.characterLabels[i], Colors.PRIMARY, 1, Colors.WHITE, "Exo", fontSize);
-        }
+            rectangle.drawLabel(mainCtx, Colors.PRIMARY, 1, Colors.WHITE, "Verdana", fontSize);
+        })
 
         if (captureMode === CaptureModes.WORD
             || captureMode === CaptureModes.ERASER && previousCaptureMode === CaptureModes.WORD) {
-            for (let j = 0; j < state.wordLines.length; j++) {
-                state.wordLines[j].draw(mainCtx, Colors.GREEN, 3);
-            }
+            state.renderableWordLines.forEach(line => {
+                line.draw(mainCtx, Colors.GREEN, 3);
+            });
         }
         if (captureMode === CaptureModes.LINE
             || captureMode === CaptureModes.ERASER && previousCaptureMode === CaptureModes.LINE) {
-            for (let k = 0; k < state.lineLines.length; k++) {
-                state.lineLines[k].draw(mainCtx, Colors.BLUE, 3)
-            }
+            state.renderableLineLines.forEach(line => {
+                line.draw(mainCtx, Colors.BLUE, 3);
+            });
         }
     }
 
@@ -209,6 +203,7 @@ function captureCanvasInit (predictionEngine) {
             return;
         }
         state.previousCaptureMode = state.captureMode;
+        // this indicator text is currently not visible so probably can be removed unless there are plans to re-implement
         const captureModeIndicator = $('#captureMode')[0];
         if (!state.drawing && (state.captureMode !== CaptureModes.LETTER || state.lastIsLabeled())) {
             captureModeIndicator.innerText = 'Current Mode: '
@@ -258,12 +253,11 @@ function captureCanvasInit (predictionEngine) {
                 } else if (modifier && code === "KeyL") {
                     setCaptureMode(CaptureModes.LETTER);
                 } else {
-                    state.clean();
-                    if (state.captureMode === CaptureModes.LETTER && state.characterLabels.length > 0
+                    if (state.captureMode === CaptureModes.LETTER && state.characterCaptureRectangleQueue.length > 0
                         && !state.drawing && !modifier) {
                         // correct the most recent label
-                        state.characterLabels.pop();
-                        state.characterLabels.push(key);
+                        const uuid = state.characterCaptureRectangleQueue[state.characterCaptureRectangleQueue.length - 1];
+                        state.updateDrawnRectangleText(uuid, key);
                     }
                 }
                 draw();
@@ -404,13 +398,12 @@ function captureCanvasInit (predictionEngine) {
 
         $('#jobUploadSubmit').click(function(e) {
             e.preventDefault();
-            let agree = confirm("Doing this will replace existing the existing capture data with capture data from the file you uploaded. Consider making a backup copy using the Download Job Info button.")
+            let agree = confirm("Doing this will merge the existing capture data with capture data from the file you uploaded. Consider making a backup copy using the Download Job Info button.")
             if (agree) {
                 window.onbeforeunload = null;
                 $('#jobUpload').submit();
             }
         });
-
 
         $('#undo').click(undo);
         $('#redo').click(redo);
@@ -463,7 +456,8 @@ function captureCanvasInit (predictionEngine) {
         if (!state.lastIsLabeled()) {
             notify("You must label all letters before saving!", 3000);
         } else {
-            getBearerTokenWithPrompt().then(token => {
+            state.setNotes($('#notes')[0].value);
+            firebaseModal().then(token => {
             $.ajax({
                 type: "POST",
                 beforeSend: function (xhr) {
@@ -472,7 +466,7 @@ function captureCanvasInit (predictionEngine) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                url: '/sec/api/saveJob',
+                url: '/sec/api/saveDoc',
                 data: state.generateJobInfoJson(),
                 success: function (data) {
                     console.log("submission success");
@@ -494,9 +488,13 @@ function captureCanvasInit (predictionEngine) {
         transparency = true;
         predictionAutofill = predictionEngine !== undefined;
         textFieldEdit = false;
+        await waitForFirebaseAuthState();
+        let token = await firebaseModal();
+        state.drawCallback = draw;
         await loadJob(jobId, state);
+        await state.connectState(jobId, token);
         background = await loadImage(jobId);
-        $('#notes')[0].value = state.notes;
+        $('#notes')[0].value = state.getNotes();
         // Add event listeners
         initEventHandlersAndListeners();
 
@@ -513,7 +511,7 @@ function captureCanvasInit (predictionEngine) {
         mainCtx.drawImage(background, 0, 0);
 
         if (document.fonts) {
-            document.fonts.load(fontSize + "px Exo");
+            document.fonts.load(fontSize + "px Verdana");
             document.fonts.ready.then(() => {
                 draw();
             })
@@ -524,28 +522,28 @@ function captureCanvasInit (predictionEngine) {
         $('#main-content-container').delay(200).fadeIn();
     }
 
-    function generateCropAndPredict(index, rectangle) {
+    function generateCropAndPredict(rectangle) {
         $('.alert-prediction').show();
         $('#prediction').text("Predicting...");
         let r  = rectangle;
         cropCanvas.width = 64;
         cropCanvas.height = 64;
         cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
-        cropCtx.drawImage(background, r.x1, r.y1, r.width, r.height, 0, 0, 64, 64);
+        cropCtx.drawImage(background, ...rectangle.asArray , 0, 0, 64, 64);
         let imgSelector = $('#renderedCrop');
         let img = imgSelector[0];
         img.width = 64;
         img.height = 64;
         img.src = cropCanvas.toDataURL("image/png");
-        imgSelector.off().on('load', (ev => tf.tidy( () => {callPredictionEngine(img, index, rectangle)})));
+        imgSelector.off().on('load', (ev => tf.tidy( () => {callPredictionEngine(img, rectangle)})));
 
     }
 
 
-    function callPredictionEngine(img, index, rectangle) {
+    function callPredictionEngine(img, rectangle) {
         predictionEngine.tensorFlowPrediction(img).then((predictionResult) => {
-            if (predictionAutofill && predictionResult !== undefined && state.eligibleForPredictions(index, rectangle)) {
-                state.characterLabels[index] = predictionResult;
+            if (predictionAutofill && predictionResult !== undefined && state.eligibleForPredictions(rectangle)) {
+                state.updateDrawnRectangleText(rectangle.uuid, predictionResult);
                 $('#prediction').text("Prediction: " + predictionResult);
                 draw();
             }

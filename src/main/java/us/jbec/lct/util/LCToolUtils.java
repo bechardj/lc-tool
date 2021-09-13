@@ -1,6 +1,7 @@
 package us.jbec.lct.util;
 
 
+import org.springframework.messaging.Message;
 import org.springframework.security.core.Authentication;
 import us.jbec.lct.models.database.User;
 import us.jbec.lct.security.AuthorizedUser;
@@ -28,7 +29,20 @@ public class LCToolUtils {
      * @return Retrieved User
      */
     public static User getUserFromSession(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        return user;
+        return (User) session.getAttribute("user");
+    }
+
+    /**
+     * Get user from WebSocket Message
+     * @param message message to extract user from
+     * @return extracted user
+     */
+    public static User getUserFromMessage(Message<?> message) {
+        var authorizedUser = ((AuthorizedUser) message.getHeaders().get("simpUser"));
+        if (authorizedUser == null) {
+            return null;
+        } else {
+            return authorizedUser.getUser();
+        }
     }
 }
