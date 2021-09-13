@@ -66,14 +66,14 @@ public class CaptureDataStatisticsServiceTest {
         input.add(doc2);
 
         Mockito.when(documentService.getActiveCloudCaptureDocumentsMetadata()).thenReturn(input);
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("1")).thenReturn(data1);
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("2")).thenReturn(data2);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
 
         var result = testee.calculateAllStatistics();
 
         Mockito.verify(documentService, Mockito.times(1)).getActiveCloudCaptureDocumentsMetadata();
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("1");
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("2");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
 
         assertNotNull(result);
 
@@ -117,13 +117,13 @@ public class CaptureDataStatisticsServiceTest {
 
         input.add(doc2);
 
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("1")).thenReturn(data1);
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("2")).thenReturn(data2);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
 
         var result = testee.calculateStatistics(input);
 
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("1");
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("2");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
 
         assertNotNull(result);
 
@@ -181,15 +181,15 @@ public class CaptureDataStatisticsServiceTest {
 
         input.add(doc3);
 
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("1")).thenReturn(data1);
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("2")).thenReturn(data2);
-        Mockito.when(documentService.getDocumentCaptureDataByUuid("3")).thenReturn(data3);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("1")).thenReturn(data1);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("2")).thenReturn(data2);
+        Mockito.when(documentService.getDocumentCaptureDataByUuidRaw("3")).thenReturn(data3);
 
         var result = testee.calculateStatistics(input);
 
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("1");
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("2");
-        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuid("3");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("1");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("2");
+        Mockito.verify(documentService, Mockito.times(1)).getDocumentCaptureDataByUuidRaw("3");
 
         assertNotNull(result);
 
