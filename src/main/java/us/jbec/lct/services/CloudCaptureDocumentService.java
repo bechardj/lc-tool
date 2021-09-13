@@ -273,6 +273,22 @@ public class CloudCaptureDocumentService {
     }
 
     /**
+     * TODO: temporary workaround foor release 2.0.0 - why hibernate returned null in test?
+     * Get DocumentCaptureData from cloud capture document based on the UUID & by selecting raw capture data
+     * @param uuid document UUID to retrieve DocumentCaptureData from
+     * @return corresponding DocumentCaptureData
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public DocumentCaptureData getDocumentCaptureDataByUuidRaw(String uuid) throws JsonProcessingException {
+        var optionalDocumentData = cloudCaptureDocumentRepository.selectRawDocumentCaptureData(uuid);
+        if (optionalDocumentData != null) {
+            return objectMapper.readValue(optionalDocumentData, DocumentCaptureData.class);
+        } else {
+            throw new LCToolException("Could not find image job");
+        }
+    }
+
+    /**
      * Get ImageJob from document by converting DocumentCaptureData -> ImageJob
      * @param cloudCaptureDocument CloudCaptureDocument to retrieve image job from
      * @return deserialized image job

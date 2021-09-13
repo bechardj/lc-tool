@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LCToolResponse;
 import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.services.CloudCaptureDocumentService;
+import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
+import us.jbec.lct.transformers.ImageJobTransformer;
 import us.jbec.lct.util.LCToolUtils;
 
 import java.io.IOException;
@@ -52,15 +55,26 @@ public class JobController {
     }
 
     /**
+     * Retrieves legacy ImageJob by uuid
+     * @param uuid uuid of DocumentCaptureData to retrieve
+     * @return retrieved DocumentCaptureData
+     */
+    @GetMapping(value = "/getJob")
+    public @ResponseBody ImageJob getJob(@RequestParam String uuid) throws JsonProcessingException {
+        LOG.info("Received request for image job: {}, conversion required", uuid);
+        return DocumentCaptureDataTransformer.apply(cloudCaptureDocumentService.getDocumentCaptureDataByUuidRaw(uuid));
+    }
+
+    /**
      * Retrieves DocumentCaptureData by uuid
      * @param uuid uuid of DocumentCaptureData to retrieve
      * @return retrieved DocumentCaptureData
      */
     @GetMapping(value = "/getDoc")
-    public @ResponseBody DocumentCaptureData getJob(@RequestParam String uuid) {
+    public @ResponseBody DocumentCaptureData getDoc(@RequestParam String uuid) throws JsonProcessingException {
         LOG.info("Received request for job: {}", uuid);
         try {
-            return DocumentCaptureData.flatten(cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid));
+            return DocumentCaptureData.flatten(cloudCaptureDocumentService.getDocumentCaptureDataByUuidRaw(uuid));
         } catch (Exception e) {
             LOG.error("An error occurred while getting image job!", e);
             throw e;

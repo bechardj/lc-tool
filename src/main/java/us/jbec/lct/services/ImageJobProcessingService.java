@@ -80,9 +80,13 @@ public class ImageJobProcessingService {
     public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
         var imageJobFiles = buildImageJobFiles();
         for(var imageJobFile : imageJobFiles) {
-            writeCharacterCrops(imageJobFile, cropsDestination);
-            writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
-            writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
+            try {
+                writeCharacterCrops(imageJobFile, cropsDestination);
+                writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
+                writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
+            } catch (Exception e) {
+                LOG.error("Error occurred while processing job: {} - Will attempt to continue with no cleanup", imageJobFile.getImageJob().getId());
+            }
         }
     }
 
@@ -114,7 +118,7 @@ public class ImageJobProcessingService {
                 LOG.error("Inspect the saved JSON for character rectangle at coordinate {}{}{}{} with label {}", x, y, w, h, rectangle.getLabel());
             }
         }
-        LOG.info("Writing all cropped and labeled images...");
+        LOG.debug("Writing all cropped and labeled character images for job {}...", job.getId());
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, CropsType.LETTERS);
     }
 
@@ -172,7 +176,7 @@ public class ImageJobProcessingService {
                 LOG.error("Something went wrong when cropping the image.", e);
             }
         }
-        LOG.info("Writing all cropped and labeled images...");
+        LOG.debug("Writing all cropped and labeled line/word images for job {}...", job.getId());
         imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
     }
 
@@ -206,7 +210,7 @@ public class ImageJobProcessingService {
     public void exportCurrentImageJobs() throws IOException {
         if (exportEnabled) {
             File outputDirectory = new File(bulkOutputPath);
-            LOG.info("Clearing bulk output directory.");
+            LOG.info("Starting ZIP Generation, clearing bulk output directory & re-generating.");
             FileUtils.deleteDirectory(outputDirectory);
             var created = outputDirectory.mkdir();
             if (!created) {

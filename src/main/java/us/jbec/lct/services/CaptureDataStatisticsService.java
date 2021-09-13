@@ -1,5 +1,6 @@
 package us.jbec.lct.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.CaptureDataStatistics;
@@ -35,7 +36,7 @@ public class CaptureDataStatisticsService {
      * @return computed capture data statistics
      */
     @Cacheable("statistics")
-    public CaptureDataStatistics calculateAllStatistics() {
+    public CaptureDataStatistics calculateAllStatistics() throws JsonProcessingException {
         return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocumentsMetadata());
     }
 
@@ -44,14 +45,14 @@ public class CaptureDataStatisticsService {
      * @param cloudCaptureDocuments map containing cloud capture documents and corresponding image job
      * @return computed capture data statistics
      */
-    public CaptureDataStatistics calculateStatistics(List<CloudCaptureDocument> cloudCaptureDocuments) {
+    public CaptureDataStatistics calculateStatistics(List<CloudCaptureDocument> cloudCaptureDocuments) throws JsonProcessingException {
         var statistics = new CaptureDataStatistics();
 
         var completeCount = 0;
         var editedCount = 0;
 
         for(var doc : cloudCaptureDocuments) {
-            var documentCaptureData = cloudCaptureDocumentService.getDocumentCaptureDataByUuid(doc.getUuid());
+            var documentCaptureData = cloudCaptureDocumentService.getDocumentCaptureDataByUuidRaw(doc.getUuid());
             var imageJob = DocumentCaptureDataTransformer.apply(documentCaptureData);
             if (imageJob.getCharacterLabels() != null) {
                 imageJob.getCharacterLabels().stream()

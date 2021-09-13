@@ -93,7 +93,7 @@ public class CaptureDataStatisticsServiceTest {
     }
 
     @Test
-    public void testCalculateStatistics_singleUser() {
+    public void testCalculateStatistics_singleUser() throws JsonProcessingException {
 
         List<CloudCaptureDocument> input = new ArrayList<>();
 
@@ -144,7 +144,7 @@ public class CaptureDataStatisticsServiceTest {
     }
 
     @Test
-    public void testCalculateStatistics_multipleUsers() {
+    public void testCalculateStatistics_multipleUsers() throws JsonProcessingException {
 
         List<CloudCaptureDocument> input = new ArrayList<>();
 

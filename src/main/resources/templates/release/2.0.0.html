@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LC Capture Tool</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <div th:insert="fragments/shared-styles.html" th:remove="tag"></div>
+
+</head>
+<body>
+
+<div id="main-content-container" class="container">
+    <h1 class="nbs-title">
+        LC Capture Tool 2.0
+    </h1>
+    <hr/>
+    <h1>New Features</h1>
+    <div>
+        <h3>Shared Documents</h3>
+        <p>
+            Now, capture documents can be shared with other users. To share/unshare a document, go to the 'My Documents'
+            page, and click the 'Share' or 'Unshare' link next to the document you'd like to modify the permissions of.
+            This will allow anyone working on the same project as you to edit the capture document. Note: at this point
+            in time, all users are automatically associated with the same project, so all users of the application will
+            currently be able to edit and save a document that you share. Users can see shared documents in the 'Editable Documents' tab,
+            which contains all documents owned by the user as well as the documents they're able to save.
+        </p>
+        <h3>Merging Save</h3>
+        <p>
+            Now when saving a document, new changes are merged into the existing capture data. Previously, when a user
+            saved a document, their local changes effectively overwrote the capture data on the backend. A notable side
+            effect of this is that only identical capture data is not duplicated when merging changes in. This is still more
+            desirable, because (1) data is not lost and can be cleaned up and  (2) given the goal of the application is to capture machine learning data,
+            having multiple screenshots with translated bounds is unlikely to cause significant detriment.
+        </p>
+        <h3>Synchronized Editing (Beta)</h3>
+        <p>
+            When synchronized editing is enabled, capture data will be synced between the backend and the client(s) automatically
+            (similar to how Google Docs synchronizes text-based documents). When using this feature, <b>your changes are automatically saved and synchronized</b>.
+            Despite this, it is still recommended that you manually save the document before you finish editing while this feature is in beta. This feature works
+            with multiple users, and combined with the Shared Documents & Merging Save Feature allow for some degree of collaborative editing. This feature is currently
+            opt-in at the user level, by visiting the 'Preferences' tab. You many need to log out & back in for these changes to take effect. Note that only capture data
+            is synced.
+        </p>
+
+        <h3>Minor Enhancements</h3>
+        <p>
+            Now menus automatically collapse when the mouse leaves them in the capture data interface. A friendlier modal
+            pops up when the user needs to reauthenticate to save. Performance of the document listing interfaces is increased.
+        </p>
+        <hr/>
+        <h2 class="">
+            Bug Fixes
+        </h2>
+        <div>
+            <ul>
+                <li>Document Status is now correctly synchronized from the editor</li>
+                <li>New users should now automatically be added to a default project</li>
+            </ul>
+        </div>
+        <hr/>
+        <h2 class="">
+            Known Defects/Limitations
+        </h2>
+        <div>
+            <ul>
+                <li>Attempting to undo a change that was erased by a different session in the beta synchronized editor may cause the undo to do nothing.</li>
+                <li>A refresh may be required after disconnecting from the beta synchronized editor for an extended period of time.</li>
+                <li>Uploading saved capture data will merge it in, not replace it.</li>
+                <li>New file format has been introduced, containing more complex state information. The simpler, documented ImageJob format is still available for download via the endpoint <code>/getJob?uuid={}</code>. Obtaining this original format will eventually be presented as a more user-friendly option in the UI.</li>
+                <li>Legacy image job data can still be uploaded & converted, but uploading it multiple times will cause duplication. Workaround: re-upload the image and then upload the legacy Image Job data.</li>
+            </ul>
+        </div>
+        <hr/>
+        <h2 class="">
+            Removals
+        </h2>
+        <div>
+            <ul>
+                <li>Migration Service now removed</li>
+            </ul>
+        </div>
+</div>
+
+
+
+<div th:insert="fragments/shared-scripts.html" th:remove="tag"></div>
+
+
+</body>
+</html>

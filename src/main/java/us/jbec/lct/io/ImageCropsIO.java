@@ -62,7 +62,7 @@ public class ImageCropsIO {
                 var outputFile = new File(fullPath);
                 ImageIO.write(labeledImageCrop.getImage(), "png", outputFile);
             }
-            LOG.info("Wrote labeled image crops.");
+            LOG.debug("Wrote labeled image crops for {}.", job.getId());
         }
     }
 
@@ -144,7 +144,7 @@ public class ImageCropsIO {
 
 
     private void deleteBulkCropsByImageJob(ImageJob imageJob, CropsType cropsType) throws IOException {
-        LOG.info("Clearing bulk image crops for job id {}....", imageJob.getId());
+        LOG.debug("Clearing bulk image crops for job id {}....", imageJob.getId());
         var bulkDirectory = new File(bulkOutputPath + File.separator
                 + cropsType.getDirectoryName() + File.separator);
         performCropsDirectoryUpgrade(bulkDirectory);
@@ -161,7 +161,8 @@ public class ImageCropsIO {
                 }
             }
         } else {
-            LOG.error("Could not open bulk directory");
+            // TODO: probably can be removed now, whole dir gets cleared and triggers this error
+            LOG.debug("Could not open bulk directory");
         }
     }
 }
