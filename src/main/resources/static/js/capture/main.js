@@ -37,7 +37,8 @@ function captureCanvasInit (predictionEngine) {
         PRIMARY: primaryColor,
         BLUE: "#0000FF",
         GREEN: "#00FF00",
-        WHITE: "#FFFFFF"
+        WHITE: "#FFFFFF",
+        GREY: "#afafaf"
     }
 
     // Click Functions
@@ -113,7 +114,8 @@ function captureCanvasInit (predictionEngine) {
             state.renderableCharacterRectangles.forEach((r) => {
                 if (r.containsPoint(point)) {
                     state.eraseRectangle(r);
-                    draw();
+                    r.draw(drawingCtx, Colors.GREY, 2, false, Colors.WHITE);
+                    r.drawLabel(drawingCtx, Colors.GREY, 1, Colors.WHITE, "Verdana", fontSize);
                 }
             });
         }
@@ -148,15 +150,23 @@ function captureCanvasInit (predictionEngine) {
             if (captureMode === CaptureModes.WORD) {
                 let wordLine = state.stagedWordLine;
                 wordLine.draw(drawingCtx, Colors.GREEN, 3);
-                window.requestAnimationFrame(() => drawComplete());
+                state.renderableCharacterRectangles.forEach((r) => {
+                    if (wordLine.intersectsRectangle(r)) {
+                        r.draw(drawingCtx, Colors.GREEN, 2, false, Colors.WHITE);
+                    }
+                })
             }
             if (captureMode === CaptureModes.LINE) {
-                let wordLine = state.stagedLineLine;
-                wordLine.draw(drawingCtx, Colors.BLUE, 3);
-                window.requestAnimationFrame(() => drawComplete());
+                let lineLine = state.stagedLineLine;
+                lineLine.draw(drawingCtx, Colors.BLUE, 3);
+                state.renderableCharacterRectangles.forEach((r) => {
+                    if (lineLine.intersectsRectangle(r)) {
+                        r.draw(drawingCtx, Colors.BLUE, 2, false, Colors.WHITE);
+                    }
+                })
             }
             drawingCtx.stroke();
-        } else {
+        } else if (!state.drawing) {
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             drawComplete();
         }
@@ -492,8 +502,8 @@ function captureCanvasInit (predictionEngine) {
         let token = await firebaseModal();
         state.drawCallback = draw;
         await loadJob(jobId, state);
-        await state.connectState(jobId, token);
         background = await loadImage(jobId);
+        await state.connectState(jobId, token);
         $('#notes')[0].value = state.getNotes();
         // Add event listeners
         initEventHandlersAndListeners();
@@ -507,7 +517,6 @@ function captureCanvasInit (predictionEngine) {
          */
         mainCanvas.width = drawingCanvas.width = background.width;
         mainCanvas.height = drawingCanvas.height = background.height;
-
         mainCtx.drawImage(background, 0, 0);
 
         if (document.fonts) {

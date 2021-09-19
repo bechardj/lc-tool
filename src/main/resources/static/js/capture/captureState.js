@@ -90,7 +90,7 @@ class CaptureState {
             if (payload.characterCaptureData !== undefined) {
                 let rect = new Rectangle();
                 Object.assign(rect, payload.characterCaptureData);
-                if (payload.characterCaptureData.captureDataRecordType === "CREATE" && !this.renderableWordLines.has(payload.characterCaptureData.uuid)) {
+                if (payload.characterCaptureData.captureDataRecordType === "CREATE") {
                     rect.labeledRectangle.label = rect.labeledRectangle.label === null ? undefined : rect.labeledRectangle.label;
                     if (this.document.characterCaptureDataMap[payload.characterCaptureData.uuid] === undefined) {
                         this.renderableCharacterRectangles.set(rect.uuid, rect);
@@ -98,7 +98,7 @@ class CaptureState {
                     let createRecord = new Rectangle(rect.asArray);
                     createRecord.uuid = rect.uuid;
                     this.safeAddToMap(this.document.characterCaptureDataMap, createRecord);
-                } else {
+                } else if (payload.characterCaptureData.captureDataRecordType === "DELETE") {
                     this.renderableCharacterRectangles.delete(rect.uuid);
 
                     let deleteRecord = new Rectangle();
@@ -110,14 +110,14 @@ class CaptureState {
             } else if (payload.wordCaptureData !== undefined) {
                 let line = new Line();
                 Object.assign(line, payload.wordCaptureData);
-                if (payload.wordCaptureData.captureDataRecordType === "CREATE" && !this.renderableWordLines.has(payload.wordCaptureData.uuid)) {
+                if (payload.wordCaptureData.captureDataRecordType === "CREATE") {
                     if (this.document.wordCaptureDataMap[payload.wordCaptureData.uuid] === undefined) {
                         this.renderableWordLines.set(line.uuid, line);
                     }
                     let createRecord = new Line(line.asArray);
                     createRecord.uuid = line.uuid;
                     this.safeAddToMap(this.document.wordCaptureDataMap, createRecord);
-                } else {
+                } else if (payload.wordCaptureData.captureDataRecordType === "DELETE") {
                     this.renderableWordLines.delete(line.uuid);
 
                     let deleteLine = new Line();
@@ -129,14 +129,14 @@ class CaptureState {
             } else if (payload.lineCaptureData !== undefined) {
                 let line = new Line();
                 Object.assign(line, payload.lineCaptureData);
-                if (payload.lineCaptureData.captureDataRecordType === "CREATE" && !this.renderableLineLines.has(payload.lineCaptureData.uuid)) {
+                if (payload.lineCaptureData.captureDataRecordType === "CREATE") {
                     if (this.document.lineCaptureDataMap[payload.lineCaptureData.uuid] === undefined) {
                         this.renderableLineLines.set(line.uuid, line);
                     }
                     let createRecord = new Line(line.asArray);
                     createRecord.uuid = line.uuid;
                     this.safeAddToMap(this.document.lineCaptureDataMap, createRecord);
-                } else {
+                } else if (payload.lineCaptureData.captureDataRecordType === "DELETE") {
                     this.renderableLineLines.delete(line.uuid);
 
                     let deleteLine = new Line();

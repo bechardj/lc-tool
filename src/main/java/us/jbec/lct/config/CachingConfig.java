@@ -34,7 +34,7 @@ public class CachingConfig {
      */
     @Scheduled(fixedDelayString = "${lct.cache.purge.stats:900000}")
     public void evictAllRemoteStatistics() throws JsonProcessingException {
-        LOG.info("Clearing & Repriming Remote Statistics Cache");
+        LOG.debug("Clearing & Repriming Remote Statistics Cache");
         var cache = cacheManager.getCache("statistics");
         if (cache != null) {
             cache.clear();
@@ -48,6 +48,6 @@ public class CachingConfig {
     @Scheduled(fixedDelayString = "${lct.cache.purge.dynamictext:300000}")
     @CacheEvict(value = "dynamicText", allEntries = true)
     public void evictAllDynamicText() {
-        LOG.info("Clearing Dynamic Text Cache");
+        LOG.debug("Clearing Dynamic Text Cache");
     }
 }

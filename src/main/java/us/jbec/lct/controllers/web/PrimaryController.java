@@ -2,6 +2,8 @@ package us.jbec.lct.controllers.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import us.jbec.lct.services.UserService;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Web Controller for handling general page views
@@ -25,11 +28,14 @@ public class PrimaryController {
 
     private final DynamicTextService dynamicTextService;
     private final UserService userService;
+    private BuildProperties buildProperties;
 
     public PrimaryController(DynamicTextService dynamicTextService,
-                             UserService userService) {
+                             UserService userService,
+                             Optional<BuildProperties> buildProperties) {
         this.dynamicTextService = dynamicTextService;
         this.userService = userService;
+        buildProperties.ifPresent(props -> this.buildProperties = props);
     }
 
     /**
@@ -69,6 +75,8 @@ public class PrimaryController {
         var user = (User) session.getAttribute("user");
         maintenance.ifPresent(s -> model.addAttribute("maintenance", s));
         var releaseNotes = dynamicTextService.retrieveDynamicTextByType(DynamicTextType.RELEASE_NOTES);
+        model.addAttribute("version", buildProperties != null ? buildProperties.getVersion() : "dev-build");
+
         if (null != user && !releaseNotes.isEmpty()) {
             List<DynamicText> displayableReleaseNotes;
                     var max = userService.retrieveUserPrefs(user)
@@ -84,6 +92,7 @@ public class PrimaryController {
                 model.addAttribute("releaseNotes", displayableReleaseNotes);
                 model.addAttribute("releaseNotesDismiss", displayableReleaseNotes.get(0).getSortOrder());
             }
+
         }
         return "home";
     }

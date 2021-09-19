@@ -44,7 +44,10 @@
     <p class = "body"><a href="https://lct.jbec.us/bulkOutput/latest">Download Complete Dataset</a></p>
     <button class="nbs-button" id="loginButton">Login</button>
     <div th:insert="fragments/statistics.html :: div"></div>
-    <p class="pt-1 license-tag"><a href="/license">View Licenses</a></p>
+    <div class="pt-1 footer-tag">
+        <a href="/license">View Licenses</a>
+        <div th:text="${'Application Version: ' + version}"></div>
+    </div>
 </div>
 
 
