@@ -502,8 +502,8 @@ function captureCanvasInit (predictionEngine) {
         let token = await firebaseModal();
         state.drawCallback = draw;
         await loadJob(jobId, state);
-        await state.connectState(jobId, token);
         background = await loadImage(jobId);
+        await state.connectState(jobId, token);
         $('#notes')[0].value = state.getNotes();
         // Add event listeners
         initEventHandlersAndListeners();
