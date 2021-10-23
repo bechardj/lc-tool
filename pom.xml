@@ -5,18 +5,18 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.4</version>
+		<version>2.5.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>us.jbec</groupId>
 	<artifactId>lc-cloud-tool</artifactId>
-	<version>2.1.0</version>
+	<version>2.1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>lc-cloud-tool</name>
 	<description>LC Cloud Capture Tool</description>
 
 	<properties>
-		<java.version>16</java.version>
+		<java.version>17</java.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 	</properties>
 
@@ -257,7 +257,7 @@
 				</executions>
 				<configuration>
 					<from>
-						<image>amazoncorretto:16.0.0</image>
+						<image>amazoncorretto:17</image>
 						<platforms>
 							<platform>
 								<architecture>amd64</architecture>
@@ -270,7 +270,7 @@
 						</platforms>
 					</from>
 					<to>
-						<image>docker.jbec.us/lct_cloud:${maven.build.timestamp}</image>
+						<image>docker.jbec.us/lct_cloud:v${project.version}_${maven.build.timestamp}</image>
 					</to>
 					<container>
 						<ports>
@@ -283,8 +283,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>16</source>
-					<target>16</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
 
