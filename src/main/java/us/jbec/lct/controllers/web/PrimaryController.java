@@ -115,10 +115,28 @@ public class PrimaryController {
         return "requestInvite";
     }
 
+    /**
+     * TOS endpoint
+     * @return tos view
+     */
+    @GetMapping("tos")
+    public String tos() {
+        return "tos";
+    }
 
     /**
-     * Request Invite endpoint
+     * Privacy policy endpoint
      * @return Invite Request view
+     */
+    @GetMapping("privacy")
+    public String privacy() {
+        return "privacy";
+    }
+
+
+    /**
+     * Release notes endpoint
+     * @return Release notes
      */
     @GetMapping("/release/{version}")
     public String releaseNotes(@PathVariable String version) {

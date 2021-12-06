@@ -1,6 +1,8 @@
 package us.jbec.lct.models.capture;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -14,11 +16,11 @@ import java.util.function.Function;
 /**
  * Document level capture data collection
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DocumentCaptureData {
     private String uuid;
     private String notes;
     private boolean completed;
-    private boolean edited;
 
     private Map<String, List<CharacterCaptureData>> characterCaptureDataMap;
     private Map<String, List<WordCaptureData>> wordCaptureDataMap;
@@ -27,7 +29,6 @@ public class DocumentCaptureData {
     public DocumentCaptureData(@JsonProperty("uuid") String uuid) {
         this.uuid = uuid;
         completed = false;
-        edited = false;
         notes = "";
         characterCaptureDataMap = new HashMap<>();
         wordCaptureDataMap = new HashMap<>();
@@ -54,7 +55,6 @@ public class DocumentCaptureData {
     public static DocumentCaptureData flatten(DocumentCaptureData source, String uuid) {
         DocumentCaptureData target = new DocumentCaptureData(uuid);
         target.setCompleted(source.isCompleted());
-        target.setEdited(source.isEdited());
         target.setNotes(source.getNotes());
 
         target.setCharacterCaptureDataMap(flattenDataMap(source.getCharacterCaptureDataMap(), CharacterCaptureData::new));
@@ -91,12 +91,9 @@ public class DocumentCaptureData {
         this.completed = completed;
     }
 
+    @JsonIgnore
     public boolean isEdited() {
-        return edited;
-    }
-
-    public void setEdited(boolean edited) {
-        this.edited = edited;
+        return !characterCaptureDataMap.isEmpty() || !lineCaptureDataMap.isEmpty() || !wordCaptureDataMap.isEmpty();
     }
 
     public Map<String, List<CharacterCaptureData>> getCharacterCaptureDataMap() {

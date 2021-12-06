@@ -6,19 +6,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
 
 /**
- * Configuration class for specifying additional resource directories at runtime
- * to be served by the embedded Tomcat server
+ * Configuration class for configuring custom MVC settings, including serving custom resources
  */
 @Configuration
-public class ResourceHandlerConfig implements WebMvcConfigurer {
+public class MVCConfig implements WebMvcConfigurer {
 
-    Logger LOG = LoggerFactory.getLogger(ResourceHandlerConfig.class);
+    Logger LOG = LoggerFactory.getLogger(MVCConfig.class);
 
     @Value("${lct.tf.modelPath:#{null}}")
     public String localModelPath;
@@ -28,7 +28,7 @@ public class ResourceHandlerConfig implements WebMvcConfigurer {
 
     Environment environment;
 
-    public ResourceHandlerConfig(Environment environment) {
+    public MVCConfig(Environment environment) {
         super();
         this.environment = environment;
     }
@@ -61,4 +61,5 @@ public class ResourceHandlerConfig implements WebMvcConfigurer {
                 .setCachePeriod(0)
                 .addResourceLocations(SystemUtils.IS_OS_WINDOWS ? "file:/" + path : "file://" + path);
     }
+
 }

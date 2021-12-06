@@ -1,9 +1,15 @@
 package us.jbec.lct.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.models.CaptureDataStatistics;
+import us.jbec.lct.models.DocumentStatus;
 import us.jbec.lct.models.database.CloudCaptureDocument;
 import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
 
@@ -18,6 +24,8 @@ import java.util.Objects;
  */
 @Service
 public class CaptureDataStatisticsService {
+
+    Logger LOG = LoggerFactory.getLogger(CloudCaptureDocumentService.class);
 
     // TODO: refactor to not need to convert and/or be more efficient so that we don't need to pull back big lobs from db
 
@@ -37,6 +45,7 @@ public class CaptureDataStatisticsService {
      */
     @Cacheable("statistics")
     public CaptureDataStatistics calculateAllStatistics() throws JsonProcessingException {
+        LOG.debug("Performing real statistics calculation on all active documents");
         return calculateStatistics(cloudCaptureDocumentService.getActiveCloudCaptureDocumentsMetadata());
     }
 
@@ -62,7 +71,7 @@ public class CaptureDataStatisticsService {
                     statistics.addUserCount(doc.getOwner().getFirebaseEmail(), imageJob.getCharacterLabels().size());
                 }
             }
-            if (imageJob.isCompleted()) completeCount++;
+            if (DocumentStatus.COMPLETED == doc.getDocumentStatus() || imageJob.isCompleted()) completeCount++;
             if (imageJob.isEdited()) editedCount++;
         }
 

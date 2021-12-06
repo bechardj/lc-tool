@@ -6,6 +6,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.jbec.lct.models.DocumentSaveEvent;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LCToolResponse;
@@ -20,10 +22,8 @@ import us.jbec.lct.models.capture.CaptureDataPayload;
 import us.jbec.lct.models.capture.DocumentCaptureData;
 import us.jbec.lct.services.CloudCaptureDocumentService;
 import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
-import us.jbec.lct.transformers.ImageJobTransformer;
 import us.jbec.lct.util.LCToolUtils;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -33,19 +33,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Controller for interacting with image jobs
  */
 @RestController
-public class JobController {
+public class CloudCaptureDocumentController {
 
-    Logger LOG = LoggerFactory.getLogger(JobController.class);
+    Logger LOG = LoggerFactory.getLogger(CloudCaptureDocumentController.class);
 
     private final CloudCaptureDocumentService cloudCaptureDocumentService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     /**
      * Controller for interacting with image jobs
      * @param cloudCaptureDocumentService autowired parameter
      */
-    public JobController(CloudCaptureDocumentService cloudCaptureDocumentService) {
+
+    public CloudCaptureDocumentController(CloudCaptureDocumentService cloudCaptureDocumentService, ApplicationEventPublisher applicationEventPublisher) {
         this.cloudCaptureDocumentService = cloudCaptureDocumentService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     private Bucket syncAfterDisconnectBucket() {
@@ -86,12 +89,13 @@ public class JobController {
      * @param authentication auth object
      * @param documentCaptureData DocumentCaptureData to save
      * @return LCToolResponse object
-     * @throws IOException
      */
     @PostMapping(value = "/sec/api/saveDoc", consumes= { "application/json" })
-    public LCToolResponse saveDoc(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) throws IOException {
+    public LCToolResponse saveDoc(Authentication authentication, @RequestBody DocumentCaptureData documentCaptureData) {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
+        LOG.info("Request to save document {} by user {}", documentCaptureData.getUuid(), user.getFirebaseEmail());
         cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
+        applicationEventPublisher.publishEvent(new DocumentSaveEvent(documentCaptureData.getUuid()));
         return new LCToolResponse(false, "Saved!");
     }
 
@@ -108,6 +112,7 @@ public class JobController {
                                                         @RequestBody DocumentCaptureData documentCaptureData,
                                                         @RequestParam String originSession) {
         var user = LCToolUtils.getUserFromAuthentication(authentication);
+        LOG.info("Request to sync document {} by user {}", documentCaptureData.getUuid(), user.getFirebaseEmail());
         Bucket userBucket = this.buckets.computeIfAbsent(user.getFirebaseIdentifier(), (uuid) -> syncAfterDisconnectBucket());
         if (userBucket.tryConsume(1)) {
             int mergeCount = cloudCaptureDocumentService.saveDocumentCaptureData(documentCaptureData, user.getFirebaseIdentifier(), true);
@@ -118,6 +123,7 @@ public class JobController {
                 LOG.info("Client changes were merged in. Requesting all clients sync.");
                 cloudCaptureDocumentService.requestClientSync(documentCaptureData.getUuid(), originSession);
             }
+            applicationEventPublisher.publishEvent(new DocumentSaveEvent(documentCaptureData.getUuid()));
             return payloads;
         } else {
             throw new LCToolException("Rate limit exceeded!");

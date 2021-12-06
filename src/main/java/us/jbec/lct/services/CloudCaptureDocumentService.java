@@ -6,6 +6,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -153,6 +155,8 @@ public class CloudCaptureDocumentService {
         cloudCaptureDocument.setDocumentCaptureData(existingData);
         cloudCaptureDocumentRepository.save(cloudCaptureDocument);
 
+        LOG.info("Successful save of document {} with merge count {}", newData.getUuid(), mergeCount);
+
         return mergeCount;
     }
 
@@ -273,7 +277,7 @@ public class CloudCaptureDocumentService {
     }
 
     /**
-     * TODO: temporary workaround foor release 2.0.0 - why hibernate returned null in test?
+     * TODO: temporary workaround for release 2.0.0 - why hibernate returned null in test?
      * Get DocumentCaptureData from cloud capture document based on the UUID & by selecting raw capture data
      * @param uuid document UUID to retrieve DocumentCaptureData from
      * @return corresponding DocumentCaptureData
