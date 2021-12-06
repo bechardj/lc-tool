@@ -50,7 +50,7 @@ public class ImageJobTransformerTest {
         assertNotNull(result);
         assertEquals(result.getUuid(), "id");
         assertTrue(result.isCompleted());
-        assertTrue(result.isEdited());
+        assertFalse(result.isEdited());
         assertEquals(result.getNotes(), "note");
 
         assertTrue(result.getCharacterCaptureDataMap().isEmpty());
