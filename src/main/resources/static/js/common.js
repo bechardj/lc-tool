@@ -54,6 +54,8 @@ function initLogin(id) {
                 requireDisplayName: true
             }
         ],
+        tosUrl: window.location.origin + '/tos',
+        privacyPolicyUrl: window.location.origin + '/privacy',
         callbacks: {
             signInSuccessWithAuthResult: (authObject, redirectUrl) => {
                 firebase.auth().currentUser.getIdToken().then(data => fetch('/firebaseLogin', {

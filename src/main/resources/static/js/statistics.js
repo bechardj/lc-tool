@@ -93,33 +93,36 @@ class StatisticsInfo {
             }
         });
 
-        const byUserCtx = $("#byUserCtx")[0].getContext("2d");
-        let byUserChart = new Chart(byUserCtx, {
-            type: 'horizontalBar',
-            data: {
-                labels: Object.keys(this.statistics.userCounts),
-                datasets: [{
-                    label: 'User Collected Labels',
-                    backgroundColor: primaryColor,
-                    borderColor: primaryColor,
-                    data: Object.values(this.statistics.userCounts)
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                legend: {
-                    display: false,
-                },
-                scales: {
-                    xAxes: [{
-                        display: true,
-                        ticks: {
-                            beginAtZero: true,
-                        }
+        const byUserCtx = $("#byUserCtx")[0];
+        if(byUserCtx !== undefined) {
+            let byUserChart = new Chart(byUserCtx.getContext("2d"), {
+                type: 'horizontalBar',
+                data: {
+                    labels: Object.keys(this.statistics.userCounts),
+                    datasets: [{
+                        label: 'User Collected Labels',
+                        backgroundColor: primaryColor,
+                        borderColor: primaryColor,
+                        data: Object.values(this.statistics.userCounts)
                     }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    legend: {
+                        display: false,
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            ticks: {
+                                beginAtZero: true,
+                            }
+                        }]
+                    }
                 }
-            }
-        });
+            });
+        }
+
 
     }
 

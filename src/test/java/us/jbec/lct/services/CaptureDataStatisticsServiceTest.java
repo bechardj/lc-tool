@@ -53,7 +53,6 @@ public class CaptureDataStatisticsServiceTest {
         doc1.setUuid("1");
         doc1.setOwner(user1);
         var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
-        data1.setEdited(true);
 
         input.add(doc1);
 
@@ -61,7 +60,6 @@ public class CaptureDataStatisticsServiceTest {
         doc2.setUuid("2");
         doc2.setOwner(user1);
         var data2 = buildDocDataFromChars("1", List.of());
-        data2.setEdited(false);
 
         input.add(doc2);
 
@@ -105,7 +103,6 @@ public class CaptureDataStatisticsServiceTest {
         doc1.setOwner(user1);
         doc1.setUuid("1");
         var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
-        data1.setEdited(true);
 
         input.add(doc1);
 
@@ -113,7 +110,6 @@ public class CaptureDataStatisticsServiceTest {
         doc2.setOwner(user1);
         doc2.setUuid("2");
         var data2 = buildDocDataFromChars("2", List.of());
-        data2.setEdited(false);
 
         input.add(doc2);
 
@@ -156,7 +152,6 @@ public class CaptureDataStatisticsServiceTest {
         doc1.setOwner(user1);
         doc1.setUuid("1");
         var data1 = buildDocDataFromChars("1", List.of("a", "B", "c", "a", "1", ".", " ", "other"));
-        data1.setEdited(true);
 
         input.add(doc1);
 
@@ -164,7 +159,6 @@ public class CaptureDataStatisticsServiceTest {
         doc2.setOwner(user1);
         doc2.setUuid("2");
         var data2 = buildDocDataFromChars("2", List.of("x", "b", "-", "Z"));
-        data2.setEdited(true);
         data2.setCompleted(true);
 
         input.add(doc2);
@@ -177,7 +171,6 @@ public class CaptureDataStatisticsServiceTest {
         doc3.setOwner(user2);
         doc3.setUuid("3");
         var data3 = buildDocDataFromChars("3", List.of("l", "m", "n", "O"));
-        data3.setEdited(true);
 
         input.add(doc3);
 

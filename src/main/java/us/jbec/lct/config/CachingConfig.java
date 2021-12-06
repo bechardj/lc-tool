@@ -7,8 +7,12 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import us.jbec.lct.models.DocumentSaveEvent;
 import us.jbec.lct.services.CaptureDataStatisticsService;
 
 /**
@@ -17,6 +21,8 @@ import us.jbec.lct.services.CaptureDataStatisticsService;
 @EnableScheduling
 @EnableCaching
 @Configuration
+@EnableAsync
+
 public class CachingConfig {
 
     Logger LOG = LoggerFactory.getLogger(CachingConfig.class);
@@ -30,11 +36,14 @@ public class CachingConfig {
     }
 
     /**
-     * Periodically reset remote statistics result cache
+     * Clears and regenerates stats cache on document save
+     * @param documentSaveEvent document save event
+     * @throws JsonProcessingException
      */
-    @Scheduled(fixedDelayString = "${lct.cache.purge.stats:900000}")
-    public void evictAllRemoteStatistics() throws JsonProcessingException {
-        LOG.debug("Clearing & Repriming Remote Statistics Cache");
+    @EventListener
+    @Async
+    public void regenerateStatsCacheOnSave(DocumentSaveEvent documentSaveEvent) throws JsonProcessingException {
+        LOG.debug("Clearing and recalculating statistics cache due to document event");
         var cache = cacheManager.getCache("statistics");
         if (cache != null) {
             cache.clear();

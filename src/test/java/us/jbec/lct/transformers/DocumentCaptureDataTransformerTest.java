@@ -20,7 +20,6 @@ public class DocumentCaptureDataTransformerTest {
     @Test
     public void testTransformSimpleFields() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
-        data.setEdited(true);
         data.setCompleted(true);
         data.setNotes("Working on it...");
 
@@ -28,7 +27,6 @@ public class DocumentCaptureDataTransformerTest {
 
         assertNotNull(result);
         assertEquals(result.getId(), "1234");
-        assertTrue(result.isEdited());
         assertTrue(result.isCompleted());
 
         assertEquals(result.getFields().get("NOTES"), "Working on it...");

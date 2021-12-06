@@ -28,7 +28,6 @@ public class ImageJobTransformer {
         DocumentCaptureData documentCaptureData = new DocumentCaptureData(imageJob.getId());
 
         documentCaptureData.setUuid(imageJob.getId());
-        documentCaptureData.setEdited(imageJob.isEdited());
         documentCaptureData.setCompleted(imageJob.isCompleted());
         String notes = imageJob.getFields().get(ImageJobFields.NOTES.name());
 

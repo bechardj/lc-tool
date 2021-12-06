@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import us.jbec.lct.models.CaptureDataStatistics;
 import us.jbec.lct.services.CaptureDataStatisticsService;
+import us.jbec.lct.util.LCToolUtils;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * Controller for serving capture data statistics
@@ -32,9 +35,14 @@ public class CaptureDataStatisticsController {
      * @throws JsonProcessingException
      */
     @GetMapping("/statistics")
-    public CaptureDataStatistics statistics() throws JsonProcessingException {
+    public CaptureDataStatistics statistics(HttpSession session) throws JsonProcessingException {
         try {
-            return captureDataStatisticsService.calculateAllStatistics();
+            var user = LCToolUtils.getUserFromSession(session);
+            var stats = captureDataStatisticsService.calculateAllStatistics();
+            if (user == null) {
+                return stats.maskedStatistics();
+            }
+            return stats;
         }
         catch (Exception e) {
             LOG.error("An error occurred generating statistics!", e);

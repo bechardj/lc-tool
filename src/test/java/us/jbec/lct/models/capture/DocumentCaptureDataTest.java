@@ -14,13 +14,12 @@ public class DocumentCaptureDataTest {
     @Test
     public void testFlattenNoCaptureData() {
         DocumentCaptureData data = new DocumentCaptureData("1234");
-        data.setEdited(true);
         data.setCompleted(false);
         data.setNotes("Working on it...");
         var result = DocumentCaptureData.flatten(data, "1234");
 
         assertNotNull(result);
-        assertTrue(result.isEdited());
+        assertFalse(result.isEdited());
         assertFalse(result.isCompleted());
         assertEquals(result.getNotes(), "Working on it...");
         assertTrue(result.getCharacterCaptureDataMap().isEmpty());

@@ -51,6 +51,23 @@ public class CaptureDataStatistics {
         totalCaptured = 0;
     }
 
+    /**
+     * Return statistics results with sensitive information masked (i.e. user counts)
+     * @return masked results
+     */
+    public CaptureDataStatistics maskedStatistics() {
+        var masked = new CaptureDataStatistics();
+        masked.setLabelFrequency(labelFrequency);
+        masked.setOtherFrequency(otherFrequency);
+        masked.setUpperFrequency(upperFrequency);
+        masked.setLowerFrequency(lowerFrequency);
+        masked.setTotalCaptured(totalCaptured);
+        masked.setPagesWithData(pagesWithData);
+        masked.setPagesMarkedCompleted(pagesMarkedCompleted);
+        masked.setDateGenerated(dateGenerated);
+        return masked;
+    }
+
     public LocalDateTime getDateGenerated() {
         return dateGenerated;
     }
