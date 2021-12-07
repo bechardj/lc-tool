@@ -100,7 +100,7 @@ public class UserService {
                 LOG.info("Login successful for existing user {}", user.getFirebaseEmail());
             } else {
                 user = new User(token);
-                if (!user.getFirebaseEmail().contains("uconn.edu")) {
+                if (!user.getFirebaseEmail().endsWith("@uconn.edu")) {
                     var invitations = invitationRepository.selectInvitationByEmail(user.getFirebaseEmail());
                     if (invitations.isEmpty()) {
                         LOG.error("User {} Without UConn Account Attempted Login with No Invitation", user.getFirebaseEmail());
