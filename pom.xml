@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.7</version>
+		<version>2.5.12</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>us.jbec</groupId>
 	<artifactId>lc-cloud-tool</artifactId>
-	<version>2.2.1</version>
+	<version>2.2.2</version>
 	<packaging>jar</packaging>
 	<name>lc-cloud-tool</name>
 	<description>LC Cloud Capture Tool</description>
