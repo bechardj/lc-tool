@@ -245,7 +245,7 @@
 			<plugin>
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
-				<version>3.1.4</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<id>build</id>
@@ -270,7 +270,7 @@
 						</platforms>
 					</from>
 					<to>
-						<image>docker.jbec.us/lct_cloud:v${project.version}_${maven.build.timestamp}</image>
+						<image>bechardj/lct_cloud:v${project.version}_${maven.build.timestamp}</image>
 					</to>
 					<container>
 						<ports>
