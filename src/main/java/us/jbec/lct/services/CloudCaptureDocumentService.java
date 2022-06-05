@@ -6,10 +6,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +26,7 @@ import us.jbec.lct.transformers.ImageJobTransformer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -226,22 +221,11 @@ public class CloudCaptureDocumentService {
     }
 
     /**
-     * Return a Map of all active CloudCaptureDocuments as key, with
-     * converted ImageJob data as the value
-     * Cannot be called from the context of a Transaction
-     * @return Map of all cloud capture documents and corresponding converted ImageJob data
+     * Return a List of all active CloudCaptureDocument uuids
+     * @return List of all active CloudCaptureDocument uuids
      */
-    @Transactional(propagation = Propagation.NEVER)
-    public Map<CloudCaptureDocument, ImageJob> getActiveCloudCaptureDocumentsDataMap() {
-        var result = new HashMap<CloudCaptureDocument, ImageJob>();
-
-        for (var document : cloudCaptureDocumentRepository.findAll()) {
-            if (DocumentStatus.DELETED != document.getDocumentStatus()) {
-                result.put(document, getImageJobFromDocument(document));
-            }
-        }
-
-        return result;
+    public List<String> getActiveCloudCaptureDocumentUuids() {
+        return cloudCaptureDocumentRepository.selectAllActiveDocumentUuids();
     }
 
     /**

@@ -1,7 +1,6 @@
 package us.jbec.lct.services;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +9,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import us.jbec.lct.io.ImageCropsIO;
 import us.jbec.lct.io.PrimaryImageIO;
-import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.ImageJobFile;
@@ -18,6 +16,7 @@ import us.jbec.lct.models.LCToolException;
 import us.jbec.lct.models.LabeledImageCrop;
 import us.jbec.lct.models.geometry.LabeledRectangle;
 import us.jbec.lct.models.geometry.OffsetRectangle;
+import us.jbec.lct.transformers.DocumentCaptureDataTransformer;
 import us.jbec.lct.util.geometry.GeometricCollectionUtils;
 
 import javax.imageio.ImageIO;
@@ -27,9 +26,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,18 +73,19 @@ public class ImageJobProcessingService {
 
     /**
      * Process all image jobs for all active CloudCaptureDocuments, generating character, line, and word crops
-     * @param cropsDestination processed job output destination
      * @throws IOException
      */
-    public void processAllImageJobCrops(CropsDestination cropsDestination) throws IOException {
-        var imageJobFiles = buildImageJobFiles();
-        for(var imageJobFile : imageJobFiles) {
+    public void processAllImageJobCrops() throws IOException {
+        var uuids = cloudCaptureDocumentService.getActiveCloudCaptureDocumentUuids();
+
+        for(var uuid : uuids) {
             try {
-                writeCharacterCrops(imageJobFile, cropsDestination);
-                writeLineCrops(imageJobFile, cropsDestination, CropsType.LINES);
-                writeLineCrops(imageJobFile, cropsDestination, CropsType.WORDS);
+                ImageJobFile imageJobFile = buildImageJobFile(uuid);
+                writeCharacterCrops(imageJobFile);
+                writeLineCrops(imageJobFile, CropsType.LINES);
+                writeLineCrops(imageJobFile, CropsType.WORDS);
             } catch (Exception e) {
-                LOG.error("Error occurred while processing job: {} - Will attempt to continue with no cleanup", imageJobFile.getImageJob().getId());
+                LOG.error("Error occurred while processing job: {} - Will attempt to continue with no cleanup", uuid);
             }
         }
     }
@@ -94,10 +94,9 @@ public class ImageJobProcessingService {
     /**
      * Generate and write character crops to disk for a given ImageJobFile
      * @param imageJobFile image job file to generate character crops for
-     * @param destination processed job output destination
      * @throws IOException
      */
-    private void writeCharacterCrops(ImageJobFile imageJobFile, CropsDestination destination) throws IOException {
+    private void writeCharacterCrops(ImageJobFile imageJobFile) throws IOException {
         var job = imageJobFile.getImageJob();
         var imageFile = imageJobFile.getImageFile();
 
@@ -119,17 +118,16 @@ public class ImageJobProcessingService {
             }
         }
         LOG.debug("Writing all cropped and labeled character images for job {}...", job.getId());
-        imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, CropsType.LETTERS);
+        imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, CropsType.LETTERS);
     }
 
     /**
      * Generate and write line crops to disk for a given ImageJobFile
      * @param imageJobFile image job file to generate line crops for
-     * @param destination processed job output destination
      * @param cropsType crops type (line or word)
      * @throws IOException
      */
-    private void writeLineCrops(ImageJobFile imageJobFile, CropsDestination destination, CropsType cropsType) throws IOException {
+    private void writeLineCrops(ImageJobFile imageJobFile, CropsType cropsType) throws IOException {
 
         if(cropsType == CropsType.LETTERS || cropsType == null) {
             throw new LCToolException("Invalid Crops Type for writing line crops");
@@ -177,27 +175,21 @@ public class ImageJobProcessingService {
             }
         }
         LOG.debug("Writing all cropped and labeled line/word images for job {}...", job.getId());
-        imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, destination, cropsType);
+        imageCropsIO.writeLabeledImageCrops(job, labeledImageCrops, cropsType);
     }
 
     /**
      * Build ImageJobFile objects from active cloud capture documents
      * @return List of ImageJobFiles
      */
-    private List<ImageJobFile> buildImageJobFiles() {
-        var cloudDocs = cloudCaptureDocumentService.getActiveCloudCaptureDocumentsDataMap();
-        HashMap<String, File> images = new HashMap<>();
-        primaryImageIO.getPersistedImages().forEach(image -> images.put(FilenameUtils.getBaseName(image.getName()), image));
-        List<ImageJobFile> imageJobFiles = new ArrayList<>();
-        for(var entry : cloudDocs.entrySet()) {
-            var doc = entry.getKey();
-            var image = images.get(doc.getUuid());
-            if (image != null) {
-                var imageFile = new ImageJobFile(image, entry.getValue());
-                imageJobFiles.add(imageFile);
-            }
+    private ImageJobFile buildImageJobFile(String uuid) {
+        var captureData = cloudCaptureDocumentService.getDocumentCaptureDataByUuid(uuid);
+        ImageJob imageJob = DocumentCaptureDataTransformer.apply(captureData);
+        Optional<File> optionalFile = primaryImageIO.getImageByUuid(uuid);
+        if (optionalFile.isEmpty()) {
+            throw new LCToolException("Image file missing!");
         }
-        return imageJobFiles;
+        return new ImageJobFile(optionalFile.get(), imageJob);
     }
 
     /**
@@ -216,7 +208,7 @@ public class ImageJobProcessingService {
             if (!created) {
                 LOG.error("Could not create output directory");
             }
-            processAllImageJobCrops(CropsDestination.BULK);
+            processAllImageJobCrops();
             zipOutputService.updateZipOutput();
             zipOutputService.cleanupZipDirectory();
         } else {

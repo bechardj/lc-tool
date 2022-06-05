@@ -33,6 +33,15 @@ public interface CloudCaptureDocumentRepository extends CrudRepository<CloudCapt
     List<String> selectAllDocumentUuids();
 
     /**
+     * Select all active cloud capture document UUID's
+     * @return all active cloud capture document UUID's
+     */
+    @Query(value = "select uuid from CloudCaptureDocument " +
+            "where documentStatus <> us.jbec.lct.models.DocumentStatus.DELETED and " +
+            "documentStatus <> us.jbec.lct.models.DocumentStatus.IGNORED")
+    List<String> selectAllActiveDocumentUuids();
+
+    /**
      * Fetch the raw underlying LOB data for DocumentCaptureData
      * @param uuid document UUID
      * @return raw DocumentCaptureData LOB data

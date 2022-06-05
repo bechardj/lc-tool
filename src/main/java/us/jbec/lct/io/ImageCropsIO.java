@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import us.jbec.lct.models.CropsDestination;
 import us.jbec.lct.models.CropsType;
 import us.jbec.lct.models.ImageJob;
 import us.jbec.lct.models.LCToolException;
@@ -34,24 +33,19 @@ public class ImageCropsIO {
      * Write labels to the autowired output directory
      * @param job image job to use for naming and metadata
      * @param labeledImageCrops image crops to write
-     * @param destination destination (bulk output vs single file output)
      * @param cropsType crops type to generate
      * @throws IOException
      */
     public void writeLabeledImageCrops(ImageJob job, List<LabeledImageCrop> labeledImageCrops,
-                                       CropsDestination destination, CropsType cropsType) throws IOException {
+                                       CropsType cropsType) throws IOException {
         int nameCounter = 0;
         if (labeledImageCrops != null && labeledImageCrops.size() > 0) {
-            if (CropsDestination.BULK.equals(destination)){
-                deleteBulkCropsByImageJob(job, cropsType);
-            } else {
-                deleteCropsDirectoryBySourceFile(labeledImageCrops.get(0).getSource(), cropsType);
-            }
+            deleteBulkCropsByImageJob(job, cropsType);
             for (LabeledImageCrop labeledImageCrop : labeledImageCrops) {
                 nameCounter++;
                 var name = job.getId() + "_" + nameCounter + ".png";
 
-                var directory = buildOutputDirectory(labeledImageCrop, destination, cropsType);
+                var directory = buildOutputDirectory(labeledImageCrop, cropsType);
                 if (directory == null) {
                     throw new LCToolException("Unable to open output directory");
                 }
@@ -73,27 +67,15 @@ public class ImageCropsIO {
      * @param cropsType crops type
      * @return file containing the directory to use (and to create if needed)
      */
-    private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsDestination destination, CropsType cropsType) {
+    private File buildOutputDirectory(LabeledImageCrop labeledImageCrop, CropsType cropsType) {
         var label = labeledImageCrop.getLabel();
-        if (CropsDestination.PAGE.equals(destination)) {
-            var imageDirectory = labeledImageCrop.getSource().getParentFile();
-            return new File(imageDirectory.getAbsolutePath()
-                    + File.separator
-                    + "crops"
-                    + File.separator
-                    + cropsType.getDirectoryName()
-                    + File.separator
-                    + label
-                    + File.separator);
-        } else if (CropsDestination.BULK.equals(destination)) {
-            return new File(bulkOutputPath
-                    + File.separator
-                    + cropsType.getDirectoryName()
-                    + File.separator
-                    + label
-                    + File.separator);
-        }
-        return null;
+        return new File(bulkOutputPath
+                + File.separator
+                + cropsType.getDirectoryName()
+                + File.separator
+                + label
+                + File.separator);
+
     }
 
     /**
