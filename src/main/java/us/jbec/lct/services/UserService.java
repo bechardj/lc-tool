@@ -150,7 +150,9 @@ public class UserService {
         try {
             var prefs = user.getUserPrefs();
             if (null == prefs) {
-                updateUserPrefs(user, new UserPrefs());
+                UserPrefs userPrefs = new UserPrefs();
+                userPrefs.setEnableSynchronizedEditing(true);
+                updateUserPrefs(user, userPrefs);
             }
             return objectMapper.readValue(user.getUserPrefs(), UserPrefs.class);
         } catch (Exception e) {

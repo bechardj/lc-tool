@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for managing the Zip archive output
@@ -74,8 +75,7 @@ public class ZipOutputService {
     public void updateZipOutput() throws ZipException {
         if (zipResourcePath != null) {
             LOG.info("Updating Zip Output directory using {}...", bulkOutputPath);
-            //TODO : make this a UUID
-            String fileName = LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond() + ".zip";
+            String fileName = UUID.randomUUID() + ".zip";
             String zipOutputPath = zipResourcePath + File.separator + fileName;
             String zipUri = "/zipOutput/" + fileName;
             var zipOutputRecord = new ZipOutputRecord();
@@ -105,11 +105,15 @@ public class ZipOutputService {
         for (int i = 0; i < sortedZips.size() - ZIP_ARCHIVE_COUNT; i++) {
             var zipRecord = sortedZips.get(i);
             File zipFile = new File(zipRecord.getFilePath());
-            var deleted = zipFile.delete();
-            if (deleted) {
-                zipOutputRepository.delete(zipRecord);
-            } else {
-                LOG.warn("Filed to delete zip {}", zipFile.getAbsolutePath());
+            try {
+                var deleted = zipFile.delete();
+                if (deleted) {
+                    zipOutputRepository.delete(zipRecord);
+                } else {
+                    LOG.warn("Failed to delete zip {}", zipFile.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                LOG.warn("Failed to delete zip {}", zipFile.getAbsolutePath());
             }
         }
         LOG.info("Cleaned up zip directory...");

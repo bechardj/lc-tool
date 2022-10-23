@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.0</version>
+		<version>2.7.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>us.jbec</groupId>
 	<artifactId>lc-cloud-tool</artifactId>
-	<version>2.2.4</version>
+	<version>2.2.5-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>lc-cloud-tool</name>
 	<description>LC Cloud Capture Tool</description>
@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.14.1</version>
+			<version>1.15.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>com.github.vladimir-bukhtoyarov</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>6.2.0</version>
+			<version>7.6.0</version>
 		</dependency>
 
 		<dependency>
@@ -94,25 +94,25 @@
 		<dependency>
 			<groupId>net.lingala.zip4j</groupId>
 			<artifactId>zip4j</artifactId>
-			<version>2.9.0</version>
+			<version>2.11.2</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.google.firebase</groupId>
 			<artifactId>firebase-admin</artifactId>
-			<version>8.0.0</version>
+			<version>9.1.0</version>
 		</dependency>
 
 		<!--	Web Jars	-->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>webjars-locator</artifactId>
-			<version>0.40</version>
+			<version>0.45</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>4.6.0-1</version>
+			<version>5.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>bootstrap-icons</artifactId>
-			<version>1.4.1</version>
+			<version>1.9.1</version>
 		</dependency>
 		<!-- This Ugly Hack is To Handle TestNG requiring a specific version of jQuery -->
 		<dependency>
@@ -135,13 +135,13 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery</artifactId>
-			<version>3.6.0</version>
+			<version>3.6.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery-ui</artifactId>
-			<version>1.12.1</version>
+			<version>1.13.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -161,7 +161,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>datatables</artifactId>
-			<version>1.10.24</version>
+			<version>1.12.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.bower</groupId>

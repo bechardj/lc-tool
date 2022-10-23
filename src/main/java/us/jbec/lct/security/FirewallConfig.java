@@ -29,7 +29,7 @@ public class FirewallConfig {
 
         @Override
         public void handle(HttpServletRequest request, HttpServletResponse response, RequestRejectedException requestRejectedException) throws IOException {
-            LOG.error("Rejecting request: {}", request.getRequestURL().toString());
+            LOG.debug("Rejecting request: {}", request.getRequestURL().toString());
             super.handle(request, response, requestRejectedException);
         }
 

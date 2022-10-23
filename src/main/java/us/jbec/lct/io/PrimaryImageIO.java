@@ -98,7 +98,7 @@ public class PrimaryImageIO {
         } else {
             LOG.error("Could not open image persistence directory.");
         }
-        LOG.info("Successfully read images in.");
+        LOG.debug("Successfully read images in.");
         return imageJobFiles;
     }
 
