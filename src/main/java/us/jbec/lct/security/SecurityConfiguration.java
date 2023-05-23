@@ -71,6 +71,8 @@ public class SecurityConfiguration {
                     .authorizeRequests()
                     .requestMatchers(requestMatcher()).authenticated()
                     .and()
+                    .headers().frameOptions().sameOrigin()
+                    .and()
                     .csrf().disable()
                     .formLogin().disable()
                     .httpBasic().disable()
@@ -120,7 +122,8 @@ public class SecurityConfiguration {
 
         @Override
         public void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/secure/**")
+            http.headers().frameOptions().sameOrigin().and()
+                    .antMatcher("/secure/**")
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                     .and()
