@@ -32,7 +32,7 @@ function notify(message, delay) {
 
 var firebaseConfig = {
     apiKey: "AIzaSyDKc9yuouNPNNLjk8M4K2p2nV0j0yLebUY",
-    authDomain: "lc-tool.firebaseapp.com",
+    authDomain: "lct.joeybechard.com",
     projectId: "lc-tool",
     storageBucket: "lc-tool.appspot.com",
     messagingSenderId: "1055126397725",
