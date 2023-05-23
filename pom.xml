@@ -82,8 +82,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
 			<version>8.0.31</version>
 			<scope>runtime</scope>
 		</dependency>
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>webjars-locator</artifactId>
-			<version>0.45</version>
+			<version>0.46</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -125,18 +125,11 @@
 			<artifactId>bootstrap-icons</artifactId>
 			<version>1.9.1</version>
 		</dependency>
-		<!-- This Ugly Hack is To Handle TestNG requiring a specific version of jQuery -->
-		<dependency>
-			<groupId>org.webjars.</groupId>
-			<artifactId>jquery</artifactId>
-			<version>3.5.1</version>
-			<scope>test</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery</artifactId>
-			<version>3.6.1</version>
+			<version>3.6.2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -184,7 +177,7 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>7.4.0</version>
+			<version>7.7.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
